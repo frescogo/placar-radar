@@ -1,10 +1,10 @@
+String PORTA = "/dev/ttyUSB0";
+
 import processing.serial.*;
 Serial porta;
 String codigo;
 String jog_esq;
 String jog_dir;
-String min_tot;
-String seg_tot;
 String vel_esq;
 String vel_dir;
 String pos_vel;
@@ -12,8 +12,6 @@ String pts_esq;
 String pts_total;
 String pts_dir;
 String quedas;
-String tr_min;
-String tr_seg;
 int coord_x;
 int tamanho; // Numero de dígitos de um valor lido na serial
 int coordenada_inicial; 
@@ -21,9 +19,11 @@ int largura_quadro;
 int largura_letra;
 PImage img; // Função para trabalhar com imagens
 
+int TEMPO_TOTAL;
+int TEMPO_JOGADO;
 
 void setup(){
- porta = new Serial(this, "COM12", 9600);
+ porta = new Serial(this, PORTA, 9600);
  porta.bufferUntil('\n');
  
 // Código que veio do painel
@@ -169,16 +169,19 @@ void setup(){
 void draw(){
   if (porta.available()>0){  
     String linha = porta.readStringUntil('\n'); // Ler a String recebida
+    print(linha);
     String[] posicao = split (linha, ";");
     codigo = posicao[0];    
 //=========================== INICIA SWITCH CASE ===================================
 switch (codigo){
 
 case "0": 
-    min_tot = posicao[1]; // Define posição desse dado na serial
-    seg_tot = posicao[2]; // Define posição desse dado na serial    
-    jog_esq = posicao[3]; // Define posição desse dado na serial
-    jog_dir = posicao[4]; // Define posição desse dado na serial
+    TEMPO_TOTAL = int(posicao[1]);
+    jog_esq = posicao[2];
+    jog_dir = posicao[3];
+
+    String min_tot = nf(TEMPO_TOTAL / 60, 2);
+    String seg_tot = nf(TEMPO_TOTAL % 60, 2);
 
     //========== MOSTRA TEMPO DE DURAÇÃO DO JOGO ==========
     fill(0);
@@ -202,7 +205,7 @@ case "0":
     coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
     fill(255, 0, 0);  // Seta a cor do texto
     text(jog_esq, coord_x, 159); // Mostra valor
-    print(coord_x);
+    //print(coord_x);
     
     //============= MOSTRA JOGADOR À DIREITA =============
     fill(255);
@@ -215,7 +218,7 @@ case "0":
     coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
     fill(255, 0, 0);  // Seta a cor do texto
     text(jog_dir, coord_x, 159); // Mostra valor
-    print(coord_x);
+    //print(coord_x);
     break;
 
 case "1":
@@ -304,9 +307,13 @@ case "1":
 
 case "2": 
 
-    tr_min = posicao[1];
-    tr_seg = posicao[2];
-    pts_total = posicao[3];
+    TEMPO_JOGADO = int(posicao[1]);
+    pts_total = posicao[2];
+
+    int tempo_faltando = TEMPO_TOTAL-TEMPO_JOGADO;
+    String tr_min = nf(tempo_faltando / 60, 2);
+    String tr_seg = nf(tempo_faltando % 60, 2);
+
     
 //=========== CRONÔMETRO ===========    
     // ============== MOSTRA MINUTOS ==============          
