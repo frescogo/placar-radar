@@ -140,15 +140,7 @@ void draw_total (int total) {
   text(total, width/2, 480+240/2-20);
 }
 
-void setup () {
-  porta = new Serial(this, PORTA, 9600);
-  porta.bufferUntil('\n');
-
-  surface.setTitle("FrescoGO! V.1.11");
-  size(1280, 720);
-  img = loadImage("fresco.png");
-  textFont(createFont("Arial Black", 18));
-
+void draw_zera () {
   draw_logos();
   draw_tempo(0);
 
@@ -169,6 +161,18 @@ void setup () {
   draw_total(0);
 }
 
+void setup () {
+  porta = new Serial(this, PORTA, 9600);
+  porta.bufferUntil('\n');
+
+  surface.setTitle("FrescoGO! V.1.11");
+  size(1280, 720);
+  img = loadImage("fresco.png");
+  textFont(createFont("Arial Black", 18));
+
+  draw_zera();
+}
+
 void draw() {
 
   if (porta.available() == 0) {
@@ -187,6 +191,7 @@ void draw() {
       String esq = campos[2];
       String dir = campos[3];
 
+      draw_zera();
       draw_tempo(TEMPO_TOTAL);
       draw_nome(  0, esq);
       draw_nome(754, dir);
