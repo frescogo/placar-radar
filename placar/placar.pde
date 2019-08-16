@@ -45,7 +45,7 @@ void setup () {
   SERIAL.bufferUntil('\n');
 
   surface.setTitle("FrescoGO! V.1.11");
-  //size(1280, 720);
+  //size(640, 480);
   fullScreen();
   IMG = loadImage("fresco.png");
 
@@ -128,8 +128,8 @@ void draw () {
       if (is_esq)
       {
           draw_pontos(X_ESQ, pontos, is_behind);
+          draw_maxima(X_ESQ, max(back_max,fore_max));
           draw_ultima(X_ESQ+W_MAXULT, velocidade);
-          draw_maxima(0, max(back_max,fore_max));
 
           ellipseMode(CENTER);
 
@@ -186,7 +186,7 @@ void draw () {
       int quedas = int(campos[1]);
       draw_quedas(quedas);
       draw_ultima(X_ESQ+W_MAXULT, 0);
-      draw_ultima(X_ESQ, 0);
+      draw_ultima(X_DIR, 0);
       break;
     }
 
@@ -216,11 +216,11 @@ void draw_zera () {
   draw_pontos(X_ESQ, 0, false);
   draw_pontos(X_DIR, 0, false);
 
-  draw_maxima(0, 0);
-  draw_maxima(X_DIR+W_MAXULT, 0);
+  draw_maxima(X_ESQ, 0);
+  draw_ultima(X_ESQ+W_MAXULT, 0);
   draw_media(0);
-  draw_ultima(W_MAXULT, 0);
   draw_ultima(X_DIR, 0);
+  draw_maxima(X_DIR+W_MAXULT, 0);
 
   draw_total(0);
 }
