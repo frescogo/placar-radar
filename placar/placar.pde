@@ -308,20 +308,6 @@ void draw_golpes (int golpes) {
   text(golpes, width/2, 4*H+40*dy);
 }
 
-void draw_pontos (float x, int pontos, boolean is_behind) {
-  stroke(0);
-  if (is_behind) {
-      fill(255,0,0);
-  } else {
-      fill(255);
-  }
-  rect(x, 5*H, W, T);
-  fill(0);
-  textSize(50*dy);
-  textAlign(CENTER, CENTER);
-  text(pontos, x+W/2, 5*H+T/2-10*dy);
-}
-
 void draw_maxima (float x, int max) {
   stroke(0);
   fill(255);
@@ -338,6 +324,20 @@ void draw_maxima (float x, int max) {
     textSize(90*dy);
     text(max, x+W/2, 4*H+36*dy+5*dy);
   }
+}
+
+void draw_pontos (float x, int pontos, boolean is_behind) {
+  stroke(0);
+  if (is_behind) {
+      fill(255,0,0);
+  } else {
+      fill(255);
+  }
+  rect(x, 5*H, W, T);
+  fill(0);
+  textSize(50*dy);
+  textAlign(CENTER, CENTER);
+  text(pontos, x+W/2, 5*H+T/2-10*dy);
 }
 
 void draw_total (int total) {
