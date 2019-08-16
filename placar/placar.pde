@@ -86,6 +86,15 @@ void draw_pontos (int x, int pontos) {
   text(pontos, x+525/2, 165+195/2-10);
 }
 
+void draw_max (int x, int max) {
+  fill(255);
+  rect(x, 360, 262, 120);
+  fill(0);
+  textSize(30);
+  textAlign(CENTER, TOP);
+  text("Máxima", x+262/2, 360);
+}
+
 void setup () {
   porta = new Serial(this, PORTA, 9600);
   porta.bufferUntil('\n');
@@ -103,13 +112,8 @@ void setup () {
   draw_nome(754, "?");
   draw_pontos(  0, 0);
   draw_pontos(754, 0);
-
-  // Velocidade máxima jogador à esquerda
-  fill(255);
-  rect(0, 360, 262, 120);
-  fill(0);
-  textSize(30);
-  text("Máxima", 75, 395);
+  draw_max(   0, 0);
+  draw_max(1016, 0);
 
   // Última velocidade jogador à esquerda
   fill(255);
@@ -135,13 +139,6 @@ void setup () {
   text("Última", 834, 395);
   textSize(75);
   text("", 834, 463);
-
-  // Velocidade máxima jogador à direita
-  fill(255);
-  rect(1016, 360, 263, 120);
-  fill(0);
-  textSize(30);
-  text("Máxima", 1096, 395);
 
   // Pontuação total
   fill(0); // Preenche com a cor preta
