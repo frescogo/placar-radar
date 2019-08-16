@@ -34,29 +34,6 @@ void setup(){
     img = loadImage("fresco.png"); // Atribui imagem à variável "img"
     textFont(createFont("Arial Black", 18));  
 
-    // Retângulo dos minutos
-    fill(0);
-    rect(280, 0, 340, 110); 
-    fill(255);
-    textSize(100);
-    text("00", 485, 90); // Zerando minutos
-    
-    // Retângulo Dois Pontos
-    fill(0);
-    rect(620, 0, 40, 110); 
-    fill(255);
-    textSize(100);
-    text(":", 623, 90); // Fixa os dois pontos
-
-    // Retângulo dos segundos 
-    fill(0);
-    rect(660, 0, 340, 110);  
-    fill(255);
-    textSize(100);
-    text("00", 660, 90); // Zerando segundos
-    
-
-    
   // fim testes
   //Logos
   image(img, 0, 0); // Logo esquerda
@@ -165,6 +142,20 @@ void setup(){
 
 // Fim do código que veio do painel
 }
+
+void draw_tempo (int tempo) {
+  String mins = nf(tempo / 60, 2);
+  String segs = nf(tempo % 60, 2);
+
+  fill(0);
+  rect(280, 0, 720, 110);
+
+  fill(255);
+  textSize(100);
+  textAlign(CENTER, CENTER);
+  text(mins+":"+segs, width/2, 110/2-10);
+}
+
 //=========================== INICIA VOID DRAW =====================================
 void draw(){
   if (porta.available()>0){  
@@ -180,20 +171,10 @@ case "0":
     jog_esq = posicao[2];
     jog_dir = posicao[3];
 
-    String min_tot = nf(TEMPO_TOTAL / 60, 2);
-    String seg_tot = nf(TEMPO_TOTAL % 60, 2);
+    draw_tempo(TEMPO_TOTAL);
 
-    //========== MOSTRA TEMPO DE DURAÇÃO DO JOGO ==========
-    fill(0);
-    rect(280, 0, 340, 110); 
-    fill(255);
-    textSize(100);
-    text("", 485, 90); // Zerando minutos
-    textSize(100);
-    text(min_tot, 485, 90); // Zerando minutos
-    //textSize(100);
-    //text(seg_tot, 660, 90); // Zerando segundos
-    
+    textAlign(LEFT, BOTTOM);
+
     //============= MOSTRA JOGADOR À ESQUERDA =============
     fill(255);
     rect(0, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
@@ -310,54 +291,17 @@ case "2":
     TEMPO_JOGADO = int(posicao[1]);
     pts_total = posicao[2];
 
-    int tempo_faltando = TEMPO_TOTAL-TEMPO_JOGADO;
-    String tr_min = nf(tempo_faltando / 60, 2);
-    String tr_seg = nf(tempo_faltando % 60, 2);
-
+    draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
     
-//=========== CRONÔMETRO ===========    
-    // ============== MOSTRA MINUTOS ==============          
-    text(" ", 485, 90); // Zerando minutos
-    fill(0);
-    stroke(0);
-    rect(280, 0, 340, 110);
-    fill(255);  // Preenche com a cor branca
+    textAlign(LEFT, BOTTOM);
     textSize(100);
-    tamanho = tr_min.length(); // Número de caracteres no nome da esquerda
-    if (tamanho == 1){
-    fill(255);  // Seta a cor do texto
-    text("0"+ tr_min, 485, 90); // Mostra valorr
-    }
-    else if (tamanho == 2){
-    fill(255);  // Seta a cor do texto
-    text(tr_min, 485, 90); // Mostra valor      
-    }
-    
-    // ============== MOSTRA SEGUNDOS ==============          
-    text("00", 660, 90); // Zerando segundos
-    fill(0);
-    stroke(0);
-    rect(660, 0, 340, 110);
-    fill(255);  // Preenche com a cor branca
-    textSize(100);
-    tamanho = tr_seg.length(); // Número de caracteres no nome da esquerda
-    if (tamanho == 1){
-    fill(255);  // Seta a cor do texto
-    text("0"+ tr_min, 660, 90); // Mostra valorr
-    }
-    else if (tamanho == 2){
-    fill(255);  // Seta a cor do texto
-    text(tr_seg, 660, 90); // Mostra valor      
-    }
-
-//=========== FIM CRONÔMETRO ===========       
-    
     text("0", 575, 670); // Mostra valor
     fill(0); // Preenche com a cor preta
     rect(0, 480, 1280, 240);  // Desenha o retângulo
     fill(255);
     textSize(200);      
     tamanho = pts_total.length(); // Número de caracteres no nome da esquerda
+    println(pts_total + " " + tamanho);
     coordenada_inicial = 0; // Coordenada inicial do nome da esquerda
     largura_quadro = 1280; // Largura do retângulo do nome da esquerda
     largura_letra = 130; // Espaçamento da fonte do nome
