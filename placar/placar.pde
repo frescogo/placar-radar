@@ -9,7 +9,6 @@ String pos_vel;
 String pts_esq;
 String pts_total;
 String pts_dir;
-String quedas;
 int coord_x;
 int tamanho; // Numero de dígitos de um valor lido na serial
 int coordenada_inicial; 
@@ -41,6 +40,36 @@ void draw_tempo (int tempo) {
   text(mins+":"+segs, width/2, 110/2-10);
 }
 
+void draw_quedas (int quedas) {
+  fill(255);
+  rect(525, 110, 230, 250);
+
+  textAlign(CENTER, TOP);
+
+  fill(0);
+  textSize(25);
+  text("QUEDAS", width/2, 110);
+  
+  fill(37, 21, 183);
+  textSize(90);
+  text(quedas, width/2, 110+25); 
+}
+
+void draw_golpes (int golpes) {
+  fill(255);
+  rect(525, 235, 229, 125);
+  
+  textAlign(CENTER, TOP);
+
+  fill(0);
+  textSize(25);
+  text("GOLPES", width/2, 235);
+  
+  fill(37, 21, 183);
+  textSize(90);
+  text(golpes, width/2, 235+25);     
+}
+  
 void draw_nome (int x, String nome) {
   fill(255);
   rect(x, 110, 525, 55);
@@ -61,29 +90,10 @@ void setup () {
 
   draw_logos();
   draw_tempo(0);
+  draw_quedas(0);
+  draw_golpes(0);
   draw_nome(  0, "?");
   draw_nome(754, "?");
-  
-  // Quedas
-  fill(255);
-  rect(525, 110, 230, 250); // Retângulo Quedas
-  fill(0);
-  textSize(25);
-  text("QUEDAS", 585, 139);
-  fill(37, 21, 183);
-  textSize(90);
-  text("0", 612, 220); 
-
-  // Quantidade de golpes
-  fill(255);
-  rect(525, 235, 229, 125); // Retângulo golpes
-  fill(0);
-  textSize(25);
-  text("GOLPES", 585, 262);
-  fill(37, 21, 183);
-  textSize(90);
-  text("0", 612, 345);     
-
   
   // Pontuação Jogador da Esquerda
   fill(255);
@@ -278,25 +288,8 @@ case "2":
     break;
 
 case "3": // Queda de bola, zerar o placar
-    quedas = posicao[1];
-    
-    // ============== QUEDAS DE BOLA ==============          
-    textSize(90);
-    text("", 612, 289); 
-    fill(0); // Preenche com a cor preta
-    fill(255);
-    rect(525, 110, 229, 125); // Retângulo Quedas
-    fill(0);
-    textSize(25);
-    text("QUEDAS", 585, 139);
-    textSize(90);      
-    tamanho = quedas.length(); // Número de caracteres no nome da esquerda
-    coordenada_inicial = 0; // Coordenada inicial do nome da esquerda
-    largura_quadro = 1280; // Largura do retângulo do nome da esquerda
-    largura_letra = 60; // Espaçamento da fonte do nome
-    coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-    fill(37, 21, 183);  // Seta a cor do texto
-    text(quedas, coord_x, 220); // Mostra valor 
+    int quedas = int(posicao[1]);
+    draw_quedas(quedas);
     
     //Apaga ultimas velocidade esquerda
           fill(255);
