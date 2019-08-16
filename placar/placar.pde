@@ -56,12 +56,13 @@ void draw() {
       boolean is_back    = int(campos[2]) == 1;
       int     velocidade = int(campos[3]);
       int     pontos     = int(campos[4]);
+      boolean is_behind  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
 
       color c = (is_back ? color(164,56,15) : color(15,56,164));
 
       if (is_esq)
       {
-          draw_pontos(0, pontos);
+          draw_pontos(0, pontos, is_behind);
           draw_ultima(262, velocidade);
 
           // desehna circulo da direita
@@ -76,7 +77,7 @@ void draw() {
       }
       else
       {
-          draw_pontos(754, pontos);
+          draw_pontos(754, pontos, is_behind);
           draw_ultima(754, velocidade);
 
           // desehna circulo da esquerda
@@ -137,8 +138,8 @@ void draw_zera () {
 
   draw_nome  (   0, "?");
   draw_nome  ( 754, "?");
-  draw_pontos(   0, 0);
-  draw_pontos( 754, 0);
+  draw_pontos(   0, 0, false);
+  draw_pontos( 754, 0, false);
 
   draw_maxima(   0, 0);
   draw_maxima(1016, 0);
@@ -212,9 +213,13 @@ void draw_nome (int x, String nome) {
   text(nome, x+525/2, 110+55/2-5);
 }
 
-void draw_pontos (int x, int pontos) {
+void draw_pontos (int x, int pontos, boolean is_behind) {
   stroke(0);
-  fill(255);
+  if (is_behind) {
+      fill(255,0,0);
+  } else {
+      fill(255);
+  }
   rect(x, 165, 525, 195);
   fill(0);
   textSize(140);
