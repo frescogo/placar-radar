@@ -38,9 +38,10 @@ float Y_TOTAL;
 
 void setup () {
   SERIAL = new Serial(this, PORTA, 9600);
+  //delay(50);
+  //SERIAL.bufferUntil('\n');
+  //SERIAL.clear();
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
-  //SERIAL.buffer(1024);
-  SERIAL.bufferUntil('\n');
 
   surface.setTitle("FrescoGO! V.1.11");
   size(800, 600);
@@ -355,7 +356,8 @@ void draw_maxima (float x, int max) {
   textSize(36*dy);
   text("Máxima", x+W_MAXULT/2, Y_MEIO+5*dy);
 
-  if (max != 0) {
+  //if (max != 0)
+  {
     textSize(90*dy);
     text(max, x+W_MAXULT/2, Y_MEIO+36*dy+5*dy);
   }
