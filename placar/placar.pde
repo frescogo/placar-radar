@@ -57,13 +57,18 @@ void draw() {
       int     velocidade = int(campos[3]);
       int     pontos     = int(campos[4]);
       boolean is_behind  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
+      int     backs      = int(campos[6]);      // TODO
+      int     back_max   = int(campos[7]);
+      int     fores      = int(campos[8]);      // TODO
+      int     fore_max   = int(campos[9]);
 
       color c = (is_back ? color(164,56,15) : color(15,56,164));
 
       if (is_esq)
       {
-          draw_pontos(0, pontos, is_behind);
+          draw_pontos(  0, pontos, is_behind);
           draw_ultima(262, velocidade);
+          draw_maxima(  0, max(back_max,fore_max));
 
           // desehna circulo da direita
           fill(c);
@@ -77,8 +82,9 @@ void draw() {
       }
       else
       {
-          draw_pontos(754, pontos, is_behind);
-          draw_ultima(754, velocidade);
+          draw_pontos( 754, pontos, is_behind);
+          draw_ultima( 754, velocidade);
+          draw_maxima(1016, max(back_max,fore_max));
 
           // desehna circulo da esquerda
           fill(c);
@@ -105,7 +111,9 @@ void draw() {
       }
       draw_total(total);
       draw_golpes(golpes);
-      draw_media(media);
+      if (TEMPO_JOGADO >= 5) {
+          draw_media(media);
+      }
       break;
     }
 
