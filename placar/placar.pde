@@ -6,9 +6,7 @@ String codigo;
 String vel_esq;
 String vel_dir;
 String pos_vel;
-String pts_esq;
 String pts_total;
-String pts_dir;
 int coord_x;
 int tamanho; // Numero de dígitos de um valor lido na serial
 int coordenada_inicial;
@@ -79,6 +77,15 @@ void draw_nome (int x, String nome) {
   text(nome, x+525/2, 110+55/2-5);
 }
 
+void draw_pontos (int x, int pontos) {
+  fill(255);
+  rect(x, 165, 525, 195);
+  fill(0);
+  textSize(140);
+  textAlign(CENTER, CENTER);
+  text(pontos, x+525/2, 165+195/2-10);
+}
+
 void setup () {
   porta = new Serial(this, PORTA, 9600);
   porta.bufferUntil('\n');
@@ -94,20 +101,8 @@ void setup () {
   draw_golpes(0);
   draw_nome(  0, "?");
   draw_nome(754, "?");
-
-  // Pontuação Jogador da Esquerda
-  fill(255);
-  rect(0, 165, 525, 195);
-  fill(0);  // Preenche com a cor branca
-  textSize(140);
-  text("0", 216, 315); // Zerando a pontuação inicial
-
-  // Pontuação Jogador da Direita
-  fill(255);
-  rect(754, 165, 525, 195);
-  fill(0);
-  textSize(140);
-  text("0", 970, 315);  // Zerando a pontuação inicial
+  draw_pontos(  0, 0);
+  draw_pontos(754, 0);
 
   // Velocidade máxima jogador à esquerda
   fill(255);
@@ -183,8 +178,8 @@ case "1":
     pos_vel = posicao[1];
     vel_esq = posicao[3];
     vel_dir = posicao[3];
-    pts_esq = posicao[4];
-    pts_dir = posicao[4];
+    int pts_esq = int(posicao[4]);
+    int pts_dir = int(posicao[4]);
           switch (pos_vel){
           case "0":
           fill(255);
@@ -208,20 +203,7 @@ case "1":
           textSize(80);
           text(vel_dir, 834, 463);
 
-          // ============== Pontuação do jogador da ESQUERDA ==============
-          text("0", 216, 315);
-          fill(255);
-          stroke(0);
-          rect(0, 165, 525, 195);
-          fill(0);  // Preenche com a cor branca
-          textSize(140);
-          tamanho = pts_esq.length(); // Número de caracteres no nome da esquerda
-          coordenada_inicial = 0; // Coordenada inicial do nome da esquerda
-          largura_quadro = 525; // Largura do retângulo do nome da esquerda
-          largura_letra = 90; // Espaçamento da fonte do nome
-          coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-          fill(0);  // Seta a cor do texto
-          text(pts_esq, coord_x, 315); // Mostra valor
+          draw_pontos(0, pts_esq);
           break;
 
           case "1":
@@ -246,20 +228,7 @@ case "1":
           textSize(75);
           text(vel_esq, 340, 463);
 
-          // ============== Pontuação do jogador da DIREITA ==============
-          text("0", 970, 315);
-          fill(255);
-          stroke(0);
-          rect(754, 165, 525, 195);
-          fill(0);  // Preenche com a cor branca
-          textSize(140);
-          tamanho = pts_dir.length(); // Número de caracteres no nome da esquerda
-          coordenada_inicial = 754; // Coordenada inicial do nome da esquerda
-          largura_quadro = 525; // Largura do retângulo do nome da esquerda
-          largura_letra = 90; // Espaçamento da fonte do nome
-          coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-          fill(0);  // Seta a cor do texto
-          text(pts_dir, coord_x, 315); // Mostra valor
+          draw_pontos(754, pts_dir);
           break;
           }
 
