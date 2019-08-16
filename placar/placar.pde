@@ -102,7 +102,7 @@ void draw () {
       String dir = campos[3];
 
       draw_zera();
-      draw_tempo(TEMPO_TOTAL);
+      draw_tempo(TEMPO_TOTAL, false);
       draw_nome(X_ESQ, esq);
       draw_nome(X_DIR, dir);
       break;
@@ -116,7 +116,7 @@ void draw () {
       String dir = campos[4];
 
       TEMPO_JOGADO = tempo;
-      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
 
       draw_quedas(quedas);
 
@@ -185,9 +185,9 @@ void draw () {
       int golpes = int(campos[3]);
       int media  = int(campos[4]);
 
-      if (tempo >= TEMPO_JOGADO+5) {
+      if (tempo >= (TEMPO_JOGADO-TEMPO_JOGADO%5)+5) {
         TEMPO_JOGADO = tempo;
-        draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+        draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
       }
       draw_total(total);
       draw_golpes(golpes);
@@ -205,12 +205,19 @@ void draw () {
       draw_ultima(X_DIR, 0);
       break;
     }
+
+    // END
+    case 5: {
+      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, true);
+      draw_ultima(X_ESQ+W_MAXULT, 0);
+      draw_ultima(X_DIR, 0);
+    }
   }
 }
 
 void draw_zera () {
   draw_logos();
-  draw_tempo(0);
+  draw_tempo(0, false);
 
   draw_quedas(0);
   draw_golpes(0);
@@ -238,11 +245,15 @@ void draw_logos () {
   image(IMG, X_LOGO2+W_LOGO/2, H_TOPO/2);
 }
 
-void draw_tempo (int tempo) {
+void draw_tempo (int tempo, boolean ended) {
   String mins = nf(tempo / 60, 2);
   String segs = nf(tempo % 60, 2);
 
-  fill(0);
+  if (ended) {
+    fill(255,0,0);
+  } else {
+    fill(0);
+  }
   rect(X_TEMPO, 0, W_TEMPO, H_TOPO);
 
   fill(255);
