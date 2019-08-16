@@ -9,6 +9,7 @@ int    TEMPO_JOGADO;
 
 void setup () {
   SERIAL = new Serial(this, PORTA, 9600);
+  //SERIAL.buffer(1024);
   SERIAL.bufferUntil('\n');
 
   surface.setTitle("FrescoGO! V.1.11");
@@ -25,10 +26,14 @@ void draw() {
     return;
   }
 
-  String   linha  = SERIAL.readStringUntil('\n');
+  String linha = SERIAL.readStringUntil('\n');
+  if (linha == null) {
+    return;
+  }
+  //print(linha);
+
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
-  print(linha);
 
   switch (codigo)
   {
