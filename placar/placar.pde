@@ -3,8 +3,6 @@ String PORTA = "/dev/ttyUSB0";
 import processing.serial.*;
 Serial porta;
 String codigo;
-String jog_esq;
-String jog_dir;
 String vel_esq;
 String vel_dir;
 String pos_vel;
@@ -43,6 +41,15 @@ void draw_tempo (int tempo) {
   text(mins+":"+segs, width/2, 110/2-10);
 }
 
+void draw_esquerda (String nome) {
+  fill(255);
+  rect(0, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
+  fill(255, 0, 0);
+  textSize(55);
+  textAlign(CENTER, CENTER);
+  text(nome, 525/2, 110+55/2-5);
+}
+
 void setup () {
   porta = new Serial(this, PORTA, 9600);
   porta.bufferUntil('\n');
@@ -53,14 +60,8 @@ void setup () {
   textFont(createFont("Arial Black", 18));
 
   draw_logos();
-
-  // Nomes e Quedas
-  // Jogador à esquerda
-  fill(255);
-  rect(0, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
-  fill(255, 0, 0);
-  textSize(55);
-  text("?", 245, 159);
+  draw_tempo(0);
+  draw_esquerda("?");
   
   // Quedas
   fill(255);
@@ -167,37 +168,23 @@ switch (codigo){
 
 case "0": 
     TEMPO_TOTAL = int(posicao[1]);
-    jog_esq = posicao[2];
-    jog_dir = posicao[3];
+    String esq = posicao[2];
+    String dir = posicao[3];
 
     draw_tempo(TEMPO_TOTAL);
-
-    textAlign(LEFT, BOTTOM);
-
-    //============= MOSTRA JOGADOR À ESQUERDA =============
-    fill(255);
-    rect(0, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
-    textSize(55);
-    tamanho = jog_esq.length(); // Número de caracteres no nome da esquerda
-    coordenada_inicial = 0; // Coordenada inicial do nome da esquerda
-    largura_quadro = 525; // Largura do retângulo do nome da esquerda
-    largura_letra = 40; // Espaçamento da fonte do nome
-    coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-    fill(255, 0, 0);  // Seta a cor do texto
-    text(jog_esq, coord_x, 159); // Mostra valor
-    //print(coord_x);
+    draw_esquerda(esq); // Mostra valor
     
     //============= MOSTRA JOGADOR À DIREITA =============
     fill(255);
     rect(754, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
     textSize(55);    
-    tamanho = jog_dir.length(); // Número de caracteres no nome da esquerda
+    tamanho = dir.length(); // Número de caracteres no nome da esquerda
     coordenada_inicial = 754; // Coordenada inicial do nome da esquerda
     largura_quadro = 525; // Largura do retângulo do nome da esquerda
     largura_letra = 40; // Espaçamento da fonte do nome
     coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
     fill(255, 0, 0);  // Seta a cor do texto
-    text(jog_dir, coord_x, 159); // Mostra valor
+    text(dir, coord_x, 159); // Mostra valor
     //print(coord_x);
     break;
 
