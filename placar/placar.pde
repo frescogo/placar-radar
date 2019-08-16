@@ -7,6 +7,7 @@ PImage IMG;
 
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
+int      MAXIMA;
 String[] NOMES = new String[2];
 
 float dy; // 0.001 height
@@ -59,6 +60,7 @@ void draw () {
     case 0: {
       TEMPO_TOTAL  = int(campos[1]);
       TEMPO_JOGADO = 0;
+      MAXIMA       = 0;
 
       String esq = campos[2];
       String dir = campos[3];
@@ -99,18 +101,23 @@ void draw () {
       int     pontos     = int(campos[4]);
       boolean is_behind  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
       int     backs      = int(campos[6]);      // TODO
-      int     back_max   = int(campos[7]);
-      int     fores      = int(campos[8]);      // TODO
-      int     fore_max   = int(campos[9]);
+      int     back_avg   = int(campos[7]);
+      int     back_max   = int(campos[8]);
+      int     fores      = int(campos[9]);      // TODO
+      int     fore_avg   = int(campos[10]);
+      int     fore_max   = int(campos[11]);
 
       color c = (is_back ? color(164,56,15) : color(15,56,164));
       float h = 3*H+10*dy;
       ellipseMode(CENTER);
 
+      MAXIMA = max(MAXIMA, max(back_max,fore_max));
+      draw_maxima(MAXIMA);
+
       if (is_esq)
       {
           draw_pontos(0, pontos, is_behind);
-          draw_maxima(0, max(back_max,fore_max));
+          //draw_maxima(0, max(back_max,fore_max));
           draw_ultima(0, velocidade);
 
           // desenha circulo da esquerda
@@ -127,7 +134,7 @@ void draw () {
       {
           draw_pontos(4*W, pontos, is_behind);
           draw_ultima(3*W, velocidade);
-          draw_maxima(4*W, max(back_max,fore_max));
+          //draw_maxima(4*W, max(back_max,fore_max));
 
           // desenha circulo da direita
           fill(c);
@@ -193,11 +200,12 @@ void draw_zera () {
   draw_pontos(0, 0, false);
   draw_pontos(4*W, 0, false);
 
-  draw_maxima(0, 0);
+  //draw_maxima(0, 0);
   draw_ultima(0, 0);
   draw_media(0);
+  draw_maxima(0);
   draw_ultima(3*W, 0);
-  draw_maxima(4*W, 0);
+  //draw_maxima(4*W, 0);
 
   draw_total(0);
 }
@@ -234,7 +242,7 @@ void draw_nome (float x, String nome) {
   stroke(0);
   fill(255);
   rect(x, H, 2*W, H);
-  fill(255, 0, 0);
+  fill(0, 0, 255);
   textSize(66*dy);
   textAlign(CENTER, CENTER);
   text(nome, x+W, H+H/2-5*dy);
@@ -275,21 +283,33 @@ void draw_ultima (float x, int ultima) {
 void draw_media (int media) {
   stroke(0);
   fill(255);
-  rect(2*W, 2*H, W, 2*H);
+  rect(2*W, 2*H, W, H);
 
   textAlign(CENTER, TOP);
   fill(0);
 
-  textSize(36*dy);
-  text("Média", width/2, 2*H+25*dy);
-
   if (media != 0) {
     textAlign(CENTER, CENTER);
     textSize(90*dy);
-    text(media, width/2, 3*H-25*dy);
+    text(media, width/2, 2*H+H/2-25*dy);
     textSize(25*dy);
-    text("km/h", width/2, 3*H+50*dy);
+    text("média", width/2, 2*H+H/2+50*dy);
   }
+}
+
+void draw_maxima (int maxima) {
+  stroke(0);
+  fill(255);
+  rect(2*W, 3*H, W, H);
+
+  textAlign(CENTER, TOP);
+  fill(0);
+
+  textAlign(CENTER, CENTER);
+  textSize(90*dy);
+  text(maxima, width/2, 3*H+H/2-25*dy);
+  textSize(25*dy);
+  text("máx", width/2, 3*H+H/2+50*dy);
 }
 
 void draw_golpes (int golpes) {
@@ -297,15 +317,18 @@ void draw_golpes (int golpes) {
   fill(255);
   rect(2*W, 4*H, W, H);
 
-  textAlign(CENTER, TOP);
+  textAlign(CENTER, CENTER);
+
+  //textSize(25*dy);
+  //text("Golpes", width/2, 4*H+5*dy);
 
   fill(0);
-  textSize(25*dy);
-  text("Golpes", width/2, 4*H+5*dy);
+  textSize(90*dy);
+  text(golpes, width/2, 4*H+H/2-5*dy);
+}
 
-  fill(37, 21, 183);
-  textSize(105*dy);
-  text(golpes, width/2, 4*H+40*dy);
+/*
+void draw_lado (float x, int n, int avg) {
 }
 
 void draw_maxima (float x, int max) {
@@ -325,6 +348,7 @@ void draw_maxima (float x, int max) {
     text(max, x+W/2, 4*H+36*dy+5*dy);
   }
 }
+*/
 
 void draw_pontos (float x, int pontos, boolean is_behind) {
   stroke(0);
