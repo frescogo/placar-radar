@@ -104,42 +104,40 @@ void draw () {
       int     fore_max   = int(campos[9]);
 
       color c = (is_back ? color(164,56,15) : color(15,56,164));
+      float h = 3*H+10*dy;
+      ellipseMode(CENTER);
 
       if (is_esq)
       {
           draw_pontos(0, pontos, is_behind);
           draw_maxima(0, max(back_max,fore_max));
-          draw_ultima(W, velocidade);
+          draw_ultima(0, velocidade);
 
-          ellipseMode(CENTER);
-
-          // desehna circulo da direita
+          // desenha circulo da esquerda
           fill(c);
           stroke(15, 56, 164);
-          ellipse(2*W-45*dy, 4*H+H/2+10*dy, 40*dy, 40*dy);
-
-          // apaga circulo da esquerda
-          fill(255);
-          stroke(255);
-          ellipse(3*W+45*dy, 4*H+H/2+10*dy, 50*dy, 50*dy);
-      }
-      else
-      {
-          draw_pontos(3*W, pontos, is_behind);
-          draw_ultima(3*W, velocidade);
-          draw_maxima(4*W, max(back_max,fore_max));
-
-          ellipseMode(CENTER);
-
-          // desehna circulo da esquerda
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(3*W+45*dy, 4*H+H/2+10*dy, 40*dy, 40*dy);
+          ellipse(2*W-80*dy, h, 60*dy, 60*dy);
 
           // apaga circulo da direita
           fill(255);
           stroke(255);
-          ellipse(2*W-45*dy, 4*H+H/2+10*dy, 50*dy, 50*dy);
+          ellipse(3*W+80*dy, h, 70*dy, 70*dy);
+      }
+      else
+      {
+          draw_pontos(4*W, pontos, is_behind);
+          draw_ultima(3*W, velocidade);
+          draw_maxima(4*W, max(back_max,fore_max));
+
+          // desenha circulo da direita
+          fill(c);
+          stroke(15, 56, 164);
+          ellipse(3*W+80*dy, h, 60*dy, 60*dy);
+
+          // apaga circulo da esquerda
+          fill(255);
+          stroke(255);
+          ellipse(2*W-80*dy, h, 70*dy, 70*dy);
       }
       break;
     }
@@ -167,7 +165,7 @@ void draw () {
     case 4: {
       int quedas = int(campos[1]);
       draw_quedas(quedas);
-      draw_ultima(W, 0);
+      draw_ultima(0, 0);
       draw_ultima(3*W, 0);
       break;
     }
@@ -175,7 +173,7 @@ void draw () {
     // END
     case 5: {
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, true);
-      draw_ultima(W, 0);
+      draw_ultima(0, 0);
       draw_ultima(3*W, 0);
       String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
       saveFrame("frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
@@ -193,10 +191,10 @@ void draw_zera () {
   draw_nome  (0, "?");
   draw_nome  (3*W, "?");
   draw_pontos(0, 0, false);
-  draw_pontos(3*W, 0, false);
+  draw_pontos(4*W, 0, false);
 
   draw_maxima(0, 0);
-  draw_ultima(W, 0);
+  draw_ultima(0, 0);
   draw_media(0);
   draw_ultima(3*W, 0);
   draw_maxima(4*W, 0);
@@ -232,38 +230,6 @@ void draw_tempo (int tempo, boolean ended) {
   text(mins+":"+segs, width/2, H/2-10*dy);
 }
 
-void draw_quedas (int quedas) {
-  stroke(0);
-  fill(255);
-  rect(2*W, H, W, H);
-
-  textAlign(CENTER, TOP);
-
-  fill(0);
-  textSize(30*dy);
-  text("QUEDAS", width/2, H+5*dy);
-
-  fill(37, 21, 183);
-  textSize(105*dy);
-  text(quedas, width/2, H+40*dy);
-}
-
-void draw_golpes (int golpes) {
-  stroke(0);
-  fill(255);
-  rect(2*W, 2*H, W, 2*H);
-
-  textAlign(CENTER, TOP);
-
-  fill(0);
-  textSize(30*dy);
-  text("GOLPES", width/2, 2*H+5*dy);
-
-  fill(37, 21, 183);
-  textSize(105*dy);
-  text(golpes, width/2, 2*H+40*dy);
-}
-
 void draw_nome (float x, String nome) {
   stroke(0);
   fill(255);
@@ -274,6 +240,74 @@ void draw_nome (float x, String nome) {
   text(nome, x+W, H+H/2-5*dy);
 }
 
+void draw_quedas (int quedas) {
+  stroke(0);
+  fill(255);
+  rect(2*W, H, W, H);
+
+  textAlign(CENTER, TOP);
+
+  fill(0);
+  textSize(30*dy);
+  text("Quedas", width/2, H+5*dy);
+
+  fill(250, 0, 0);
+  textSize(105*dy);
+  text(quedas, width/2, H+30*dy);
+}
+
+void draw_ultima (float x, int ultima) {
+  stroke(0);
+  fill(255);
+  rect(x, 2*H, 2*W, 2*H);
+
+  textAlign(CENTER, CENTER);
+  fill(0);
+
+  if (ultima != 0) {
+    textSize(160*dy);
+    text(ultima, x+W, 3*H-50*dy);
+    textSize(40*dy);
+    text("km/h", x+W, 3*H+70*dy);
+  }
+}
+
+void draw_media (int media) {
+  stroke(0);
+  fill(255);
+  rect(2*W, 2*H, W, 2*H);
+
+  textAlign(CENTER, TOP);
+  fill(0);
+
+  textSize(36*dy);
+  text("Média", width/2, 2*H+25*dy);
+
+  if (media != 0) {
+    textAlign(CENTER, CENTER);
+    textSize(90*dy);
+    text(media, width/2, 3*H-25*dy);
+    textSize(25*dy);
+    text("km/h", width/2, 3*H+50*dy);
+  }
+}
+
+void draw_golpes (int golpes) {
+  stroke(0);
+  fill(255);
+  rect(2*W, 4*H, W, H);
+
+  textAlign(CENTER, TOP);
+
+  fill(0);
+  textSize(25*dy);
+  text("Golpes", width/2, 4*H+5*dy);
+
+  fill(37, 21, 183);
+  textSize(105*dy);
+  text(golpes, width/2, 4*H+40*dy);
+}
+
 void draw_pontos (float x, int pontos, boolean is_behind) {
   stroke(0);
   if (is_behind) {
@@ -281,28 +315,11 @@ void draw_pontos (float x, int pontos, boolean is_behind) {
   } else {
       fill(255);
   }
-  rect(x, 2*H, 2*W, 2*H);
+  rect(x, 5*H, W, T);
   fill(0);
-  textSize(170*dy);
+  textSize(50*dy);
   textAlign(CENTER, CENTER);
-  text(pontos, x+W, 3*H-10*dy);
-}
-
-void draw_media (int media) {
-  stroke(0);
-  fill(255);
-  rect(2*W, 4*H, W, H);
-
-  textAlign(CENTER, TOP);
-  fill(0);
-
-  textSize(36*dy);
-  text("Média", width/2, 4*H+5*dy);
-
-  if (media != 0) {
-    textSize(90*dy);
-    text(media, width/2, 4*H+36*dy+10*dy);
-  }
+  text(pontos, x+W/2, 5*H+T/2-10*dy);
 }
 
 void draw_maxima (float x, int max) {
@@ -313,7 +330,7 @@ void draw_maxima (float x, int max) {
   textAlign(CENTER, TOP);
   fill(0);
 
-  textSize(36*dy);
+  textSize(25*dy);
   text("Máxima", x+W/2, 4*H+5*dy);
 
   //if (max != 0)
@@ -323,28 +340,11 @@ void draw_maxima (float x, int max) {
   }
 }
 
-void draw_ultima (float x, int ultima) {
-  stroke(0);
-  fill(255);
-  rect(x, 4*H, W, H);
-
-  textAlign(CENTER, TOP);
-  fill(0);
-
-  textSize(36*dy);
-  text("Última", x+W/2, 4*H+5*dy);
-
-  if (ultima != 0) {
-    textSize(90*dy);
-    text(ultima, x+W/2, 4*H+36*dy+5*dy);
-  }
-}
-
 void draw_total (int total) {
   fill(0);
-  rect(0, 5*H, width, T);
+  rect(W, 5*H, 3*W, T);
   fill(255);
   textAlign(CENTER, CENTER);
-  textSize(240*dy);
+  textSize(200*dy);
   text(total, width/2, 5*H+T/2-20*dy);
 }
