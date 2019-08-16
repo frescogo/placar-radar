@@ -91,8 +91,10 @@ void draw_media (int media) {
   textSize(30);
   text("Média", width/2, 360+5);
 
-  textSize(75);
-  text(media, width/2, 360+30+5);
+  if (media != 0) {
+    textSize(75);
+    text(media, width/2, 360+30+5);
+  }
 }
 
 void draw_maxima (int x, int max) {
@@ -106,8 +108,10 @@ void draw_maxima (int x, int max) {
   textSize(30);
   text("Máxima", x+262/2, 360+5);
 
-  textSize(75);
-  text(max, x+262/2, 360+30+5);
+  if (max != 0) {
+    textSize(75);
+    text(max, x+262/2, 360+30+5);
+  }
 }
 
 void draw_ultima (int x, int ultima) {
@@ -121,8 +125,10 @@ void draw_ultima (int x, int ultima) {
   textSize(30);
   text("Última", x+262/2, 360+5);
 
-  textSize(75);
-  text(ultima, x+262/2, 360+30+5);
+  if (ultima != 0) {
+    textSize(75);
+    text(ultima, x+262/2, 360+30+5);
+  }
 }
 
 void draw_total (int total) {
