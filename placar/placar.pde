@@ -31,7 +31,7 @@ void draw_tempo (int tempo) {
 void draw_quedas (int quedas) {
   stroke(0);
   fill(255);
-  rect(525, 110, 230, 250);
+  rect(525, 110, 230, 125);
 
   textAlign(CENTER, TOP);
 
