@@ -22,25 +22,37 @@ PImage img; // Função para trabalhar com imagens
 int TEMPO_TOTAL;
 int TEMPO_JOGADO;
 
-void setup(){
- porta = new Serial(this, PORTA, 9600);
- porta.bufferUntil('\n');
- 
-// Código que veio do painel
-  //---------------------------------------------------------------------------------------- 
-    //Desenhando os placar
-    surface.setTitle("FrescoGO! V.1.11"); // Título da janela
-    size(1280, 720); // Desenha retângulo total do placar
-    img = loadImage("fresco.png"); // Atribui imagem à variável "img"
-    textFont(createFont("Arial Black", 18));  
+void draw_logos () {
+  image(img, 0, 0);
+  image(img, 1000, 0);
+  noFill();
+  rect(  0, 0, 280, 110);
+  rect(999, 0, 280, 110);
+}
 
-  // fim testes
-  //Logos
-  image(img, 0, 0); // Logo esquerda
-  image(img, 1000, 0); // Logo direita
-  noFill();  // Comando para deixar transparentes os objetos abaixo dele
-  rect(0, 0, 280, 110);  // Retângulo Logo Direita
-  rect(999, 0, 280, 110);  // Retângulo Logo Direita
+void draw_tempo (int tempo) {
+  String mins = nf(tempo / 60, 2);
+  String segs = nf(tempo % 60, 2);
+
+  fill(0);
+  rect(280, 0, 720, 110);
+
+  fill(255);
+  textSize(100);
+  textAlign(CENTER, CENTER);
+  text(mins+":"+segs, width/2, 110/2-10);
+}
+
+void setup () {
+  porta = new Serial(this, PORTA, 9600);
+  porta.bufferUntil('\n');
+ 
+  surface.setTitle("FrescoGO! V.1.11");
+  size(1280, 720);
+  img = loadImage("fresco.png");
+  textFont(createFont("Arial Black", 18));
+
+  draw_logos();
 
   // Nomes e Quedas
   // Jogador à esquerda
@@ -141,19 +153,6 @@ void setup(){
 
 
 // Fim do código que veio do painel
-}
-
-void draw_tempo (int tempo) {
-  String mins = nf(tempo / 60, 2);
-  String segs = nf(tempo % 60, 2);
-
-  fill(0);
-  rect(280, 0, 720, 110);
-
-  fill(255);
-  textSize(100);
-  textAlign(CENTER, CENTER);
-  text(mins+":"+segs, width/2, 110/2-10);
 }
 
 //=========================== INICIA VOID DRAW =====================================
