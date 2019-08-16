@@ -117,8 +117,10 @@ void draw () {
       if (is_esq)
       {
           draw_pontos(0, pontos, is_behind);
-          //draw_maxima(0, max(back_max,fore_max));
           draw_ultima(0, velocidade);
+          //draw_maxima(0, max(back_max,fore_max));
+          draw_lado(0*W, "Normal", fores, fore_avg);
+          draw_lado(1*W, "Revés",  backs, back_avg);
 
           // desenha circulo da esquerda
           fill(c);
@@ -135,6 +137,8 @@ void draw () {
           draw_pontos(4*W, pontos, is_behind);
           draw_ultima(3*W, velocidade);
           //draw_maxima(4*W, max(back_max,fore_max));
+          draw_lado(3*W, "Revés",  backs, back_avg);
+          draw_lado(4*W, "Normal", fores, fore_avg);
 
           // desenha circulo da direita
           fill(c);
@@ -197,8 +201,6 @@ void draw_zera () {
 
   draw_nome  (0, "?");
   draw_nome  (3*W, "?");
-  draw_pontos(0, 0, false);
-  draw_pontos(4*W, 0, false);
 
   //draw_maxima(0, 0);
   draw_ultima(0, 0);
@@ -207,6 +209,13 @@ void draw_zera () {
   draw_ultima(3*W, 0);
   //draw_maxima(4*W, 0);
 
+  draw_lado(0*W, "Normal", 0, 0);
+  draw_lado(1*W, "Revés",  0, 0);
+  draw_lado(3*W, "Revés",  0, 0);
+  draw_lado(4*W, "Normal", 0, 0);
+
+  draw_pontos(0, 0, false);
+  draw_pontos(4*W, 0, false);
   draw_total(0);
 }
 
@@ -327,10 +336,24 @@ void draw_golpes (int golpes) {
   text(golpes, width/2, 4*H+H/2-5*dy);
 }
 
-/*
-void draw_lado (float x, int n, int avg) {
+void draw_lado (float x, String lado, int n, int avg) {
+  stroke(0);
+  fill(255);
+  rect(x, 4*H, W, H);
+
+  fill(0);
+  textAlign(CENTER, TOP);
+  textSize(30*dy);
+  text(lado, x+W/2, 4*H+5*dy);
+
+  textAlign(CENTER, CENTER);
+  textSize(50*dy);
+  text(avg, x+W/2-10*dy, 4*H+H/2+0*dy);
+  textSize(25*dy);
+  text(n,   x+W/2+40*dy, 4*H+H/2+40*dy);
 }
 
+/*
 void draw_maxima (float x, int max) {
   stroke(0);
   fill(255);
