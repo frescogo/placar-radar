@@ -25,10 +25,10 @@ void draw() {
     return;
   }
 
-  String linha = porta.readStringUntil('\n');
-  print(linha);
-  String[] campos = split (linha, ";");
-  int codigo = int(campos[0]);
+  String   linha  = porta.readStringUntil('\n');
+  String[] campos = split(linha, ";");
+  int      codigo = int(campos[0]);
+  //print(linha);
 
   switch (codigo)
   {
@@ -112,6 +112,27 @@ void draw() {
       break;
     }
   }
+}
+
+void draw_zera () {
+  draw_logos();
+  draw_tempo(0);
+
+  draw_quedas(0);
+  draw_golpes(0);
+
+  draw_nome  (   0, "?");
+  draw_nome  ( 754, "?");
+  draw_pontos(   0, 0);
+  draw_pontos( 754, 0);
+
+  draw_maxima(   0, 0);
+  draw_maxima(1016, 0);
+  draw_media(0);
+  draw_ultima( 262, 0);
+  draw_ultima( 754, 0);
+
+  draw_total(0);
 }
 
 void draw_logos () {
@@ -245,25 +266,4 @@ void draw_total (int total) {
   textAlign(CENTER, CENTER);
   textSize(200);
   text(total, width/2, 480+240/2-20);
-}
-
-void draw_zera () {
-  draw_logos();
-  draw_tempo(0);
-
-  draw_quedas(0);
-  draw_golpes(0);
-
-  draw_nome  (   0, "?");
-  draw_nome  ( 754, "?");
-  draw_pontos(   0, 0);
-  draw_pontos( 754, 0);
-
-  draw_maxima(   0, 0);
-  draw_maxima(1016, 0);
-  draw_media(0);
-  draw_ultima( 262, 0);
-  draw_ultima( 754, 0);
-
-  draw_total(0);
 }
