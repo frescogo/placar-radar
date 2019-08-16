@@ -1,19 +1,19 @@
 String PORTA = "/dev/ttyUSB0";
 
 import processing.serial.*;
-Serial porta;
-PImage img;
 
-int TEMPO_TOTAL;
-int TEMPO_JOGADO;
+Serial SERIAL;
+PImage IMG;
+int    TEMPO_TOTAL;
+int    TEMPO_JOGADO;
 
 void setup () {
-  porta = new Serial(this, PORTA, 9600);
-  porta.bufferUntil('\n');
+  SERIAL = new Serial(this, PORTA, 9600);
+  SERIAL.bufferUntil('\n');
 
   surface.setTitle("FrescoGO! V.1.11");
   size(1280, 720);
-  img = loadImage("fresco.png");
+  IMG = loadImage("fresco.png");
   textFont(createFont("Arial Black", 18));
 
   draw_zera();
@@ -21,11 +21,11 @@ void setup () {
 
 void draw() {
 
-  if (porta.available() == 0) {
+  if (SERIAL.available() == 0) {
     return;
   }
 
-  String   linha  = porta.readStringUntil('\n');
+  String   linha  = SERIAL.readStringUntil('\n');
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
   print(linha);
@@ -33,7 +33,9 @@ void draw() {
   switch (codigo)
   {
     case 0: {
-      TEMPO_TOTAL = int(campos[1]);
+      TEMPO_TOTAL  = int(campos[1]);
+      TEMPO_JOGADO = 0;
+
       String esq = campos[2];
       String dir = campos[3];
 
@@ -82,13 +84,18 @@ void draw() {
           stroke(255);
           ellipse(492, 435, 38, 38);
       }
+      break;
     }
 
     case 2: {
-      TEMPO_JOGADO = int(campos[1]);
-      int total    = int(campos[2]);
-      int golpes   = int(campos[3]);
-      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+      int tempo  = int(campos[1]);
+      int total  = int(campos[2]);
+      int golpes = int(campos[3]);
+
+      if (tempo >= TEMPO_JOGADO+5) {
+        TEMPO_JOGADO = tempo;
+        draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+      }
       draw_total(total);
       draw_golpes(golpes);
       break;
@@ -138,8 +145,8 @@ void draw_zera () {
 }
 
 void draw_logos () {
-  image(img,    0, 0);
-  image(img, 1000, 0);
+  image(IMG,    0, 0);
+  image(IMG, 1000, 0);
   noFill();
   rect(  0, 0, 280, 110);
   rect(999, 0, 280, 110);
