@@ -3,10 +3,7 @@ String PORTA = "/dev/ttyUSB0";
 import processing.serial.*;
 Serial porta;
 String codigo;
-String vel_esq;
-String vel_dir;
 String pos_vel;
-String pts_total;
 int coord_x;
 int tamanho; // Numero de dígitos de um valor lido na serial
 int coordenada_inicial;
@@ -39,6 +36,7 @@ void draw_tempo (int tempo) {
 }
 
 void draw_quedas (int quedas) {
+  stroke(0);
   fill(255);
   rect(525, 110, 230, 250);
 
@@ -46,7 +44,7 @@ void draw_quedas (int quedas) {
 
   fill(0);
   textSize(25);
-  text("QUEDAS", width/2, 110);
+  text("QUEDAS", width/2, 110+2);
 
   fill(37, 21, 183);
   textSize(90);
@@ -54,6 +52,7 @@ void draw_quedas (int quedas) {
 }
 
 void draw_golpes (int golpes) {
+  stroke(0);
   fill(255);
   rect(525, 235, 229, 125);
 
@@ -61,7 +60,7 @@ void draw_golpes (int golpes) {
 
   fill(0);
   textSize(25);
-  text("GOLPES", width/2, 235);
+  text("GOLPES", width/2, 235+2);
 
   fill(37, 21, 183);
   textSize(90);
@@ -69,6 +68,7 @@ void draw_golpes (int golpes) {
 }
 
 void draw_nome (int x, String nome) {
+  stroke(0);
   fill(255);
   rect(x, 110, 525, 55);
   fill(255, 0, 0);
@@ -78,6 +78,7 @@ void draw_nome (int x, String nome) {
 }
 
 void draw_pontos (int x, int pontos) {
+  stroke(0);
   fill(255);
   rect(x, 165, 525, 195);
   fill(0);
@@ -86,13 +87,58 @@ void draw_pontos (int x, int pontos) {
   text(pontos, x+525/2, 165+195/2-10);
 }
 
-void draw_max (int x, int max) {
+void draw_media (int media) {
+  stroke(0);
+  fill(255);
+  rect(525, 360, 230, 120);
+
+  textAlign(CENTER, TOP);
+  fill(0);
+
+  textSize(30);
+  text("Média", width/2, 360+5);
+
+  textSize(75);
+  text(media, width/2, 360+30+5);
+}
+
+void draw_maxima (int x, int max) {
+  stroke(0);
   fill(255);
   rect(x, 360, 262, 120);
-  fill(0);
-  textSize(30);
+
   textAlign(CENTER, TOP);
-  text("Máxima", x+262/2, 360);
+  fill(0);
+
+  textSize(30);
+  text("Máxima", x+262/2, 360+5);
+
+  textSize(75);
+  text(max, x+262/2, 360+30+5);
+}
+
+void draw_ultima (int x, int ultima) {
+  stroke(0);
+  fill(255);
+  rect(x, 360, 262, 120);
+
+  textAlign(CENTER, TOP);
+  fill(0);
+  
+  textSize(30);
+  text("Última", x+262/2, 360+5);
+
+  textSize(75);
+  text(ultima, x+262/2, 360+30+5);
+}
+
+void draw_total (int total) {
+  fill(0);
+  rect(0, 480, 1280, 240);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(200);
+  text(total, width/2, 480+240/2-20);
 }
 
 void setup () {
@@ -106,49 +152,22 @@ void setup () {
 
   draw_logos();
   draw_tempo(0);
+  
   draw_quedas(0);
   draw_golpes(0);
-  draw_nome(  0, "?");
-  draw_nome(754, "?");
-  draw_pontos(  0, 0);
-  draw_pontos(754, 0);
-  draw_max(   0, 0);
-  draw_max(1016, 0);
-
-  // Última velocidade jogador à esquerda
-  fill(255);
-  rect(262, 360, 263, 120);
-  fill(0);
-  textSize(30);
-  text("Última", 340, 395);
-  textSize(75);
-  text("", 340, 463);
-
-  // Velocidade média da dupla
-  fill(255);
-  rect(525, 360, 230, 120);
-  fill(0);
-  textSize(30);
-  text("Média", 595, 395);
-
-  // Última velocidade jogador à direita
-  fill(255);
-  rect(754, 360, 262, 120);
-  fill(0);
-  textSize(30);
-  text("Última", 834, 395);
-  textSize(75);
-  text("", 834, 463);
-
-  // Pontuação total
-  fill(0); // Preenche com a cor preta
-  rect(0, 480, 1280, 240);  // Desenha o retângulo
-  fill(255);
-  textSize(200);
-  text("0", 575, 670); // Mostra valor
-
-
-// Fim do código que veio do painel
+  
+  draw_nome  (   0, "?");
+  draw_nome  ( 754, "?");
+  draw_pontos(   0, 0);
+  draw_pontos( 754, 0);
+  
+  draw_maxima(   0, 0);
+  draw_maxima(1016, 0);
+  draw_media(0);
+  draw_ultima( 262, 0);
+  draw_ultima( 754, 0);
+  
+  draw_total(0);
 }
 
 //=========================== INICIA VOID DRAW =====================================
@@ -173,19 +192,14 @@ case "0":
 
 case "1":
     pos_vel = posicao[1];
-    vel_esq = posicao[3];
-    vel_dir = posicao[3];
+    int vel_esq = int(posicao[3]);
+    int vel_dir = int(posicao[3]);
     int pts_esq = int(posicao[4]);
     int pts_dir = int(posicao[4]);
+    
           switch (pos_vel){
           case "0":
-          fill(255);
-          stroke(0);
-          rect(754, 360, 262, 120); // última velocidade da direita
-          fill(0);
-          textSize(30);
-          text("Última", 834, 395);
-
+          
           // Circulo indicando de quem foi o velocidade medida
           fill(15, 56, 164);
           stroke(15, 56, 164);
@@ -198,18 +212,11 @@ case "1":
 
           fill(0);
           textSize(80);
-          text(vel_dir, 834, 463);
-
+          draw_ultima(754, vel_esq);
           draw_pontos(0, pts_esq);
           break;
 
           case "1":
-          fill(255);
-          stroke(0);
-          rect(262, 360, 263, 120);
-          fill(0);
-          textSize(30);
-          text("Última", 340, 395);
 
           // Circulo indicando de quem foi o velocidade medida
           fill(15, 56, 164);
@@ -221,10 +228,7 @@ case "1":
           stroke(255);
           ellipse(789, 435, 38, 38);
 
-          fill(0);
-          textSize(75);
-          text(vel_esq, 340, 463);
-
+          draw_ultima(262, vel_dir);
           draw_pontos(754, pts_dir);
           break;
           }
@@ -232,25 +236,10 @@ case "1":
 case "2":
 
     TEMPO_JOGADO = int(posicao[1]);
-    pts_total = posicao[2];
+    int total    = int(posicao[2]);
 
     draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
-
-    textAlign(LEFT, BOTTOM);
-    textSize(100);
-    text("0", 575, 670); // Mostra valor
-    fill(0); // Preenche com a cor preta
-    rect(0, 480, 1280, 240);  // Desenha o retângulo
-    fill(255);
-    textSize(200);
-    tamanho = pts_total.length(); // Número de caracteres no nome da esquerda
-    println(pts_total + " " + tamanho);
-    coordenada_inicial = 0; // Coordenada inicial do nome da esquerda
-    largura_quadro = 1280; // Largura do retângulo do nome da esquerda
-    largura_letra = 130; // Espaçamento da fonte do nome
-    coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-    fill(255);  // Seta a cor do texto
-    text(pts_total, coord_x, 670); // Mostra valor
+    draw_total(total);
     break;
 
 case "3": // Queda de bola, zerar o placar
