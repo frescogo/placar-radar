@@ -43,11 +43,20 @@ void draw_tempo (int tempo) {
 
 void draw_esquerda (String nome) {
   fill(255);
-  rect(0, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
+  rect(0, 110, 525, 55);
   fill(255, 0, 0);
   textSize(55);
   textAlign(CENTER, CENTER);
   text(nome, 525/2, 110+55/2-5);
+}
+
+void draw_direita (String nome) {
+  fill(255);
+  rect(754, 110, 525, 55);
+  fill(255, 0, 0);
+  textSize(55);
+  textAlign(CENTER, CENTER);
+  text(nome, 754+525/2, 110+55/2-5);
 }
 
 void setup () {
@@ -62,6 +71,7 @@ void setup () {
   draw_logos();
   draw_tempo(0);
   draw_esquerda("?");
+  draw_direita("?");
   
   // Quedas
   fill(255);
@@ -84,14 +94,6 @@ void setup () {
   text("0", 612, 345);     
 
   
-  // Jogador à direita
-  fill(255);
-  rect(754, 110, 525, 55);  // Retângulo Nome Jogador à Direita
-  fill(255, 0, 0);
-  textSize(55);
-  text("?", 895, 159);  
-  // Jogadores
-
   // Pontuação Jogador da Esquerda
   fill(255);
   rect(0, 165, 525, 195);
@@ -172,20 +174,8 @@ case "0":
     String dir = posicao[3];
 
     draw_tempo(TEMPO_TOTAL);
-    draw_esquerda(esq); // Mostra valor
-    
-    //============= MOSTRA JOGADOR À DIREITA =============
-    fill(255);
-    rect(754, 110, 525, 55);  // Retângulo Nome Jogador à Esquerda
-    textSize(55);    
-    tamanho = dir.length(); // Número de caracteres no nome da esquerda
-    coordenada_inicial = 754; // Coordenada inicial do nome da esquerda
-    largura_quadro = 525; // Largura do retângulo do nome da esquerda
-    largura_letra = 40; // Espaçamento da fonte do nome
-    coord_x = int((coordenada_inicial +(largura_quadro / 2)-(tamanho * (largura_letra / 2))));
-    fill(255, 0, 0);  // Seta a cor do texto
-    text(dir, coord_x, 159); // Mostra valor
-    //print(coord_x);
+    draw_esquerda(esq);
+    draw_direita(dir);
     break;
 
 case "1":
