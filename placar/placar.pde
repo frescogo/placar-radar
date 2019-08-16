@@ -124,7 +124,7 @@ void draw_ultima (int x, int ultima) {
 
   textAlign(CENTER, TOP);
   fill(0);
-  
+
   textSize(30);
   text("Última", x+262/2, 360+5);
 
@@ -152,132 +152,128 @@ void setup () {
 
   draw_logos();
   draw_tempo(0);
-  
+
   draw_quedas(0);
   draw_golpes(0);
-  
+
   draw_nome  (   0, "?");
   draw_nome  ( 754, "?");
   draw_pontos(   0, 0);
   draw_pontos( 754, 0);
-  
+
   draw_maxima(   0, 0);
   draw_maxima(1016, 0);
   draw_media(0);
   draw_ultima( 262, 0);
   draw_ultima( 754, 0);
-  
+
   draw_total(0);
 }
 
-//=========================== INICIA VOID DRAW =====================================
-void draw(){
-  if (porta.available()>0){
-    String linha = porta.readStringUntil('\n'); // Ler a String recebida
-    print(linha);
-    String[] posicao = split (linha, ";");
-    codigo = posicao[0];
-//=========================== INICIA SWITCH CASE ===================================
-switch (codigo){
+void draw() {
 
-case "0":
-    TEMPO_TOTAL = int(posicao[1]);
-    String esq = posicao[2];
-    String dir = posicao[3];
+  if (porta.available() == 0) {
+    return;
+  }
 
-    draw_tempo(TEMPO_TOTAL);
-    draw_nome(  0, esq);
-    draw_nome(754, dir);
-    break;
+  String linha = porta.readStringUntil('\n'); // Ler a String recebida
+  print(linha);
+  String[] posicao = split (linha, ";");
+  codigo = posicao[0];
 
-case "1":
-    pos_vel = posicao[1];
-    int vel_esq = int(posicao[3]);
-    int vel_dir = int(posicao[3]);
-    int pts_esq = int(posicao[4]);
-    int pts_dir = int(posicao[4]);
-    
-          switch (pos_vel){
+  switch (codigo) {
+
+    case "0":
+        TEMPO_TOTAL = int(posicao[1]);
+        String esq = posicao[2];
+        String dir = posicao[3];
+
+        draw_tempo(TEMPO_TOTAL);
+        draw_nome(  0, esq);
+        draw_nome(754, dir);
+        break;
+
+    case "1":
+        pos_vel = posicao[1];
+        int vel_esq = int(posicao[3]);
+        int vel_dir = int(posicao[3]);
+        int pts_esq = int(posicao[4]);
+        int pts_dir = int(posicao[4]);
+
+        switch (pos_vel) {
           case "0":
-          
-          // Circulo indicando de quem foi o velocidade medida
-          fill(15, 56, 164);
-          stroke(15, 56, 164);
-          ellipse(789, 435, 35, 35);
+            // Circulo indicando de quem foi o velocidade medida
+            fill(15, 56, 164);
+            stroke(15, 56, 164);
+            ellipse(789, 435, 35, 35);
 
-          // Apaga sinalização do outro jogador
-          fill(255);
-          stroke(255);
-          ellipse(492, 435, 38, 38);
+            // Apaga sinalização do outro jogador
+            fill(255);
+            stroke(255);
+            ellipse(492, 435, 38, 38);
 
-          fill(0);
-          textSize(80);
-          draw_ultima(754, vel_esq);
-          draw_pontos(0, pts_esq);
-          break;
+            fill(0);
+            textSize(80);
+            draw_ultima(754, vel_esq);
+            draw_pontos(0, pts_esq);
+            break;
 
           case "1":
+            // Circulo indicando de quem foi o velocidade medida
+            fill(15, 56, 164);
+            stroke(15, 56, 164);
+            ellipse(492, 435, 35, 35);
 
-          // Circulo indicando de quem foi o velocidade medida
-          fill(15, 56, 164);
-          stroke(15, 56, 164);
-          ellipse(492, 435, 35, 35);
+            // Apaga sinalização do outro jogador
+            fill(255);
+            stroke(255);
+            ellipse(789, 435, 38, 38);
 
-          // Apaga sinalização do outro jogador
-          fill(255);
-          stroke(255);
-          ellipse(789, 435, 38, 38);
+            draw_ultima(262, vel_dir);
+            draw_pontos(754, pts_dir);
+            break;
+        }
 
-          draw_ultima(262, vel_dir);
-          draw_pontos(754, pts_dir);
-          break;
-          }
+    case "2":
 
-case "2":
+      TEMPO_JOGADO = int(posicao[1]);
+      int total    = int(posicao[2]);
 
-    TEMPO_JOGADO = int(posicao[1]);
-    int total    = int(posicao[2]);
+      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+      draw_total(total);
+      break;
 
-    draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
-    draw_total(total);
-    break;
+    case "3": // Queda de bola, zerar o placar
+      int quedas = int(posicao[1]);
+      draw_quedas(quedas);
 
-case "3": // Queda de bola, zerar o placar
-    int quedas = int(posicao[1]);
-    draw_quedas(quedas);
+      //Apaga ultimas velocidade esquerda
+      fill(255);
+      stroke(0);
+      rect(262, 360, 263, 120);
+      fill(0);
+      textSize(30);
+      text("Última", 340, 395);
 
-    //Apaga ultimas velocidade esquerda
-          fill(255);
-          stroke(0);
-          rect(262, 360, 263, 120);
-          fill(0);
-          textSize(30);
-          text("Última", 340, 395);
-    //Apaga ultimas velocidade direita
-          fill(255);
-          stroke(0);
-          rect(754, 360, 262, 120);
-          fill(0);
-          textSize(30);
-          text("Última", 834, 395);
-    break;
+      //Apaga ultimas velocidade direita
+      fill(255);
+      stroke(0);
+      rect(754, 360, 262, 120);
+      fill(0);
+      textSize(30);
+      text("Última", 834, 395);
 
-case "4":
-/*println("Case 4");
-println(posicao[0]);
-print("Vazio: ");
-println(posicao[1]);
-print("Vazio: ");
-println(posicao[2]);
-print("Vazio: ");
-println(posicao[3]);*/
-break;
-}
+      break;
 
-
-
-
-
-    }
-
+    case "4":
+      /*println("Case 4");
+      println(posicao[0]);
+      print("Vazio: ");
+      println(posicao[1]);
+      print("Vazio: ");
+      println(posicao[2]);
+      print("Vazio: ");
+      println(posicao[3]);*/
+      break;
+  }
 }
