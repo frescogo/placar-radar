@@ -7,6 +7,113 @@ PImage img;
 int TEMPO_TOTAL;
 int TEMPO_JOGADO;
 
+void setup () {
+  porta = new Serial(this, PORTA, 9600);
+  porta.bufferUntil('\n');
+
+  surface.setTitle("FrescoGO! V.1.11");
+  size(1280, 720);
+  img = loadImage("fresco.png");
+  textFont(createFont("Arial Black", 18));
+
+  draw_zera();
+}
+
+void draw() {
+
+  if (porta.available() == 0) {
+    return;
+  }
+
+  String linha = porta.readStringUntil('\n');
+  print(linha);
+  String[] campos = split (linha, ";");
+  int codigo = int(campos[0]);
+
+  switch (codigo)
+  {
+    case 0: {
+      TEMPO_TOTAL = int(campos[1]);
+      String esq = campos[2];
+      String dir = campos[3];
+
+      draw_zera();
+      draw_tempo(TEMPO_TOTAL);
+      draw_nome(  0, esq);
+      draw_nome(754, dir);
+      break;
+    }
+
+    case 1: {
+      boolean is_esq     = int(campos[1]) == 0;
+      boolean is_back    = int(campos[2]) == 1;
+      int     velocidade = int(campos[3]);
+      int     pontos     = int(campos[4]);
+
+      color c = (is_back ? color(164,56,15) : color(15,56,164));
+
+      if (is_esq)
+      {
+          draw_pontos(0, pontos);
+          draw_ultima(262, velocidade);
+
+          // desehna circulo da direita
+          fill(c);
+          stroke(15, 56, 164);
+          ellipse(492, 435, 35, 35);
+
+          // apaga circulo da esquerda
+          fill(255);
+          stroke(255);
+          ellipse(789, 435, 38, 38);
+      }
+      else
+      {
+          draw_pontos(754, pontos);
+          draw_ultima(754, velocidade);
+
+          // desehna circulo da esquerda
+          fill(c);
+          stroke(15, 56, 164);
+          ellipse(789, 435, 35, 35);
+
+          // apaga circulo da direita
+          fill(255);
+          stroke(255);
+          ellipse(492, 435, 38, 38);
+      }
+    }
+
+    case 2: {
+      TEMPO_JOGADO = int(campos[1]);
+      int total    = int(campos[2]);
+      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+      draw_total(total);
+      break;
+    }
+
+    case 3: { // Queda de bola, zerar o placar
+      int quedas = int(campos[1]);
+      draw_quedas(quedas);
+      draw_ultima(262, 0);
+      draw_ultima(754, 0);
+      break;
+    }
+
+    case 4: {
+      /*println("Case 4");
+      println(campos[0]);
+      print("Vazio: ");
+      println(campos[1]);
+      print("Vazio: ");
+      println(campos[2]);
+      print("Vazio: ");
+      println(campos[3]);*/
+      break;
+    }
+  }
+}
+
 void draw_logos () {
   image(img,    0, 0);
   image(img, 1000, 0);
@@ -159,111 +266,4 @@ void draw_zera () {
   draw_ultima( 754, 0);
 
   draw_total(0);
-}
-
-void setup () {
-  porta = new Serial(this, PORTA, 9600);
-  porta.bufferUntil('\n');
-
-  surface.setTitle("FrescoGO! V.1.11");
-  size(1280, 720);
-  img = loadImage("fresco.png");
-  textFont(createFont("Arial Black", 18));
-
-  draw_zera();
-}
-
-void draw() {
-
-  if (porta.available() == 0) {
-    return;
-  }
-
-  String linha = porta.readStringUntil('\n');
-  print(linha);
-  String[] campos = split (linha, ";");
-  int codigo = int(campos[0]);
-
-  switch (codigo)
-  {
-    case 0: {
-      TEMPO_TOTAL = int(campos[1]);
-      String esq = campos[2];
-      String dir = campos[3];
-
-      draw_zera();
-      draw_tempo(TEMPO_TOTAL);
-      draw_nome(  0, esq);
-      draw_nome(754, dir);
-      break;
-    }
-
-    case 1: {
-      boolean is_esq     = int(campos[1]) == 0;
-      boolean is_back    = int(campos[2]) == 1;
-      int     velocidade = int(campos[3]);
-      int     pontos     = int(campos[4]);
-
-      color c = (is_back ? color(164,56,15) : color(15,56,164));
-
-      if (is_esq)
-      {
-          draw_pontos(0, pontos);
-          draw_ultima(262, velocidade);
-
-          // desehna circulo da direita
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(492, 435, 35, 35);
-
-          // apaga circulo da esquerda
-          fill(255);
-          stroke(255);
-          ellipse(789, 435, 38, 38);
-      }
-      else
-      {
-          draw_pontos(754, pontos);
-          draw_ultima(754, velocidade);
-
-          // desehna circulo da esquerda
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(789, 435, 35, 35);
-
-          // apaga circulo da direita
-          fill(255);
-          stroke(255);
-          ellipse(492, 435, 38, 38);
-      }
-    }
-
-    case 2: {
-      TEMPO_JOGADO = int(campos[1]);
-      int total    = int(campos[2]);
-      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
-      draw_total(total);
-      break;
-    }
-
-    case 3: { // Queda de bola, zerar o placar
-      int quedas = int(campos[1]);
-      draw_quedas(quedas);
-      draw_ultima(262, 0);
-      draw_ultima(754, 0);
-      break;
-    }
-
-    case 4: {
-      /*println("Case 4");
-      println(campos[0]);
-      print("Vazio: ");
-      println(campos[1]);
-      print("Vazio: ");
-      println(campos[2]);
-      print("Vazio: ");
-      println(campos[3]);*/
-      break;
-    }
-  }
 }
