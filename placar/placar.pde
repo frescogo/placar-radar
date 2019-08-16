@@ -1,8 +1,3 @@
-/*
-- bug da ultima maxima
-- exibir maximas
-*/
-
 String PORTA = "/dev/ttyUSB0";
 
 import processing.serial.*;
@@ -45,8 +40,8 @@ void setup () {
   SERIAL.bufferUntil('\n');
 
   surface.setTitle("FrescoGO! V.1.11");
-  //size(640, 480);
-  fullScreen();
+  size(800, 600);
+  //fullScreen();
   IMG = loadImage("fresco.png");
 
   dy = 0.001 * height;
@@ -98,6 +93,7 @@ void draw () {
 
   switch (codigo)
   {
+    // RESTART
     case 0: {
       TEMPO_TOTAL  = int(campos[1]);
       TEMPO_JOGADO = 0;
@@ -112,7 +108,25 @@ void draw () {
       break;
     }
 
+    // SEQ
     case 1: {
+      int tempo  = int(campos[1]);
+      int quedas = int(campos[2]);
+      String esq = campos[3];
+      String dir = campos[4];
+
+      TEMPO_JOGADO = tempo;
+      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+
+      draw_quedas(quedas);
+
+      draw_nome(X_ESQ, esq);
+      draw_nome(X_DIR, dir);
+      break;
+    }
+
+    // HIT
+    case 2: {
       boolean is_esq     = int(campos[1]) == 0;
       boolean is_back    = int(campos[2]) == 1;
       int     velocidade = int(campos[3]);
@@ -164,7 +178,8 @@ void draw () {
       break;
     }
 
-    case 2: {
+    // TICK
+    case 3: {
       int tempo  = int(campos[1]);
       int total  = int(campos[2]);
       int golpes = int(campos[3]);
@@ -182,23 +197,12 @@ void draw () {
       break;
     }
 
-    case 3: { // Queda de bola, zerar o placar
+    // FALL
+    case 4: {
       int quedas = int(campos[1]);
       draw_quedas(quedas);
       draw_ultima(X_ESQ+W_MAXULT, 0);
       draw_ultima(X_DIR, 0);
-      break;
-    }
-
-    case 4: {
-      /*println("Case 4");
-      println(campos[0]);
-      print("Vazio: ");
-      println(campos[1]);
-      print("Vazio: ");
-      println(campos[2]);
-      print("Vazio: ");
-      println(campos[3]);*/
       break;
     }
   }
