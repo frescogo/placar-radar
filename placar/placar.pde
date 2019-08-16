@@ -30,7 +30,7 @@ void draw() {
   if (linha == null) {
     return;
   }
-  //print(linha);
+  print(linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -97,6 +97,7 @@ void draw() {
       int tempo  = int(campos[1]);
       int total  = int(campos[2]);
       int golpes = int(campos[3]);
+      int media  = int(campos[4]);
 
       if (tempo >= TEMPO_JOGADO+5) {
         TEMPO_JOGADO = tempo;
@@ -104,6 +105,7 @@ void draw() {
       }
       draw_total(total);
       draw_golpes(golpes);
+      draw_media(media);
       break;
     }
 
