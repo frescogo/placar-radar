@@ -189,9 +189,11 @@ void draw() {
 
     case 1: {
       boolean is_esq     = int(campos[1]) == 0;
-      boolean is_back    = int(campos[2]) == 1;    // TODO: colorir de vermelho os circulos
+      boolean is_back    = int(campos[2]) == 1;
       int     velocidade = int(campos[3]);
       int     pontos     = int(campos[4]);
+
+      color c = (is_back ? color(164,56,15) : color(15,56,164));
 
       if (is_esq)
       {
@@ -199,7 +201,7 @@ void draw() {
           draw_ultima(262, velocidade);
 
           // desehna circulo da direita
-          fill(15, 56, 164);
+          fill(c);
           stroke(15, 56, 164);
           ellipse(492, 435, 35, 35);
 
@@ -214,7 +216,7 @@ void draw() {
           draw_ultima(754, velocidade);
 
           // desehna circulo da esquerda
-          fill(15, 56, 164);
+          fill(c);
           stroke(15, 56, 164);
           ellipse(789, 435, 35, 35);
 
