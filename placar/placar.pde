@@ -28,7 +28,7 @@ void draw() {
   String   linha  = porta.readStringUntil('\n');
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
-  //print(linha);
+  print(linha);
 
   switch (codigo)
   {
@@ -87,8 +87,10 @@ void draw() {
     case 2: {
       TEMPO_JOGADO = int(campos[1]);
       int total    = int(campos[2]);
+      int golpes   = int(campos[3]);
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
       draw_total(total);
+      draw_golpes(golpes);
       break;
     }
 
