@@ -21,7 +21,7 @@ int TEMPO_TOTAL;
 int TEMPO_JOGADO;
 
 void draw_logos () {
-  image(img, 0, 0);
+  image(img,    0, 0);
   image(img, 1000, 0);
   noFill();
   rect(  0, 0, 280, 110);
@@ -41,22 +41,13 @@ void draw_tempo (int tempo) {
   text(mins+":"+segs, width/2, 110/2-10);
 }
 
-void draw_esquerda (String nome) {
+void draw_nome (int x, String nome) {
   fill(255);
-  rect(0, 110, 525, 55);
+  rect(x, 110, 525, 55);
   fill(255, 0, 0);
   textSize(55);
   textAlign(CENTER, CENTER);
-  text(nome, 525/2, 110+55/2-5);
-}
-
-void draw_direita (String nome) {
-  fill(255);
-  rect(754, 110, 525, 55);
-  fill(255, 0, 0);
-  textSize(55);
-  textAlign(CENTER, CENTER);
-  text(nome, 754+525/2, 110+55/2-5);
+  text(nome, x+525/2, 110+55/2-5);
 }
 
 void setup () {
@@ -70,8 +61,8 @@ void setup () {
 
   draw_logos();
   draw_tempo(0);
-  draw_esquerda("?");
-  draw_direita("?");
+  draw_nome(  0, "?");
+  draw_nome(754, "?");
   
   // Quedas
   fill(255);
@@ -174,8 +165,8 @@ case "0":
     String dir = posicao[3];
 
     draw_tempo(TEMPO_TOTAL);
-    draw_esquerda(esq);
-    draw_direita(dir);
+    draw_nome(  0, esq);
+    draw_nome(754, dir);
     break;
 
 case "1":
