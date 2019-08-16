@@ -4,8 +4,10 @@ import processing.serial.*;
 
 Serial SERIAL;
 PImage IMG;
-int    TEMPO_TOTAL;
-int    TEMPO_JOGADO;
+
+int      TEMPO_TOTAL;
+int      TEMPO_JOGADO;
+String[] NOMES = new String[2];
 
 float dy; // 0.001 height
 
@@ -36,6 +38,7 @@ float Y_TOTAL;
 
 void setup () {
   SERIAL = new Serial(this, PORTA, 9600);
+  //SERIAL = new Serial(this, Serial.list()[0], 9600);
   //SERIAL.buffer(1024);
   SERIAL.bufferUntil('\n');
 
@@ -100,6 +103,8 @@ void draw () {
 
       String esq = campos[2];
       String dir = campos[3];
+      NOMES[0] = esq;
+      NOMES[1] = dir;
 
       draw_zera();
       draw_tempo(TEMPO_TOTAL, false);
@@ -114,6 +119,8 @@ void draw () {
       int quedas = int(campos[2]);
       String esq = campos[3];
       String dir = campos[4];
+      NOMES[0] = esq;
+      NOMES[1] = dir;
 
       TEMPO_JOGADO = tempo;
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
@@ -211,6 +218,8 @@ void draw () {
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, true);
       draw_ultima(X_ESQ+W_MAXULT, 0);
       draw_ultima(X_DIR, 0);
+      String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+      saveFrame("frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
     }
   }
 }
