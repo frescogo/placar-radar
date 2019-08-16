@@ -188,44 +188,40 @@ void draw() {
     }
 
     case 1: {
-      int pos_vel = int(campos[1]);
-      int vel_esq = int(campos[3]);
-      int vel_dir = int(campos[3]);
-      int pts_esq = int(campos[4]);
-      int pts_dir = int(campos[4]);
+      boolean is_esq     = int(campos[1]) == 0;
+      boolean is_back    = int(campos[2]) == 1;    // TODO: colorir de vermelho os circulos
+      int     velocidade = int(campos[3]);
+      int     pontos     = int(campos[4]);
 
-      switch (pos_vel) {
-        case 0:
-          // Circulo indicando de quem foi o velocidade medida
-          fill(15, 56, 164);
-          stroke(15, 56, 164);
-          ellipse(789, 435, 35, 35);
+      if (is_esq)
+      {
+          draw_pontos(0, pontos);
+          draw_ultima(262, velocidade);
 
-          // Apaga sinalização do outro jogador
-          fill(255);
-          stroke(255);
-          ellipse(492, 435, 38, 38);
-
-          fill(0);
-          textSize(80);
-          draw_ultima(754, vel_esq);
-          draw_pontos(0, pts_esq);
-          break;
-
-        case 1:
-          // Circulo indicando de quem foi o velocidade medida
+          // desehna circulo da direita
           fill(15, 56, 164);
           stroke(15, 56, 164);
           ellipse(492, 435, 35, 35);
 
-          // Apaga sinalização do outro jogador
+          // apaga circulo da esquerda
           fill(255);
           stroke(255);
           ellipse(789, 435, 38, 38);
+      }
+      else
+      {
+          draw_pontos(754, pontos);
+          draw_ultima(754, velocidade);
 
-          draw_ultima(262, vel_dir);
-          draw_pontos(754, pts_dir);
-          break;
+          // desehna circulo da esquerda
+          fill(15, 56, 164);
+          stroke(15, 56, 164);
+          ellipse(789, 435, 35, 35);
+
+          // apaga circulo da direita
+          fill(255);
+          stroke(255);
+          ellipse(492, 435, 38, 38);
       }
     }
 
@@ -240,23 +236,8 @@ void draw() {
     case 3: { // Queda de bola, zerar o placar
       int quedas = int(campos[1]);
       draw_quedas(quedas);
-
-      //Apaga ultimas velocidade esquerda
-      fill(255);
-      stroke(0);
-      rect(262, 360, 263, 120);
-      fill(0);
-      textSize(30);
-      text("Última", 340, 395);
-
-      //Apaga ultimas velocidade direita
-      fill(255);
-      stroke(0);
-      rect(754, 360, 262, 120);
-      fill(0);
-      textSize(30);
-      text("Última", 834, 395);
-
+      draw_ultima(262, 0);
+      draw_ultima(754, 0);
       break;
     }
 
