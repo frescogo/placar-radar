@@ -2,14 +2,7 @@ String PORTA = "/dev/ttyUSB0";
 
 import processing.serial.*;
 Serial porta;
-String codigo;
-String pos_vel;
-int coord_x;
-int tamanho; // Numero de dígitos de um valor lido na serial
-int coordenada_inicial;
-int largura_quadro;
-int largura_letra;
-PImage img; // Função para trabalhar com imagens
+PImage img;
 
 int TEMPO_TOTAL;
 int TEMPO_JOGADO;
@@ -176,75 +169,76 @@ void draw() {
     return;
   }
 
-  String linha = porta.readStringUntil('\n'); // Ler a String recebida
+  String linha = porta.readStringUntil('\n');
   print(linha);
-  String[] posicao = split (linha, ";");
-  codigo = posicao[0];
+  String[] campos = split (linha, ";");
+  int codigo = int(campos[0]);
 
-  switch (codigo) {
+  switch (codigo)
+  {
+    case 0: {
+      TEMPO_TOTAL = int(campos[1]);
+      String esq = campos[2];
+      String dir = campos[3];
 
-    case "0":
-        TEMPO_TOTAL = int(posicao[1]);
-        String esq = posicao[2];
-        String dir = posicao[3];
+      draw_tempo(TEMPO_TOTAL);
+      draw_nome(  0, esq);
+      draw_nome(754, dir);
+      break;
+    }
 
-        draw_tempo(TEMPO_TOTAL);
-        draw_nome(  0, esq);
-        draw_nome(754, dir);
-        break;
+    case 1: {
+      int pos_vel = int(campos[1]);
+      int vel_esq = int(campos[3]);
+      int vel_dir = int(campos[3]);
+      int pts_esq = int(campos[4]);
+      int pts_dir = int(campos[4]);
 
-    case "1":
-        pos_vel = posicao[1];
-        int vel_esq = int(posicao[3]);
-        int vel_dir = int(posicao[3]);
-        int pts_esq = int(posicao[4]);
-        int pts_dir = int(posicao[4]);
+      switch (pos_vel) {
+        case 0:
+          // Circulo indicando de quem foi o velocidade medida
+          fill(15, 56, 164);
+          stroke(15, 56, 164);
+          ellipse(789, 435, 35, 35);
 
-        switch (pos_vel) {
-          case "0":
-            // Circulo indicando de quem foi o velocidade medida
-            fill(15, 56, 164);
-            stroke(15, 56, 164);
-            ellipse(789, 435, 35, 35);
+          // Apaga sinalização do outro jogador
+          fill(255);
+          stroke(255);
+          ellipse(492, 435, 38, 38);
 
-            // Apaga sinalização do outro jogador
-            fill(255);
-            stroke(255);
-            ellipse(492, 435, 38, 38);
+          fill(0);
+          textSize(80);
+          draw_ultima(754, vel_esq);
+          draw_pontos(0, pts_esq);
+          break;
 
-            fill(0);
-            textSize(80);
-            draw_ultima(754, vel_esq);
-            draw_pontos(0, pts_esq);
-            break;
+        case 1:
+          // Circulo indicando de quem foi o velocidade medida
+          fill(15, 56, 164);
+          stroke(15, 56, 164);
+          ellipse(492, 435, 35, 35);
 
-          case "1":
-            // Circulo indicando de quem foi o velocidade medida
-            fill(15, 56, 164);
-            stroke(15, 56, 164);
-            ellipse(492, 435, 35, 35);
+          // Apaga sinalização do outro jogador
+          fill(255);
+          stroke(255);
+          ellipse(789, 435, 38, 38);
 
-            // Apaga sinalização do outro jogador
-            fill(255);
-            stroke(255);
-            ellipse(789, 435, 38, 38);
+          draw_ultima(262, vel_dir);
+          draw_pontos(754, pts_dir);
+          break;
+      }
+    }
 
-            draw_ultima(262, vel_dir);
-            draw_pontos(754, pts_dir);
-            break;
-        }
-
-    case "2":
-
-      TEMPO_JOGADO = int(posicao[1]);
-      int total    = int(posicao[2]);
-
+    case 2: {
+      TEMPO_JOGADO = int(campos[1]);
+      int total    = int(campos[2]);
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
       draw_total(total);
       break;
+    }
 
-    case "3": // Queda de bola, zerar o placar
-      int quedas = int(posicao[1]);
+    case 3: { // Queda de bola, zerar o placar
+      int quedas = int(campos[1]);
       draw_quedas(quedas);
 
       //Apaga ultimas velocidade esquerda
@@ -264,16 +258,18 @@ void draw() {
       text("Última", 834, 395);
 
       break;
+    }
 
-    case "4":
+    case 4: {
       /*println("Case 4");
-      println(posicao[0]);
+      println(campos[0]);
       print("Vazio: ");
-      println(posicao[1]);
+      println(campos[1]);
       print("Vazio: ");
-      println(posicao[2]);
+      println(campos[2]);
       print("Vazio: ");
-      println(posicao[3]);*/
+      println(campos[3]);*/
       break;
+    }
   }
 }
