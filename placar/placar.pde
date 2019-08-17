@@ -6,6 +6,7 @@ import processing.serial.*;
 Serial SERIAL;
 PImage IMG;
 
+boolean  END = false;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      MAXIMA;
@@ -46,6 +47,12 @@ void setup () {
 }
 
 void draw () {
+  // realiza operacoes demoradas em um frame separado
+  if (END) {
+    END = false;
+    save();
+  }
+
   if (SERIAL.available() == 0) {
     return;
   }
@@ -54,7 +61,7 @@ void draw () {
   if (linha == null) {
     return;
   }
-  print(linha);
+  //print(linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -188,19 +195,10 @@ void draw () {
 
     // END
     case 5: {
+      END = true; // salva o jogo no frame seguinte
       draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, true);
       draw_ultima(0, 0);
       draw_ultima(3*W, 0);
-      String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-      saveFrame("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
-
-      delay(1000);
-      SERIAL.write("relatorio\n");
-      delay(5000);
-
-      byte[] LOG = new byte[32768];
-      LOG = SERIAL.readBytes();
-      saveBytes("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
     }
   }
 }
@@ -424,4 +422,17 @@ void draw_total (int total) {
   textAlign(CENTER, CENTER);
   textSize(200*dy);
   text(total, width/2, 5*H-20*dy);
+}
+
+void save () {
+  String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+  saveFrame("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
+
+  delay(1000);
+  SERIAL.write("relatorio\n");
+  delay(10000);
+
+  byte[] LOG = new byte[32768];
+  LOG = SERIAL.readBytes();
+  saveBytes("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
 }
