@@ -27,7 +27,7 @@ void setup () {
   surface.setTitle("FrescoGO! V.1.11");
   //size(800, 600);
   fullScreen();
-  IMG = loadImage("fresco.png");
+  IMG = loadImage("data/fresco.png");
 
   dy = 0.001 * height;
 
@@ -263,7 +263,7 @@ void draw_nome (float x, String nome) {
   fill(255);
   rect(x, H, 2*W, H);
   fill(0, 0, 255);
-  textSize(66*dy);
+  textSize(85*dy);
   textAlign(CENTER, CENTER);
   text(nome, x+W, H+H/2-5*dy);
 }
