@@ -39,7 +39,8 @@ void setup () {
   }
 */
 
-  textFont(createFont("Arial Black", 18));
+  //textFont(createFont("Arial Black", 18));
+  textFont(createFont("LiberationSans-Bold.ttf", 18));
 
   draw_zera();
 }
@@ -111,7 +112,7 @@ void draw () {
       int     fore_avg   = int(campos[10]);
       int     fore_max   = int(campos[11]);
 
-      color c = (is_back ? color(164,56,15) : color(15,56,164));
+      color c = (is_back ? color(255,0,0) : color(0,0,255));
       float h = 3*H+10*dy;
       ellipseMode(CENTER);
 
@@ -191,7 +192,15 @@ void draw () {
       draw_ultima(0, 0);
       draw_ultima(3*W, 0);
       String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-      saveFrame("frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
+      saveFrame("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
+
+      delay(1000);
+      SERIAL.write("relatorio\n");
+      delay(5000);
+
+      byte[] LOG = new byte[32768];
+      LOG = SERIAL.readBytes();
+      saveBytes("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
     }
   }
 }
