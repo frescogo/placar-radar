@@ -10,11 +10,12 @@ int      TEMPO_JOGADO;
 int      MAXIMA;
 String[] NOMES = new String[2];
 
+boolean  ARG_MAXIMAS = false;
+
 float dy; // 0.001 height
 
 float W;
 float H;
-float T;
 
 void setup () {
   SERIAL = new Serial(this, PORTA, 9600);
@@ -24,15 +25,18 @@ void setup () {
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! V.1.11");
-  size(800, 600);
-  //fullScreen();
+  //size(800, 600);
+  fullScreen();
   IMG = loadImage("fresco.png");
 
   dy = 0.001 * height;
 
-  W = 0.20 * width;
-  H = 0.15 * height;
-  T = 0.25 * height;
+  W = 0.20   * width;
+  H = 0.1666 * height;
+
+  if (args != null) {
+    ARG_MAXIMAS = args[0].equals("maximas");
+  }
 
   textFont(createFont("Arial Black", 18));
 
@@ -40,7 +44,6 @@ void setup () {
 }
 
 void draw () {
-
   if (SERIAL.available() == 0) {
     return;
   }
@@ -119,8 +122,8 @@ void draw () {
           draw_pontos(0, pontos, is_behind);
           draw_ultima(0, velocidade);
           //draw_maxima(0, max(back_max,fore_max));
-          draw_lado(0*W, "Normal", fores, fore_avg);
-          draw_lado(1*W, "Revés",  backs, back_avg);
+          draw_lado(0,  "Normal", fores, fore_avg);
+          draw_lado(W/2,"Revés",  backs, back_avg);
 
           // desenha circulo da esquerda
           fill(c);
@@ -137,8 +140,8 @@ void draw () {
           draw_pontos(4*W, pontos, is_behind);
           draw_ultima(3*W, velocidade);
           //draw_maxima(4*W, max(back_max,fore_max));
-          draw_lado(3*W, "Revés",  backs, back_avg);
-          draw_lado(4*W, "Normal", fores, fore_avg);
+          draw_lado(4*W+W/2,"Normal", fores, fore_avg);
+          draw_lado(4*W,    "Revés",  backs, back_avg);
 
           // desenha circulo da direita
           fill(c);
@@ -165,7 +168,7 @@ void draw () {
         draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
       }
       draw_total(total);
-      draw_golpes(golpes);
+      //draw_golpes(golpes);
       if (TEMPO_JOGADO >= 5) {
           draw_media(media);
       }
@@ -197,7 +200,7 @@ void draw_zera () {
   draw_tempo(0, false);
 
   draw_quedas(0);
-  draw_golpes(0);
+  //draw_golpes(0);
 
   draw_nome  (0, "?");
   draw_nome  (3*W, "?");
@@ -209,12 +212,12 @@ void draw_zera () {
   draw_ultima(3*W, 0);
   //draw_maxima(4*W, 0);
 
-  draw_lado(0*W, "Normal", 0, 0);
-  draw_lado(1*W, "Revés",  0, 0);
-  draw_lado(3*W, "Revés",  0, 0);
-  draw_lado(4*W, "Normal", 0, 0);
+  draw_lado(0,      "Normal", 0, 0);
+  draw_lado(W/2,    "Revés",  0, 0);
+  draw_lado(4*W+W/2,"Normal", 0, 0);
+  draw_lado(4*W,    "Revés",  0, 0);
 
-  draw_pontos(0, 0, false);
+  draw_pontos(0*W, 0, false);
   draw_pontos(4*W, 0, false);
   draw_total(0);
 }
@@ -264,12 +267,18 @@ void draw_quedas (int quedas) {
 
   textAlign(CENTER, TOP);
 
+/*
   fill(0);
   textSize(30*dy);
   text("Quedas", width/2, H+5*dy);
+*/
 
-  fill(250, 0, 0);
-  textSize(105*dy);
+  fill(255, 0, 0);
+  ellipseMode(CENTER);
+  ellipse(2*W+W/2, H+H/2, 0.9*H, 0.9*H);
+
+  fill(0);
+  textSize(90*dy);
   text(quedas, width/2, H+30*dy);
 }
 
@@ -297,13 +306,15 @@ void draw_media (int media) {
   textAlign(CENTER, TOP);
   fill(0);
 
+  textAlign(CENTER, CENTER);
+  textSize(90*dy);
   if (media != 0) {
-    textAlign(CENTER, CENTER);
-    textSize(90*dy);
     text(media, width/2, 2*H+H/2-25*dy);
-    textSize(25*dy);
-    text("média", width/2, 2*H+H/2+50*dy);
+  } else {
+    text("-", width/2, 2*H+H/2-25*dy);
   }
+  textSize(25*dy);
+  text("média", width/2, 2*H+H/2+50*dy);
 }
 
 void draw_maxima (int maxima) {
@@ -321,6 +332,7 @@ void draw_maxima (int maxima) {
   text("máx", width/2, 3*H+H/2+50*dy);
 }
 
+/*
 void draw_golpes (int golpes) {
   stroke(0);
   fill(255);
@@ -335,22 +347,27 @@ void draw_golpes (int golpes) {
   textSize(90*dy);
   text(golpes, width/2, 4*H+H/2-5*dy);
 }
+*/
 
 void draw_lado (float x, String lado, int n, int avg) {
+  if (!ARG_MAXIMAS) {
+    return;
+  }
+
   stroke(0);
   fill(255);
-  rect(x, 4*H, W, H);
+  rect(x, 4*H, W/2, H);
 
   fill(0);
   textAlign(CENTER, TOP);
   textSize(30*dy);
-  text(lado, x+W/2, 4*H+5*dy);
+  text(lado, x+W/4, 4*H+5*dy);
 
   textAlign(CENTER, CENTER);
   textSize(50*dy);
-  text(avg, x+W/2-10*dy, 4*H+H/2+0*dy);
+  text(n,   x+W/4-10*dy, 4*H+H/2+0*dy);
   textSize(25*dy);
-  text(n,   x+W/2+40*dy, 4*H+H/2+40*dy);
+  text(avg, x+W/4+40*dy, 4*H+H/2+40*dy);
 }
 
 /*
@@ -374,24 +391,27 @@ void draw_maxima (float x, int max) {
 */
 
 void draw_pontos (float x, int pontos, boolean is_behind) {
+  float  h = (ARG_MAXIMAS ? 5*H : 4*H);
+  float dh = (ARG_MAXIMAS ? 1*H : 2*H);
+
   stroke(0);
   if (is_behind) {
       fill(255,0,0);
   } else {
       fill(255);
   }
-  rect(x, 5*H, W, T);
+  rect(x, h, W, dh);
   fill(0);
-  textSize(50*dy);
+  textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(pontos, x+W/2, 5*H+T/2-10*dy);
+  text(pontos, x+W/2, h+dh/2-10*dy);
 }
 
 void draw_total (int total) {
   fill(0);
-  rect(W, 5*H, 3*W, T);
+  rect(W, 4*H, 3*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(200*dy);
-  text(total, width/2, 5*H+T/2-20*dy);
+  text(total, width/2, 5*H-20*dy);
 }
