@@ -1,4 +1,5 @@
-String PORTA = "/dev/ttyUSB0";
+String  CFG_PORTA   = "/dev/ttyUSB0";
+boolean CFG_MAXIMAS = true;
 
 import processing.serial.*;
 
@@ -10,15 +11,13 @@ int      TEMPO_JOGADO;
 int      MAXIMA;
 String[] NOMES = new String[2];
 
-boolean  ARG_MAXIMAS = false;
-
 float dy; // 0.001 height
 
 float W;
 float H;
 
 void setup () {
-  SERIAL = new Serial(this, PORTA, 9600);
+  SERIAL = new Serial(this, CFG_PORTA, 9600);
   //delay(50);
   //SERIAL.bufferUntil('\n');
   //SERIAL.clear();
@@ -34,9 +33,11 @@ void setup () {
   W = 0.20   * width;
   H = 0.1666 * height;
 
+/*
   if (args != null) {
-    ARG_MAXIMAS = args[0].equals("maximas");
+    CFG_MAXIMAS = args[0].equals("maximas");
   }
+*/
 
   textFont(createFont("Arial Black", 18));
 
@@ -350,7 +351,7 @@ void draw_golpes (int golpes) {
 */
 
 void draw_lado (float x, String lado, int n, int avg) {
-  if (!ARG_MAXIMAS) {
+  if (!CFG_MAXIMAS) {
     return;
   }
 
@@ -391,8 +392,8 @@ void draw_maxima (float x, int max) {
 */
 
 void draw_pontos (float x, int pontos, boolean is_behind) {
-  float  h = (ARG_MAXIMAS ? 5*H : 4*H);
-  float dh = (ARG_MAXIMAS ? 1*H : 2*H);
+  float  h = (CFG_MAXIMAS ? 5*H : 4*H);
+  float dh = (CFG_MAXIMAS ? 1*H : 2*H);
 
   stroke(0);
   if (is_behind) {
