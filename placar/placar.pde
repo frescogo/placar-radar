@@ -27,7 +27,7 @@ void setup () {
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! V.1.11");
-  //size(800, 600);
+  //size(640, 480);
   fullScreen();
   IMG = loadImage("data/fresco.png");
 
@@ -61,19 +61,21 @@ void ini_nome (float x, int idx) {
 void trata_nome (float x, int idx, String lado) {
   if (key==ENTER || key==RETURN) {
     draw_nome(x, NOMES[idx], true);
+    //println(lado + " " + NOMES[idx] + "\n");
     SERIAL.write(lado + " " + NOMES[idx] + "\n");
     delay(100);
     String linha = SERIAL.readStringUntil('\n');
-    println(">>>",linha);
-    //assert(linha == "ok");
+    //println("<<<",linha);
+    //assert(linha == "ok");/
     ESTADO = 255;
   } else if (key==BACKSPACE) {
     if (NOMES[idx].length() > 0) {
       NOMES[idx] = NOMES[idx].substring(0, NOMES[idx].length()-1);
     }
     draw_nome(x, NOMES[idx], false);
-  } else {
+  } else if (int(key)>=int('a') && int(key)<='z' || int(key)>=int('A') && int(key)<=int('Z') || key=='_'){
     NOMES[idx] = NOMES[idx] + key;
+    //println(">>>", key);
     draw_nome(x, NOMES[idx], false);
   }
 }
@@ -112,7 +114,7 @@ void draw () {
   if (linha == null) {
     return;
   }
-  //print(linha);
+  //print(">>>",linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
