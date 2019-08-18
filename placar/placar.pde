@@ -6,6 +6,8 @@ import processing.serial.*;
 Serial SERIAL;
 PImage IMG;
 
+int ESTADO = 255;  // 0=digitando ESQ, 1=digitando DIR
+
 boolean  END = false;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
@@ -46,6 +48,55 @@ void setup () {
   draw_zera();
 }
 
+int ctrl (char key) {
+  return char(int(key) - int('a') + 1);
+}
+
+void ini_nome (float x, int idx) {
+  ESTADO = idx;
+  NOMES[idx] = "";
+  draw_nome(x, NOMES[idx], false);
+}
+
+void trata_nome (float x, int idx, String lado) {
+  if (key==ENTER || key==RETURN) {
+    draw_nome(x, NOMES[idx], true);
+    SERIAL.write(lado + " " + NOMES[idx] + "\n");
+    delay(100);
+    String linha = SERIAL.readStringUntil('\n');
+    println(">>>",linha);
+    //assert(linha == "ok");
+    ESTADO = 255;
+  } else if (key==BACKSPACE) {
+    if (NOMES[idx].length() > 0) {
+      NOMES[idx] = NOMES[idx].substring(0, NOMES[idx].length()-1);
+    }
+    draw_nome(x, NOMES[idx], false);
+  } else {
+    NOMES[idx] = NOMES[idx] + key;
+    draw_nome(x, NOMES[idx], false);
+  }
+}
+
+void keyPressed () {
+  switch (ESTADO) {
+    case 255: // OCIOSO
+      if (key == ctrl('e')) {
+        ini_nome(0,0);
+      } else if (key == ctrl('d')) {
+        ini_nome(3*W,1);
+      }
+      break;
+
+    case 0: // DIGITANDO ESQ
+      trata_nome(0, 0, "esquerda");
+      break;
+    case 1: // DIGITANDO DIR
+      trata_nome(3*W, 1, "direita");
+      break;
+  }
+}
+
 void draw () {
   // realiza operacoes demoradas em um frame separado
   if (END) {
@@ -81,8 +132,8 @@ void draw () {
 
       draw_zera();
       draw_tempo(TEMPO_TOTAL, false);
-      draw_nome(0, esq);
-      draw_nome(3*W, dir);
+      draw_nome(0,   esq, true);
+      draw_nome(3*W, dir, true);
       break;
     }
 
@@ -100,8 +151,8 @@ void draw () {
 
       draw_quedas(quedas);
 
-      draw_nome(0, esq);
-      draw_nome(3*W, dir);
+      draw_nome(0,   esq, true);
+      draw_nome(3*W, dir, true);
       break;
     }
 
@@ -210,8 +261,8 @@ void draw_zera () {
   draw_quedas(0);
   //draw_golpes(0);
 
-  draw_nome  (0, "?");
-  draw_nome  (3*W, "?");
+  draw_nome  (0,   "", false);
+  draw_nome  (3*W, "", false);
 
   //draw_maxima(0, 0);
   draw_ultima(0, 0);
@@ -258,11 +309,16 @@ void draw_tempo (int tempo, boolean ended) {
   text(mins+":"+segs, width/2, H/2-10*dy);
 }
 
-void draw_nome (float x, String nome) {
+void draw_nome (float x, String nome, boolean ok) {
   stroke(0);
   fill(255);
   rect(x, H, 2*W, H);
-  fill(0, 0, 255);
+  if (ok) {
+    fill(0, 0, 255);
+  } else {
+    nome = nome + "_";
+    fill(255, 0, 0);
+  }
   textSize(85*dy);
   textAlign(CENTER, CENTER);
   text(nome, x+W, H+H/2-5*dy);
@@ -430,7 +486,7 @@ void save () {
 
   delay(1000);
   SERIAL.write("relatorio\n");
-  delay(10000);
+  delay(30000);
 
   byte[] LOG = new byte[32768];
   LOG = SERIAL.readBytes();
