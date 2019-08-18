@@ -1,4 +1,5 @@
 String  CFG_PORTA   = "/dev/ttyUSB0";
+//String  CFG_PORTA   = "COM6";
 boolean CFG_MAXIMAS = true;
 
 import processing.serial.*;
@@ -104,6 +105,7 @@ void draw () {
   if (END) {
     END = false;
     save();
+    draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
   }
 
   if (SERIAL.available() == 0) {
@@ -187,24 +189,6 @@ void draw () {
           draw_lado(0,  "Normal", fores, fore_avg);
           draw_lado(W/2,"Revés",  backs, back_avg);
 
-          // desenha circulo da esquerda
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(2*W-80*dy, h, 60*dy, 60*dy);
-
-          // apaga circulo da direita
-          fill(255);
-          stroke(255);
-          ellipse(3*W+80*dy, h, 70*dy, 70*dy);
-      }
-      else
-      {
-          draw_pontos(4*W, pontos, is_behind);
-          draw_ultima(3*W, velocidade);
-          //draw_maxima(4*W, max(back_max,fore_max));
-          draw_lado(4*W+W/2,"Normal", fores, fore_avg);
-          draw_lado(4*W,    "Revés",  backs, back_avg);
-
           // desenha circulo da direita
           fill(c);
           stroke(15, 56, 164);
@@ -214,6 +198,24 @@ void draw () {
           fill(255);
           stroke(255);
           ellipse(2*W-80*dy, h, 70*dy, 70*dy);
+      }
+      else
+      {
+          draw_pontos(4*W, pontos, is_behind);
+          draw_ultima(3*W, velocidade);
+          //draw_maxima(4*W, max(back_max,fore_max));
+          draw_lado(4*W+W/2,"Normal", fores, fore_avg);
+          draw_lado(4*W,    "Revés",  backs, back_avg);
+
+          // desenha circulo da esquerda
+          fill(c);
+          stroke(15, 56, 164);
+          ellipse(2*W-80*dy, h, 60*dy, 60*dy);
+
+          // apaga circulo da direita
+          fill(255);
+          stroke(255);
+          ellipse(3*W+80*dy, h, 70*dy, 70*dy);
       }
       break;
     }
@@ -488,7 +490,7 @@ void save () {
 
   delay(1000);
   SERIAL.write("relatorio\n");
-  delay(30000);
+  delay(40000);
 
   byte[] LOG = new byte[32768];
   LOG = SERIAL.readBytes();
