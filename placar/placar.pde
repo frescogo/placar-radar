@@ -4,7 +4,8 @@ boolean CFG_MAXIMAS = true;
 
 import processing.serial.*;
 
-Serial SERIAL;
+Serial  SERIAL;
+
 PImage IMG;
 
 int ESTADO = 255;  // 0=digitando ESQ, 1=digitando DIR
@@ -21,15 +22,15 @@ float W;
 float H;
 
 void setup () {
-  SERIAL = new Serial(this, CFG_PORTA, 9600);
+  serial_liga();
   //delay(50);
   //SERIAL.bufferUntil('\n');
   //SERIAL.clear();
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! V.1.11");
-  //size(640, 480);
-  fullScreen();
+  size(640, 480);
+  //fullScreen();
   IMG = loadImage("data/fresco.png");
 
   dy = 0.001 * height;
@@ -48,6 +49,33 @@ void setup () {
 
   draw_zera();
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// SERIAL
+///////////////////////////////////////////////////////////////////////////////
+
+void serial_liga () {
+  SERIAL = new Serial(this, CFG_PORTA, 9600);
+
+  ellipseMode(CENTER);
+  fill(0);
+  stroke(15, 56, 164);
+  ellipse(3.5*W, 5*H, 60*dy, 60*dy);
+}
+
+void serial_desliga () {
+  SERIAL.stop();
+  SERIAL = null;
+
+  ellipseMode(CENTER);
+  fill(255,0,0);
+  stroke(15, 56, 164);
+  ellipse(3.5*W, 5*H, 60*dy, 60*dy);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// KEYBOARD
+///////////////////////////////////////////////////////////////////////////////
 
 int ctrl (char key) {
   return char(int(key) - int('a') + 1);
@@ -84,10 +112,16 @@ void trata_nome (float x, int idx, String lado) {
 void keyPressed () {
   switch (ESTADO) {
     case 255: // OCIOSO
-      if (key == ctrl('e')) {
+      if (key == ctrl('e')) {           // CTRL-E
         ini_nome(0,0);
-      } else if (key == ctrl('d')) {
+      } else if (key == ctrl('d')) {    // CTRL-D
         ini_nome(3*W,1);
+      } else if (key == ctrl('s')) {    // CTRL-S
+        if (SERIAL == null) {
+          serial_liga();
+        } else {
+          serial_desliga();
+        }
       }
       break;
 
@@ -100,6 +134,10 @@ void keyPressed () {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// LOOP
+///////////////////////////////////////////////////////////////////////////////
+
 void draw () {
   // realiza operacoes demoradas em um frame separado
   if (END) {
@@ -108,7 +146,7 @@ void draw () {
     draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
   }
 
-  if (SERIAL.available() == 0) {
+  if (SERIAL==null || SERIAL.available()==0) {
     return;
   }
 
@@ -257,6 +295,10 @@ void draw () {
     }
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// DRAW
+///////////////////////////////////////////////////////////////////////////////
 
 void draw_zera () {
   draw_logos();
@@ -483,6 +525,10 @@ void draw_total (int total) {
   textSize(200*dy);
   text(total, width/2, 5*H-20*dy);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// SAVE
+///////////////////////////////////////////////////////////////////////////////
 
 void save () {
   String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
