@@ -13,7 +13,8 @@ int ESTADO = 255;  // 0=digitando ESQ, 1=digitando DIR
 boolean  END = false;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
-int      MAXIMA;
+int      MAXIMA_ESQ;
+int      MAXIMA_DIR;
 String[] NOMES = new String[2];
 
 float dy; // 0.001 height
@@ -165,7 +166,8 @@ void draw () {
     case 0: {
       TEMPO_TOTAL  = int(campos[1]);
       TEMPO_JOGADO = 0;
-      MAXIMA       = 0;
+      MAXIMA_ESQ   = 0;
+      MAXIMA_DIR   = 0;
 
       String esq = campos[2];
       String dir = campos[3];
@@ -216,9 +218,6 @@ void draw () {
       float h = 3*H+10*dy;
       ellipseMode(CENTER);
 
-      MAXIMA = max(MAXIMA, max(back_max,fore_max));
-      draw_maxima(MAXIMA);
-
       if (is_esq)
       {
           draw_pontos(0, pontos, is_behind);
@@ -226,6 +225,9 @@ void draw () {
           //draw_maxima(0, max(back_max,fore_max));
           draw_lado(0,  "Normal", fores, fore_avg);
           draw_lado(W/2,"Revés",  backs, back_avg);
+
+          MAXIMA_ESQ = max(MAXIMA_ESQ, max(back_max,fore_max));
+          draw_maxima(2*W, MAXIMA_ESQ);
 
           // desenha circulo da direita
           fill(c);
@@ -244,6 +246,9 @@ void draw () {
           //draw_maxima(4*W, max(back_max,fore_max));
           draw_lado(4*W+W/2,"Normal", fores, fore_avg);
           draw_lado(4*W,    "Revés",  backs, back_avg);
+
+          MAXIMA_DIR = max(MAXIMA_DIR, max(back_max,fore_max));
+          draw_maxima(2.5*W, MAXIMA_DIR);
 
           // desenha circulo da esquerda
           fill(c);
@@ -313,9 +318,14 @@ void draw_zera () {
   //draw_maxima(0, 0);
   draw_ultima(0, 0);
   draw_media(0);
-  draw_maxima(0);
   draw_ultima(3*W, 0);
   //draw_maxima(4*W, 0);
+
+  stroke(0);
+  fill(255);
+  rect(2*W, 3*H, W, H);
+  draw_maxima(2.0*W, 0);
+  draw_maxima(2.5*W, 0);
 
   draw_lado(0,      "Normal", 0, 0);
   draw_lado(W/2,    "Revés",  0, 0);
@@ -427,19 +437,19 @@ void draw_media (int media) {
   text("média", width/2, 2*H+H/2+50*dy);
 }
 
-void draw_maxima (int maxima) {
-  stroke(0);
+void draw_maxima (float x, int maxima) {
+  noStroke();
   fill(255);
-  rect(2*W, 3*H, W, H);
+  rect(x+2, 3*H+2, W/2-4, H-4);
 
   textAlign(CENTER, TOP);
   fill(0);
 
   textAlign(CENTER, CENTER);
-  textSize(90*dy);
-  text(maxima, width/2, 3*H+H/2-25*dy);
+  textSize(60*dy);
+  text(maxima, x+W/4, 3*H+H/2-20*dy);
   textSize(25*dy);
-  text("máx", width/2, 3*H+H/2+50*dy);
+  text("<--    máx    -->", width/2, 3*H+H/2+50*dy);
 }
 
 /*
