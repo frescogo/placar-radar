@@ -12,14 +12,15 @@ PImage   IMG;
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR
 
-boolean  END          = false;
+boolean  IS_SAVE      = false;
 
+boolean  IS_FIM;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      PONTOS_TOTAL;
 int      QUEDAS;
 int      GOLPES_AVG;
-int      IS_BEHIND;
+int      IS_DESEQ;
 
 int      GOLPE_IDX;
 int      GOLPE_CLR;
@@ -61,11 +62,12 @@ void setup () {
 }
 
 void zera () {
+  IS_FIM       = false;
   TEMPO_JOGADO = 0;
   PONTOS_TOTAL = 0;
   QUEDAS       = 0;
   GOLPES_AVG   = 0;
-  IS_BEHIND    = 255;
+  IS_DESEQ     = 255;
 
   GOLPE_IDX    = 255;
 
@@ -170,8 +172,8 @@ void keyPressed () {
 
 void draw () {
   // realiza operacoes demoradas em um frame separado
-  if (END) {
-    END = false;
+  if (IS_SAVE) {
+    IS_SAVE = false;
     save();
   }
 
@@ -227,9 +229,9 @@ void draw () {
       MAXIMAS[idx] = max(MAXIMAS[idx], max(back_max,fore_max));
 
       if (is_beh) {
-        IS_BEHIND = idx;
-      } else if (IS_BEHIND == idx) {
-        IS_BEHIND = 255;
+        IS_DESEQ = idx;
+      } else if (IS_DESEQ == idx) {
+        IS_DESEQ = 255;
       }
 
       GOLPE_IDX = idx;
@@ -259,7 +261,8 @@ void draw () {
 
     // END
     case 5: {
-      END = true; // salva o jogo no frame seguinte
+      IS_SAVE   = true; // salva o jogo no frame seguinte
+      IS_FIM    = true;
       GOLPE_IDX = 255;
       draw_tudo(true);
     }
@@ -306,8 +309,8 @@ void draw_tudo (boolean is_end) {
   draw_lado(4*W+W/2,"Normal", FORES_TOT[1], FORES_AVG[1]);
   draw_lado(W/2,    "Revés",  BACKS_TOT[1], BACKS_AVG[1]);
 
-  draw_pontos(0*W, PONTOS[0], IS_BEHIND==0);
-  draw_pontos(4*W, PONTOS[1], IS_BEHIND==1);
+  draw_pontos(0*W, PONTOS[0], IS_DESEQ==0);
+  draw_pontos(4*W, PONTOS[1], IS_DESEQ==1);
   draw_total(PONTOS_TOTAL);
 
   if (is_end) {
@@ -335,7 +338,11 @@ void draw_tempo (int tempo) {
   String mins = nf(tempo / 60, 2);
   String segs = nf(tempo % 60, 2);
 
-  fill(0);
+  if (IS_FIM) {
+    fill(255,0,0);
+  } else {
+    fill(0);
+  }
   rect(W+W/2, 0, 2*W, H);
 
   fill(255);
