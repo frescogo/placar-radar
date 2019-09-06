@@ -19,6 +19,7 @@ int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      PONTOS_TOTAL;
 int      QUEDAS;
+int      GOLPES_TOT;
 int      GOLPES_AVG;
 int      IS_DESEQ;
 
@@ -66,6 +67,7 @@ void zera () {
   TEMPO_JOGADO = 0;
   PONTOS_TOTAL = 0;
   QUEDAS       = 0;
+  GOLPES_TOT   = 0;
   GOLPES_AVG   = 0;
   IS_DESEQ     = 255;
 
@@ -243,7 +245,7 @@ void draw () {
     case 3: {
       int tempo    = int(campos[1]);
       PONTOS_TOTAL = int(campos[2]);
-      int golpes   = int(campos[3]);
+      GOLPES_TOT   = int(campos[3]);
       GOLPES_AVG   = int(campos[4]);
 
       if (tempo >= (TEMPO_JOGADO-TEMPO_JOGADO%5)+5) {
@@ -297,7 +299,7 @@ void draw_tudo (boolean is_end) {
     }
   }
 
-  draw_media(GOLPES_AVG, TEMPO_JOGADO>=5);
+  draw_golpes(GOLPES_TOT, GOLPES_AVG, TEMPO_JOGADO>=5);
 
   fill(255);
   rect(2*W, 3*H, W, H);
@@ -404,23 +406,26 @@ void draw_ultima (float x, int ultima) {
   }
 }
 
-void draw_media (int media, boolean apply) {
+void draw_golpes (int golpes, int media, boolean apply) {
   stroke(0);
   fill(255);
   rect(2*W, 2*H, W, H);
 
-  textAlign(CENTER, TOP);
   fill(0);
-
   textAlign(CENTER, CENTER);
-  textSize(90*dy);
+  textSize(60*dy);
+
+  text(golpes, 2.25*W, 2*H+H/2-25*dy);
+
   if (apply) {
-    text(media, width/2, 2*H+H/2-25*dy);
+    text(media, 2.75*W, 2*H+H/2-25*dy);
   } else {
-    text("-", width/2, 2*H+H/2-25*dy);
+    text("-", 2.75*W, 2*H+H/2-25*dy);
   }
+
   textSize(25*dy);
-  text("média", width/2, 2*H+H/2+50*dy);
+  text("golpes", 2.25*W, 2*H+H/2+50*dy);
+  text("km/h",   2.75*W, 2*H+H/2+50*dy);
 }
 
 void draw_maxima (float x, int maxima) {
@@ -428,32 +433,13 @@ void draw_maxima (float x, int maxima) {
   noStroke();
   rect(x+2, 3*H+2, W/2-4, H-4);
 
-  textAlign(CENTER, TOP);
   fill(0);
-
   textAlign(CENTER, CENTER);
   textSize(60*dy);
   text(maxima, x+W/4, 3*H+H/2-20*dy);
   textSize(25*dy);
   text("<--    máx    -->", width/2, 3*H+H/2+50*dy);
 }
-
-/*
-void draw_golpes (int golpes) {
-  stroke(0);
-  fill(255);
-  rect(2*W, 4*H, W, H);
-
-  textAlign(CENTER, CENTER);
-
-  //textSize(25*dy);
-  //text("Golpes", width/2, 4*H+5*dy);
-
-  fill(0);
-  textSize(90*dy);
-  text(golpes, width/2, 4*H+H/2-5*dy);
-}
-*/
 
 void draw_lado (float x, String lado, int n, int avg) {
   if (!CFG_MAXIMAS) {
