@@ -2,20 +2,36 @@ String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "COM6";
 boolean CFG_MAXIMAS = true;
 
+///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
+
 import processing.serial.*;
 
-Serial  SERIAL;
+Serial   SERIAL;
 
-PImage IMG;
+PImage   IMG;
 
-int ESTADO = 255;  // 0=digitando ESQ, 1=digitando DIR
+int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR
 
-boolean  END = false;
+boolean  END          = false;
+
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
-int      MAXIMA_ESQ;
-int      MAXIMA_DIR;
-String[] NOMES = new String[2];
+int      PONTOS_TOTAL;
+int      QUEDAS;
+int      GOLPES_AVG;
+int      IS_BEHIND;
+
+int      GOLPE_IDX;
+int      GOLPE_CLR;
+
+String[] NOMES        = new String[2];
+int[]    PONTOS       = new int[2];
+int[]    ULTIMAS      = new int[2];
+int[]    MAXIMAS      = new int[2];
+int[]    FORES_TOT    = new int[2];
+int[]    FORES_AVG    = new int[2];
+int[]    BACKS_TOT    = new int[2];
+int[]    BACKS_AVG    = new int[2];
 
 float dy; // 0.001 height
 
@@ -39,16 +55,36 @@ void setup () {
   W = 0.20   * width;
   H = 0.1666 * height;
 
-/*
-  if (args != null) {
-    CFG_MAXIMAS = args[0].equals("maximas");
-  }
-*/
+  zera();
 
-  //textFont(createFont("Arial Black", 18));
   textFont(createFont("LiberationSans-Bold.ttf", 18));
+}
 
-  draw_zera();
+void zera () {
+  TEMPO_JOGADO = 0;
+  PONTOS_TOTAL = 0;
+  QUEDAS       = 0;
+  GOLPES_AVG   = 0;
+  IS_BEHIND    = 255;
+
+  GOLPE_IDX    = 255;
+
+  NOMES[0]     = "";
+  NOMES[1]     = "";
+  PONTOS[0]    = 0;
+  PONTOS[1]    = 0;
+  ULTIMAS[0]   = 0;
+  ULTIMAS[1]   = 0;
+  MAXIMAS[0]   = 0;
+  MAXIMAS[1]   = 0;
+  FORES_TOT[0] = 0;
+  FORES_TOT[1] = 0;
+  FORES_AVG[0] = 0;
+  FORES_AVG[1] = 0;
+  BACKS_TOT[0] = 0;
+  BACKS_TOT[1] = 0;
+  BACKS_AVG[0] = 0;
+  BACKS_AVG[1] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,41 +118,34 @@ int ctrl (char key) {
   return char(int(key) - int('a') + 1);
 }
 
-void ini_nome (float x, int idx) {
-  ESTADO = idx;
-  NOMES[idx] = "";
-  draw_nome(x, NOMES[idx], false);
-}
-
 void trata_nome (float x, int idx, String lado) {
   if (key==ENTER || key==RETURN) {
-    draw_nome(x, NOMES[idx], true);
     //println(lado + " " + NOMES[idx] + "\n");
     SERIAL.write(lado + " " + NOMES[idx] + "\n");
     delay(100);
     String linha = SERIAL.readStringUntil('\n');
     //println("<<<",linha);
     //assert(linha == "ok");/
-    ESTADO = 255;
+    DIGITANDO = 255;
   } else if (key==BACKSPACE) {
     if (NOMES[idx].length() > 0) {
       NOMES[idx] = NOMES[idx].substring(0, NOMES[idx].length()-1);
     }
-    draw_nome(x, NOMES[idx], false);
   } else if (int(key)>=int('a') && int(key)<='z' || int(key)>=int('A') && int(key)<=int('Z') || key=='_'){
     NOMES[idx] = NOMES[idx] + key;
     //println(">>>", key);
-    draw_nome(x, NOMES[idx], false);
   }
 }
 
 void keyPressed () {
-  switch (ESTADO) {
+  switch (DIGITANDO) {
     case 255: // OCIOSO
       if (key == ctrl('e')) {           // CTRL-E
-        ini_nome(0,0);
+        DIGITANDO = 0;
+        NOMES[0] = "";
       } else if (key == ctrl('d')) {    // CTRL-D
-        ini_nome(3*W,1);
+        DIGITANDO = 1;
+        NOMES[1] = "";
       } else if (key == ctrl('s')) {    // CTRL-S
         if (SERIAL == null) {
           serial_liga();
@@ -144,8 +173,9 @@ void draw () {
   if (END) {
     END = false;
     save();
-    draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
   }
+
+  draw_tudo(false);
 
   if (SERIAL==null || SERIAL.available()==0) {
     return;
@@ -164,139 +194,74 @@ void draw () {
   {
     // RESTART
     case 0: {
+      zera();
       TEMPO_TOTAL  = int(campos[1]);
-      TEMPO_JOGADO = 0;
-      MAXIMA_ESQ   = 0;
-      MAXIMA_DIR   = 0;
-
-      String esq = campos[2];
-      String dir = campos[3];
-      NOMES[0] = esq;
-      NOMES[1] = dir;
-
-      draw_zera();
-      draw_tempo(TEMPO_TOTAL, false);
-      draw_nome(0,   esq, true);
-      draw_nome(3*W, dir, true);
+      NOMES[0]     = campos[2];
+      NOMES[1]     = campos[3];
       break;
     }
 
     // SEQ
     case 1: {
-      int tempo  = int(campos[1]);
-      int quedas = int(campos[2]);
-      String esq = campos[3];
-      String dir = campos[4];
-      NOMES[0] = esq;
-      NOMES[1] = dir;
-
-      TEMPO_JOGADO = tempo;
-      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
-
-      draw_quedas(quedas);
-
-      draw_nome(0,   esq, true);
-      draw_nome(3*W, dir, true);
+      TEMPO_JOGADO = int(campos[1]);
+      QUEDAS       = int(campos[2]);
+      NOMES[0]     = campos[3];
+      NOMES[1]     = campos[4];
       break;
     }
 
     // HIT
     case 2: {
-      boolean is_esq     = int(campos[1]) == 0;
-      boolean is_back    = int(campos[2]) == 1;
-      int     velocidade = int(campos[3]);
-      int     pontos     = int(campos[4]);
-      boolean is_behind  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
-      int     backs      = int(campos[6]);      // TODO
-      int     back_avg   = int(campos[7]);
-      int     back_max   = int(campos[8]);
-      int     fores      = int(campos[9]);      // TODO
-      int     fore_avg   = int(campos[10]);
-      int     fore_max   = int(campos[11]);
+      int idx         = int(campos[1]);
+      boolean is_back = int(campos[2]) == 1;
+      ULTIMAS[idx]    = int(campos[3]);
+      PONTOS[idx]     = int(campos[4]);
+      boolean is_beh  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
+      BACKS_TOT[idx]  = int(campos[6]);      // TODO
+      BACKS_AVG[idx]  = int(campos[7]);
+      int back_max    = int(campos[8]);
+      FORES_TOT[idx]  = int(campos[9]);      // TODO
+      FORES_AVG[idx]  = int(campos[10]);
+      int fore_max    = int(campos[11]);
 
-      color c = (is_back ? color(255,0,0) : color(0,0,255));
-      float h = 3*H+10*dy;
-      ellipseMode(CENTER);
+      MAXIMAS[idx] = max(MAXIMAS[idx], max(back_max,fore_max));
 
-      if (is_esq)
-      {
-          draw_pontos(0, pontos, is_behind);
-          draw_ultima(0, velocidade);
-          //draw_maxima(0, max(back_max,fore_max));
-          draw_lado(0,  "Normal", fores, fore_avg);
-          draw_lado(W/2,"Revés",  backs, back_avg);
-
-          MAXIMA_ESQ = max(MAXIMA_ESQ, max(back_max,fore_max));
-          draw_maxima(2*W, MAXIMA_ESQ);
-
-          // desenha circulo da direita
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(3*W+80*dy, h, 60*dy, 60*dy);
-
-          // apaga circulo da esquerda
-          fill(255);
-          stroke(255);
-          ellipse(2*W-80*dy, h, 70*dy, 70*dy);
+      if (is_beh) {
+        IS_BEHIND = idx;
+      } else if (IS_BEHIND == idx) {
+        IS_BEHIND = 255;
       }
-      else
-      {
-          draw_pontos(4*W, pontos, is_behind);
-          draw_ultima(3*W, velocidade);
-          //draw_maxima(4*W, max(back_max,fore_max));
-          draw_lado(4*W+W/2,"Normal", fores, fore_avg);
-          draw_lado(4*W,    "Revés",  backs, back_avg);
 
-          MAXIMA_DIR = max(MAXIMA_DIR, max(back_max,fore_max));
-          draw_maxima(2.5*W, MAXIMA_DIR);
-
-          // desenha circulo da esquerda
-          fill(c);
-          stroke(15, 56, 164);
-          ellipse(2*W-80*dy, h, 60*dy, 60*dy);
-
-          // apaga circulo da direita
-          fill(255);
-          stroke(255);
-          ellipse(3*W+80*dy, h, 70*dy, 70*dy);
-      }
+      GOLPE_IDX = idx;
+      GOLPE_CLR = (is_back ? color(255,0,0) : color(0,0,255));
       break;
     }
 
     // TICK
     case 3: {
-      int tempo  = int(campos[1]);
-      int total  = int(campos[2]);
-      int golpes = int(campos[3]);
-      int media  = int(campos[4]);
+      int tempo    = int(campos[1]);
+      PONTOS_TOTAL = int(campos[2]);
+      int golpes   = int(campos[3]);
+      GOLPES_AVG   = int(campos[4]);
 
       if (tempo >= (TEMPO_JOGADO-TEMPO_JOGADO%5)+5) {
         TEMPO_JOGADO = tempo;
-        draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, false);
-      }
-      draw_total(total);
-      //draw_golpes(golpes);
-      if (TEMPO_JOGADO >= 5) {
-          draw_media(media);
       }
       break;
     }
 
     // FALL
     case 4: {
-      int quedas = int(campos[1]);
-      draw_quedas(quedas);
-      draw_ultima(0, 0);
-      draw_ultima(3*W, 0);
+      QUEDAS = int(campos[1]);
+      GOLPE_IDX = 255;
       break;
     }
 
     // END
     case 5: {
       END = true; // salva o jogo no frame seguinte
-      draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO, true);
-      draw_ultima(0, 0);
-      draw_ultima(3*W, 0);
+      GOLPE_IDX = 255;
+      draw_tudo(true);
     }
   }
 }
@@ -305,36 +270,54 @@ void draw () {
 // DRAW
 ///////////////////////////////////////////////////////////////////////////////
 
-void draw_zera () {
+void draw_tudo (boolean is_end) {
+  background(255,255,255);
+
   draw_logos();
-  draw_tempo(0, false);
+  draw_nome(0,   NOMES[0], DIGITANDO!=0);
+  draw_nome(3*W, NOMES[1], DIGITANDO!=1);
 
-  draw_quedas(0);
-  //draw_golpes(0);
+  draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+  draw_quedas(QUEDAS);
 
-  draw_nome  (0,   "", false);
-  draw_nome  (3*W, "", false);
+  if (GOLPE_IDX != 255) {
+    draw_ultima(0,   ULTIMAS[0]);
+    draw_ultima(3*W, ULTIMAS[1]);
 
-  //draw_maxima(0, 0);
-  draw_ultima(0, 0);
-  draw_media(0);
-  draw_ultima(3*W, 0);
-  //draw_maxima(4*W, 0);
+    ellipseMode(CENTER);
+    fill(GOLPE_CLR);
+    stroke(15, 56, 164);
+    if (GOLPE_IDX == 0) {
+      ellipse(3*W+80*dy, 3*H+10*dy, 60*dy, 60*dy);
+    } else {
+      ellipse(2*W-80*dy, 3*H+10*dy, 60*dy, 60*dy);
+    }
+  }
 
-  stroke(0);
+  draw_media(GOLPES_AVG, TEMPO_JOGADO>=5);
+
   fill(255);
   rect(2*W, 3*H, W, H);
-  draw_maxima(2.0*W, 0);
-  draw_maxima(2.5*W, 0);
+  draw_maxima(2.0*W, MAXIMAS[0]);
+  draw_maxima(2.5*W, MAXIMAS[1]);
 
-  draw_lado(0,      "Normal", 0, 0);
-  draw_lado(W/2,    "Revés",  0, 0);
-  draw_lado(4*W+W/2,"Normal", 0, 0);
-  draw_lado(4*W,    "Revés",  0, 0);
+  draw_lado(0,      "Normal", FORES_TOT[0], FORES_AVG[0]);
+  draw_lado(4*W,    "Revés",  BACKS_TOT[0], BACKS_AVG[0]);
+  draw_lado(4*W+W/2,"Normal", FORES_TOT[1], FORES_AVG[1]);
+  draw_lado(W/2,    "Revés",  BACKS_TOT[1], BACKS_AVG[1]);
 
-  draw_pontos(0*W, 0, false);
-  draw_pontos(4*W, 0, false);
-  draw_total(0);
+  draw_pontos(0*W, PONTOS[0], IS_BEHIND==0);
+  draw_pontos(4*W, PONTOS[1], IS_BEHIND==1);
+  draw_total(PONTOS_TOTAL);
+
+  if (is_end) {
+    fill(255,0,0);
+    rect(W/2, 2.25*H, 4*W, 1.5*H);
+    fill(255);
+    textSize(120*dy);
+    textAlign(CENTER, CENTER);
+    text("Aguarde...", width/2, height/2);
+  }
 }
 
 void draw_logos () {
@@ -348,15 +331,11 @@ void draw_logos () {
   image(IMG, x2+w/2, H/2);
 }
 
-void draw_tempo (int tempo, boolean ended) {
+void draw_tempo (int tempo) {
   String mins = nf(tempo / 60, 2);
   String segs = nf(tempo % 60, 2);
 
-  if (ended) {
-    fill(255,0,0);
-  } else {
-    fill(0);
-  }
+  fill(0);
   rect(W+W/2, 0, 2*W, H);
 
   fill(255);
@@ -397,7 +376,7 @@ void draw_quedas (int quedas) {
   ellipseMode(CENTER);
   ellipse(2*W+W/2, H+H/2, 0.9*H, 0.9*H);
 
-  fill(0);
+  fill(255);
   textSize(90*dy);
   text(quedas, width/2, H+30*dy);
 }
@@ -418,7 +397,7 @@ void draw_ultima (float x, int ultima) {
   }
 }
 
-void draw_media (int media) {
+void draw_media (int media, boolean apply) {
   stroke(0);
   fill(255);
   rect(2*W, 2*H, W, H);
@@ -428,7 +407,7 @@ void draw_media (int media) {
 
   textAlign(CENTER, CENTER);
   textSize(90*dy);
-  if (media != 0) {
+  if (apply) {
     text(media, width/2, 2*H+H/2-25*dy);
   } else {
     text("-", width/2, 2*H+H/2-25*dy);
@@ -438,8 +417,8 @@ void draw_media (int media) {
 }
 
 void draw_maxima (float x, int maxima) {
-  noStroke();
   fill(255);
+  noStroke();
   rect(x+2, 3*H+2, W/2-4, H-4);
 
   textAlign(CENTER, TOP);
