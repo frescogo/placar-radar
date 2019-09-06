@@ -46,7 +46,7 @@ void setup () {
   //SERIAL.clear();
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
-  surface.setTitle("FrescoGO! V.1.11");
+  surface.setTitle("FrescoGO! v1.12.1");
   size(640, 480);
   //fullScreen();
   IMG = loadImage("data/fresco.png");
