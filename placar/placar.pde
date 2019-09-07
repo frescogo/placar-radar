@@ -18,6 +18,7 @@ String   GRAVANDO_TS;
 boolean  IS_FIM;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
+int      TEMPO_EXIBIDO;
 int      PONTOS_TOTAL;
 int      QUEDAS;
 int      GOLPES_TOT;
@@ -66,6 +67,7 @@ void setup () {
 void zera () {
   IS_FIM       = false;
   TEMPO_JOGADO = 0;
+  TEMPO_EXIBIDO = 0;
   PONTOS_TOTAL = 0;
   QUEDAS       = 0;
   GOLPES_TOT   = 0;
@@ -174,6 +176,8 @@ void keyPressed () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
+  draw_tudo(false);
+
   // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
   if (GRAVANDO == 1) {
     GRAVANDO_TS = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
@@ -190,8 +194,6 @@ void draw () {
     saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
     GRAVANDO = 0;
   }
-
-  draw_tudo(false);
 
   if (SERIAL==null || SERIAL.available()==0) {
     return;
@@ -223,6 +225,7 @@ void draw () {
       QUEDAS       = int(campos[2]);
       NOMES[0]     = campos[3];
       NOMES[1]     = campos[4];
+      TEMPO_EXIBIDO = TEMPO_JOGADO;
       break;
     }
 
@@ -231,22 +234,7 @@ void draw () {
       int idx         = int(campos[1]);
       boolean is_back = int(campos[2]) == 1;
       ULTIMAS[idx]    = int(campos[3]);
-      PONTOS[idx]     = int(campos[4]);
-      boolean is_beh  = (int(campos[5]) == 1) && (TEMPO_JOGADO >= 30);
-      BACKS_TOT[idx]  = int(campos[6]);      // TODO
-      BACKS_AVG[idx]  = int(campos[7]);
-      int back_max    = int(campos[8]);
-      FORES_TOT[idx]  = int(campos[9]);      // TODO
-      FORES_AVG[idx]  = int(campos[10]);
-      int fore_max    = int(campos[11]);
-
-      MAXIMAS[idx] = max(MAXIMAS[idx], max(back_max,fore_max));
-
-      if (is_beh) {
-        IS_DESEQ = idx;
-      } else if (IS_DESEQ == idx) {
-        IS_DESEQ = 255;
-      }
+      player(campos, idx, 4);
 
       GOLPE_IDX = idx;
       GOLPE_CLR = (is_back ? color(255,0,0) : color(0,0,255));
@@ -255,13 +243,13 @@ void draw () {
 
     // TICK
     case 3: {
-      int tempo    = int(campos[1]);
+      TEMPO_JOGADO = int(campos[1]);
       PONTOS_TOTAL = int(campos[2]);
       GOLPES_TOT   = int(campos[3]);
       GOLPES_AVG   = int(campos[4]);
 
-      if (tempo >= (TEMPO_JOGADO-TEMPO_JOGADO%5)+5) {
-        TEMPO_JOGADO = tempo;
+      if (TEMPO_JOGADO >= (TEMPO_EXIBIDO-TEMPO_EXIBIDO%5)+5) {
+        TEMPO_EXIBIDO = TEMPO_JOGADO;
       }
       break;
     }
@@ -269,16 +257,41 @@ void draw () {
     // FALL
     case 4: {
       QUEDAS = int(campos[1]);
+      player(campos, 0,  2);
+      player(campos, 1, 10);
+      TEMPO_EXIBIDO = TEMPO_JOGADO;
       GOLPE_IDX = 255;
       break;
     }
 
     // END
     case 5: {
+      player(campos, 0, 1);
+      player(campos, 1, 9);
       GRAVANDO  = 1;    // salva o jogo no frame seguinte
       IS_FIM    = true;
+      TEMPO_EXIBIDO = TEMPO_JOGADO;
       GOLPE_IDX = 255;
     }
+  }
+}
+
+void player (String[] campos, int p, int i) {
+  PONTOS[p]      = int(campos[i+0]);
+  boolean is_beh = (int(campos[i+1]) == 1) && (TEMPO_JOGADO >= 30);
+  BACKS_TOT[p]   = int(campos[i+2]);      // TODO
+  BACKS_AVG[p]   = int(campos[i+3]);
+  int back_max   = int(campos[i+4]);
+  FORES_TOT[p]   = int(campos[i+5]);      // TODO
+  FORES_AVG[p]   = int(campos[i+6]);
+  int fore_max   = int(campos[i+7]);
+
+  MAXIMAS[p] = max(MAXIMAS[p], max(back_max,fore_max));
+
+  if (is_beh) {
+    IS_DESEQ = p;
+  } else if (IS_DESEQ == p) {
+    IS_DESEQ = 255;
   }
 }
 
@@ -293,7 +306,7 @@ void draw_tudo (boolean is_end) {
   draw_nome(0,   NOMES[0], DIGITANDO!=0);
   draw_nome(3*W, NOMES[1], DIGITANDO!=1);
 
-  draw_tempo(TEMPO_TOTAL-TEMPO_JOGADO);
+  draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
   draw_quedas(QUEDAS);
 
   if (GOLPE_IDX != 255) {
@@ -310,7 +323,7 @@ void draw_tudo (boolean is_end) {
     }
   }
 
-  draw_golpes(GOLPES_TOT, GOLPES_AVG, TEMPO_JOGADO>=5);
+  draw_golpes(GOLPES_TOT, GOLPES_AVG, TEMPO_EXIBIDO>=5);
 
   fill(255);
   rect(2*W, 3*H, W, H);
@@ -318,9 +331,9 @@ void draw_tudo (boolean is_end) {
   draw_maxima(2.5*W, MAXIMAS[1]);
 
   draw_lado(0,      "Normal", FORES_TOT[0], FORES_AVG[0]);
-  draw_lado(4*W,    "Revés",  BACKS_TOT[0], BACKS_AVG[0]);
+  draw_lado(W/2,    "Revés",  BACKS_TOT[0], BACKS_AVG[0]);
+  draw_lado(4*W,    "Revés",  BACKS_TOT[1], BACKS_AVG[1]);
   draw_lado(4*W+W/2,"Normal", FORES_TOT[1], FORES_AVG[1]);
-  draw_lado(W/2,    "Revés",  BACKS_TOT[1], BACKS_AVG[1]);
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0);
   draw_pontos(4*W, PONTOS[1], IS_DESEQ==1);
