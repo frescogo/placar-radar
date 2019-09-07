@@ -12,7 +12,8 @@ PImage   IMG;
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR
 
-boolean  IS_SAVE      = false;
+int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
+String   GRAVANDO_TS;
 
 boolean  IS_FIM;
 int      TEMPO_TOTAL;
@@ -173,10 +174,21 @@ void keyPressed () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-  // realiza operacoes demoradas em um frame separado
-  if (IS_SAVE) {
-    IS_SAVE = false;
-    save();
+  // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
+  if (GRAVANDO == 1) {
+    GRAVANDO_TS = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+    saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".png");
+    draw_tudo(true);
+    GRAVANDO = 2;
+    return;
+  } else if (GRAVANDO == 2) {
+    delay(1000);
+    SERIAL.write("relatorio\n");
+    delay(40000);
+    byte[] LOG = new byte[32768];
+    LOG = SERIAL.readBytes();
+    saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
+    GRAVANDO = 0;
   }
 
   draw_tudo(false);
@@ -263,10 +275,9 @@ void draw () {
 
     // END
     case 5: {
-      IS_SAVE   = true; // salva o jogo no frame seguinte
+      GRAVANDO  = 1;    // salva o jogo no frame seguinte
       IS_FIM    = true;
       GOLPE_IDX = 255;
-      draw_tudo(true);
     }
   }
 }
@@ -506,21 +517,4 @@ void draw_total (int total) {
   textAlign(CENTER, CENTER);
   textSize(200*dy);
   text(total, width/2, 5*H-20*dy);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// SAVE
-///////////////////////////////////////////////////////////////////////////////
-
-void save () {
-  String ts = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-  saveFrame("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".png");
-
-  delay(1000);
-  SERIAL.write("relatorio\n");
-  delay(40000);
-
-  byte[] LOG = new byte[32768];
-  LOG = SERIAL.readBytes();
-  saveBytes("relatorios/frescogo-"+ts+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
 }
