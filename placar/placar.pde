@@ -269,7 +269,9 @@ void draw () {
       player(campos, 0,  2);
       player(campos, 1, 10);
       TEMPO_EXIBIDO = TEMPO_JOGADO;
-      GOLPE_IDX = 255;
+      GOLPE_IDX     = 255;
+      ULTIMAS[0]    = 0;
+      ULTIMAS[1]    = 0;
       break;
     }
 
