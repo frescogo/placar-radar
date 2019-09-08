@@ -130,7 +130,7 @@ void trata_nome (float x, int idx, String lado) {
   if (key==ENTER || key==RETURN) {
     //println(lado + " " + NOMES[idx] + "\n");
     SERIAL.write(lado + " " + NOMES[idx] + "\n");
-    delay(100);
+    delay(500);
     String linha = SERIAL.readStringUntil('\n');
     //println("<<<",linha);
     //assert(linha == "ok");/
