@@ -17,6 +17,7 @@ int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
 
 boolean  IS_FIM;
+bool     EQUILIBRIO;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      TEMPO_EXIBIDO;
@@ -222,9 +223,10 @@ void draw () {
     case 0: {
       zera();
       TEMPO_TOTAL  = int(campos[1]);
-      NOMES[0]     = campos[2];
-      NOMES[1]     = campos[3];
-      NOMES[2]     = campos[4];
+      EQUILIBRIO   = int(campos[2]) == 1;
+      NOMES[0]     = campos[3];
+      NOMES[1]     = campos[4];
+      NOMES[2]     = campos[5];
       break;
     }
 
@@ -349,8 +351,8 @@ void draw_tudo (boolean is_end) {
   draw_lado(8*W, color(200,200,250), "Volume", FORES_AVG[1]);
   draw_lado(9*W, color(200,250,200), "Normal", FORES_AVG[1]);
 
-  draw_pontos(0*W, PONTOS[0], IS_DESEQ==0);
-  draw_pontos(7*W, PONTOS[1], IS_DESEQ==1);
+  draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
+  draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
   draw_juiz(NOMES[2], DIGITANDO!=2);
 
