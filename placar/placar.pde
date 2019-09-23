@@ -340,12 +340,13 @@ void draw_tudo (boolean is_end) {
     }
   }
 
-  draw_golpes(GOLPES_TOT, GOLPES_AVG, TEMPO_EXIBIDO>=5);
+  draw_golpes(GOLPES_TOT);
+  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
 
-  fill(255);
-  rect(4*W, 3*H, 2*W, H);
-  draw_maxima(4*W, MAXIMAS[0]);
-  draw_maxima(5*W, MAXIMAS[1]);
+  //fill(255);
+  //rect(4*W, 3*H, 2*W, H);
+  //draw_maxima(4*W, MAXIMAS[0]);
+  //draw_maxima(5*W, MAXIMAS[1]);
 
   draw_lado(0*W, color(200,200,250), "Volume", VOL_AVG[0]);
   draw_lado(1*W, color(200,250,200), "Normal", NRM_AVG[0]);
@@ -462,28 +463,41 @@ void draw_ultima (float x, int ultima) {
   }
 }
 
-void draw_golpes (int golpes, int media, boolean apply) {
+void draw_golpes (int golpes) {
   stroke(0);
   fill(255);
   rect(4*W, 2*H, 2*W, H);
 
   fill(0);
   textAlign(CENTER, CENTER);
+
   textSize(60*dy);
+  text(golpes, 5*W, 2.5*H-25*dy);
 
-  text(golpes, 4.5*W, 2*H+H/2-25*dy);
-
-  if (apply) {
-    text(media, 5.5*W, 2*H+H/2-25*dy);
-  } else {
-    text("-", 5.5*W, 2*H+H/2-25*dy);
-  }
-
-  textSize(25*dy);
-  text("golpes", 4.5*W, 2*H+H/2+50*dy);
-  text("km/h",   5.5*W, 2*H+H/2+50*dy);
+  textSize(30*dy);
+  text("Golpes", 5*W, 2.5*H+50*dy);
 }
 
+void draw_media (int media, boolean apply) {
+  stroke(0);
+  fill(255);
+  rect(4*W, 3*H, 2*W, H);
+
+  fill(0);
+  textAlign(CENTER, CENTER);
+
+  textSize(60*dy);
+  if (apply) {
+    text(media, 5*W, 3.5*H-25*dy);
+  } else {
+    text("-", 5*W, 3.5*H-25*dy);
+  }
+
+  textSize(30*dy);
+  text("km/h", 5*W, 3.5*H+50*dy);
+}
+
+/*
 void draw_maxima (float x, int maxima) {
   fill(255);
   noStroke();
@@ -496,6 +510,7 @@ void draw_maxima (float x, int maxima) {
   textSize(25*dy);
   text("<--    máx    -->", width/2, 3*H+H/2+50*dy);
 }
+*/
 
 void draw_lado (float x, int cor, String lado, int avg) {
   stroke(0);
@@ -504,7 +519,7 @@ void draw_lado (float x, int cor, String lado, int avg) {
 
   fill(0);
   textAlign(CENTER, TOP);
-  textSize(30*dy);
+  textSize(25*dy);
   text(lado, x+W/2, 4*H+5*dy);
 
   textAlign(CENTER, CENTER);
