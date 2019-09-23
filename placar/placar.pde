@@ -1,4 +1,5 @@
-String  CFG_PORTA   = "/dev/ttyUSB0";
+String  CFG_PORTA   = "/dev/ttyACM0";
+//String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "COM6";
 boolean CFG_MAXIMAS = true;
 
@@ -56,7 +57,7 @@ void setup () {
 
   dy = 0.001 * height;
 
-  W = 0.20   * width;
+  W = 0.10   * width;
   H = 0.1666 * height;
 
   zera();
@@ -105,7 +106,7 @@ void serial_liga () {
   ellipseMode(CENTER);
   fill(0);
   stroke(15, 56, 164);
-  ellipse(3.5*W, 5*H, 60*dy, 60*dy);
+  ellipse(7*W, 5*H, 60*dy, 60*dy);
 }
 
 void serial_desliga () {
@@ -115,7 +116,7 @@ void serial_desliga () {
   ellipseMode(CENTER);
   fill(255,0,0);
   stroke(15, 56, 164);
-  ellipse(3.5*W, 5*H, 60*dy, 60*dy);
+  ellipse(7*W, 5*H, 60*dy, 60*dy);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,10 +171,10 @@ void keyPressed () {
       trata_nome(0, 0, "esquerda");
       break;
     case 1: // DIGITANDO DIR
-      trata_nome(3*W, 1, "direita");
+      trata_nome(6*W, 1, "direita");
       break;
     case 2: // DIGITANDO JUIZ
-      trata_nome(2*W, 2, "juiz");
+      trata_nome(4*W, 2, "juiz");
       break;
   }
 }
@@ -315,45 +316,47 @@ void draw_tudo (boolean is_end) {
 
   draw_logos();
   draw_nome(0,   NOMES[0], DIGITANDO!=0);
-  draw_nome(3*W, NOMES[1], DIGITANDO!=1);
+  draw_nome(6*W, NOMES[1], DIGITANDO!=1);
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
   draw_quedas(QUEDAS);
 
   if (GOLPE_IDX != 255) {
     draw_ultima(0,   ULTIMAS[0]);
-    draw_ultima(3*W, ULTIMAS[1]);
+    draw_ultima(6*W, ULTIMAS[1]);
 
     ellipseMode(CENTER);
     fill(GOLPE_CLR);
     stroke(15, 56, 164);
     if (GOLPE_IDX == 0) {
-      ellipse(3*W+80*dy, 3*H+10*dy, 60*dy, 60*dy);
+      ellipse(6*W+80*dy, 3*H+10*dy, 60*dy, 60*dy);
     } else {
-      ellipse(2*W-80*dy, 3*H+10*dy, 60*dy, 60*dy);
+      ellipse(4*W-80*dy, 3*H+10*dy, 60*dy, 60*dy);
     }
   }
 
   draw_golpes(GOLPES_TOT, GOLPES_AVG, TEMPO_EXIBIDO>=5);
 
   fill(255);
-  rect(2*W, 3*H, W, H);
-  draw_maxima(2.0*W, MAXIMAS[0]);
-  draw_maxima(2.5*W, MAXIMAS[1]);
+  rect(4*W, 3*H, 2*W, H);
+  draw_maxima(4*W, MAXIMAS[0]);
+  draw_maxima(5*W, MAXIMAS[1]);
 
-  draw_lado(0,      "Normal", FORES_TOT[0], FORES_AVG[0]);
-  draw_lado(W/2,    "Revés",  BACKS_TOT[0], BACKS_AVG[0]);
-  draw_lado(4*W,    "Revés",  BACKS_TOT[1], BACKS_AVG[1]);
-  draw_lado(4*W+W/2,"Normal", FORES_TOT[1], FORES_AVG[1]);
+  draw_lado(  0, color(200,250,200), "Normal", FORES_AVG[0]);
+  draw_lado(  W, color(200,200,250), "Volume", FORES_AVG[0]);
+  draw_lado(2*W, color(250,200,200), "Revés",  BACKS_AVG[0]);
+  draw_lado(7*W, color(250,200,200), "Revés",  BACKS_AVG[1]);
+  draw_lado(8*W, color(200,200,250), "Volume", FORES_AVG[1]);
+  draw_lado(9*W, color(200,250,200), "Normal", FORES_AVG[1]);
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0);
-  draw_pontos(4*W, PONTOS[1], IS_DESEQ==1);
+  draw_pontos(7*W, PONTOS[1], IS_DESEQ==1);
   draw_total(PONTOS_TOTAL);
   draw_juiz(NOMES[2], DIGITANDO!=2);
 
   if (is_end) {
     fill(255,0,0);
-    rect(W/2, 2.25*H, 4*W, 1.5*H);
+    rect(W, 2.25*H, 8*W, 1.5*H);
     fill(255);
     textSize(120*dy);
     textAlign(CENTER, CENTER);
@@ -363,10 +366,10 @@ void draw_tudo (boolean is_end) {
 
 void draw_logos () {
   fill(255);
-  float w  = W+W/2;
-  float x2 = 3*W+W/2;
-  rect(0,       0, w, H);
-  rect(3*W+W/2, 0, w, H);
+  float w  = 3*W;
+  float x2 = 7*W;
+  rect(0,   0, w, H);
+  rect(7*W, 0, w, H);
   imageMode(CENTER);
   image(IMG, w/2,    H/2);
   image(IMG, x2+w/2, H/2);
@@ -381,7 +384,7 @@ void draw_tempo (int tempo) {
   } else {
     fill(0);
   }
-  rect(W+W/2, 0, 2*W, H);
+  rect(3*W, 0, 4*W, H);
 
   fill(255);
   textSize(120*dy);
@@ -392,7 +395,7 @@ void draw_tempo (int tempo) {
 void draw_nome (float x, String nome, boolean ok) {
   stroke(0);
   fill(255);
-  rect(x, H, 2*W, H);
+  rect(x, H, 4*W, H);
   if (ok) {
     fill(0, 0, 255);
   } else {
@@ -401,7 +404,7 @@ void draw_nome (float x, String nome, boolean ok) {
   }
   textSize(85*dy);
   textAlign(CENTER, CENTER);
-  text(nome, x+W, H+H/2-5*dy);
+  text(nome, x+2*W, H+H/2-5*dy);
 }
 
 void draw_juiz (String nome, boolean ok) {
@@ -413,13 +416,13 @@ void draw_juiz (String nome, boolean ok) {
   }
   textSize(30*dy);
   textAlign(RIGHT, BOTTOM);
-  text("Juiz: " + nome, 4*W-5*dy, height);
+  text("Juiz: " + nome, 8*W-5*dy, height);
 }
 
 void draw_quedas (int quedas) {
   stroke(0);
   fill(255);
-  rect(2*W, H, W, H);
+  rect(4*W, H, 2*W, H);
 
   textAlign(CENTER, TOP);
 
@@ -431,7 +434,7 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(2*W+W/2, H+H/2, 0.9*H, 0.9*H);
+  ellipse(5*W, H+H/2, 0.9*H, 0.9*H);
 
   fill(255);
   textSize(90*dy);
@@ -441,94 +444,72 @@ void draw_quedas (int quedas) {
 void draw_ultima (float x, int ultima) {
   stroke(0);
   fill(255);
-  rect(x, 2*H, 2*W, 2*H);
+  rect(x, 2*H, 4*W, 2*H);
 
   textAlign(CENTER, CENTER);
   fill(0);
 
   if (ultima != 0) {
     textSize(160*dy);
-    text(ultima, x+W, 3*H-50*dy);
+    text(ultima, x+2*W, 3*H-50*dy);
     textSize(40*dy);
-    text("km/h", x+W, 3*H+70*dy);
+    text("km/h", x+2*W, 3*H+70*dy);
   }
 }
 
 void draw_golpes (int golpes, int media, boolean apply) {
   stroke(0);
   fill(255);
-  rect(2*W, 2*H, W, H);
+  rect(4*W, 2*H, 2*W, H);
 
   fill(0);
   textAlign(CENTER, CENTER);
   textSize(60*dy);
 
-  text(golpes, 2.25*W, 2*H+H/2-25*dy);
+  text(golpes, 4.5*W, 2*H+H/2-25*dy);
 
   if (apply) {
-    text(media, 2.75*W, 2*H+H/2-25*dy);
+    text(media, 5.5*W, 2*H+H/2-25*dy);
   } else {
-    text("-", 2.75*W, 2*H+H/2-25*dy);
+    text("-", 5.5*W, 2*H+H/2-25*dy);
   }
 
   textSize(25*dy);
-  text("golpes", 2.25*W, 2*H+H/2+50*dy);
-  text("km/h",   2.75*W, 2*H+H/2+50*dy);
+  text("golpes", 4.5*W, 2*H+H/2+50*dy);
+  text("km/h",   5.5*W, 2*H+H/2+50*dy);
 }
 
 void draw_maxima (float x, int maxima) {
   fill(255);
   noStroke();
-  rect(x+2, 3*H+2, W/2-4, H-4);
+  rect(x+2, 3*H+2, W-4, H-4);
 
   fill(0);
   textAlign(CENTER, CENTER);
   textSize(60*dy);
-  text(maxima, x+W/4, 3*H+H/2-20*dy);
+  text(maxima, x+W/2, 3*H+H/2-20*dy);
   textSize(25*dy);
   text("<--    máx    -->", width/2, 3*H+H/2+50*dy);
 }
 
-void draw_lado (float x, String lado, int n, int avg) {
+void draw_lado (float x, int cor, String lado, int avg) {
   if (!CFG_MAXIMAS) {
     return;
   }
 
   stroke(0);
-  fill(255);
-  rect(x, 4*H, W/2, H);
+  fill(cor);
+  rect(x, 4*H, W, H);
 
   fill(0);
   textAlign(CENTER, TOP);
   textSize(30*dy);
-  text(lado, x+W/4, 4*H+5*dy);
+  text(lado, x+W/2, 4*H+5*dy);
 
   textAlign(CENTER, CENTER);
   textSize(50*dy);
-  text(n,   x+W/4-10*dy, 4*H+H/2+0*dy);
-  textSize(25*dy);
-  text(avg, x+W/4+40*dy, 4*H+H/2+40*dy);
+  text(avg, x+W/2, 4.5*H+5*dy);
 }
-
-/*
-void draw_maxima (float x, int max) {
-  stroke(0);
-  fill(255);
-  rect(x, 4*H, W, H);
-
-  textAlign(CENTER, TOP);
-  fill(0);
-
-  textSize(25*dy);
-  text("Máxima", x+W/2, 4*H+5*dy);
-
-  //if (max != 0)
-  {
-    textSize(90*dy);
-    text(max, x+W/2, 4*H+36*dy+5*dy);
-  }
-}
-*/
 
 void draw_pontos (float x, int pontos, boolean is_behind) {
   float  h = (CFG_MAXIMAS ? 5*H : 4*H);
@@ -540,18 +521,18 @@ void draw_pontos (float x, int pontos, boolean is_behind) {
   } else {
       fill(255);
   }
-  rect(x, h, W, dh);
+  rect(x, h, 3*W, dh);
   fill(0);
   textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(pontos, x+W/2, h+dh/2-10*dy);
+  text(pontos, x+1.5*W, h+dh/2-10*dy);
 }
 
 void draw_total (int total) {
   fill(0);
-  rect(W, 4*H, 3*W, 2*H);
+  rect(3*W, 4*H, 4*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
-  textSize(200*dy);
+  textSize(150*dy);
   text(total, width/2, 5*H-20*dy);
 }
