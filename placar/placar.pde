@@ -1,7 +1,6 @@
 String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "COM6";
-boolean CFG_MAXIMAS = true;
 
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
@@ -17,7 +16,7 @@ int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
 
 boolean  IS_FIM;
-bool     EQUILIBRIO;
+boolean  EQUILIBRIO;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      TEMPO_EXIBIDO;
@@ -30,14 +29,15 @@ int      IS_DESEQ;
 int      GOLPE_IDX;
 int      GOLPE_CLR;
 
-String[] NOMES        = new String[3];
-int[]    PONTOS       = new int[2];
-int[]    ULTIMAS      = new int[2];
-int[]    MAXIMAS      = new int[2];
-int[]    FORES_TOT    = new int[2];
-int[]    FORES_AVG    = new int[2];
-int[]    BACKS_TOT    = new int[2];
-int[]    BACKS_AVG    = new int[2];
+String[] NOMES   = new String[3];
+int[]    PONTOS  = new int[2];
+int[]    ULTIMAS = new int[2];
+int[]    MAXIMAS = new int[2];
+int[]    VOL_AVG = new int[2];
+int[]    NRM_AVG = new int[2];
+int[]    REV_AVG = new int[2];
+//int[]    FORES_TOT    = new int[2];
+//int[]    BACKS_TOT    = new int[2];
 
 float dy; // 0.001 height
 
@@ -87,14 +87,16 @@ void zera () {
   ULTIMAS[1]   = 0;
   MAXIMAS[0]   = 0;
   MAXIMAS[1]   = 0;
-  FORES_TOT[0] = 0;
-  FORES_TOT[1] = 0;
-  FORES_AVG[0] = 0;
-  FORES_AVG[1] = 0;
-  BACKS_TOT[0] = 0;
-  BACKS_TOT[1] = 0;
-  BACKS_AVG[0] = 0;
-  BACKS_AVG[1] = 0;
+  VOL_AVG[0]   = 0;
+  VOL_AVG[1]   = 0;
+  NRM_AVG[0]   = 0;
+  NRM_AVG[1]   = 0;
+  REV_AVG[0]   = 0;
+  REV_AVG[1]   = 0;
+  //FORES_TOT[0] = 0;
+  //FORES_TOT[1] = 0;
+  //BACKS_TOT[0] = 0;
+  //BACKS_TOT[1] = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,14 +295,15 @@ void draw () {
 void player (String[] campos, int p, int i) {
   PONTOS[p]      = int(campos[i+0]);
   boolean is_beh = (int(campos[i+1]) == 1) && (TEMPO_JOGADO >= 30);
-  BACKS_TOT[p]   = int(campos[i+2]);      // TODO
-  BACKS_AVG[p]   = int(campos[i+3]);
-  int back_max   = int(campos[i+4]);
-  FORES_TOT[p]   = int(campos[i+5]);      // TODO
-  FORES_AVG[p]   = int(campos[i+6]);
-  int fore_max   = int(campos[i+7]);
+  MAXIMAS[p]     = int(campos[i+2]);
+  VOL_AVG[p]     = int(campos[i+3]);
+  NRM_AVG[p]     = int(campos[i+4]);
+  REV_AVG[p]     = int(campos[i+5]);
+  //FORES_TOT[p]   = int(campos[i+?]);      // TODO
+  //int fore_max   = int(campos[i+3]);
+  //BACKS_TOT[p]   = int(campos[i+?]);      // TODO
+  //int back_max   = int(campos[i+5]);
 
-  MAXIMAS[p] = max(MAXIMAS[p], max(back_max,fore_max));
 
   if (is_beh) {
     IS_DESEQ = p;
@@ -344,12 +347,12 @@ void draw_tudo (boolean is_end) {
   draw_maxima(4*W, MAXIMAS[0]);
   draw_maxima(5*W, MAXIMAS[1]);
 
-  draw_lado(  0, color(200,250,200), "Normal", FORES_AVG[0]);
-  draw_lado(  W, color(200,200,250), "Volume", FORES_AVG[0]);
-  draw_lado(2*W, color(250,200,200), "Revés",  BACKS_AVG[0]);
-  draw_lado(7*W, color(250,200,200), "Revés",  BACKS_AVG[1]);
-  draw_lado(8*W, color(200,200,250), "Volume", FORES_AVG[1]);
-  draw_lado(9*W, color(200,250,200), "Normal", FORES_AVG[1]);
+  draw_lado(0*W, color(200,200,250), "Volume", VOL_AVG[0]);
+  draw_lado(1*W, color(200,250,200), "Normal", NRM_AVG[0]);
+  draw_lado(2*W, color(250,200,200), "Revés",  REV_AVG[0]);
+  draw_lado(7*W, color(200,200,250), "Volume", VOL_AVG[1]);
+  draw_lado(8*W, color(200,250,200), "Normal", NRM_AVG[1]);
+  draw_lado(9*W, color(250,200,200), "Revés",  REV_AVG[1]);
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
@@ -418,7 +421,7 @@ void draw_juiz (String nome, boolean ok) {
   }
   textSize(30*dy);
   textAlign(RIGHT, BOTTOM);
-  text("Juiz: " + nome, 8*W-5*dy, height);
+  text("Juiz: " + nome, 7*W-5*dy, height);
 }
 
 void draw_quedas (int quedas) {
@@ -495,10 +498,6 @@ void draw_maxima (float x, int maxima) {
 }
 
 void draw_lado (float x, int cor, String lado, int avg) {
-  if (!CFG_MAXIMAS) {
-    return;
-  }
-
   stroke(0);
   fill(cor);
   rect(x, 4*H, W, H);
@@ -510,24 +509,21 @@ void draw_lado (float x, int cor, String lado, int avg) {
 
   textAlign(CENTER, CENTER);
   textSize(50*dy);
-  text(avg, x+W/2, 4.5*H+5*dy);
+  text(avg, x+W/2, 4.5*H+7*dy);
 }
 
 void draw_pontos (float x, int pontos, boolean is_behind) {
-  float  h = (CFG_MAXIMAS ? 5*H : 4*H);
-  float dh = (CFG_MAXIMAS ? 1*H : 2*H);
-
   stroke(0);
   if (is_behind) {
       fill(255,0,0);
   } else {
       fill(255);
   }
-  rect(x, h, 3*W, dh);
+  rect(x, 5*H, 3*W, H);
   fill(0);
   textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(pontos, x+1.5*W, h+dh/2-10*dy);
+  text(pontos, x+1.5*W, 5.5*H-5*dy);
 }
 
 void draw_total (int total) {
