@@ -1,5 +1,5 @@
-String  CFG_PORTA   = "/dev/ttyACM0";
-//String  CFG_PORTA   = "/dev/ttyUSB0";
+String  CFG_PORTA   = "/dev/ttyUSB0";
+//String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
 
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
