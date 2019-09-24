@@ -32,10 +32,10 @@ int      GOLPE_CLR;
 String[] NOMES   = new String[3];
 int[]    PONTOS  = new int[2];
 int[]    ULTIMAS = new int[2];
-int[]    MAXIMAS = new int[2];
 int[]    VOL_AVG = new int[2];
 int[]    NRM_AVG = new int[2];
 int[]    REV_AVG = new int[2];
+//int[]    MAXIMAS = new int[2];
 //int[]    FORES_TOT    = new int[2];
 //int[]    BACKS_TOT    = new int[2];
 
@@ -85,14 +85,14 @@ void zera () {
   PONTOS[1]    = 0;
   ULTIMAS[0]   = 0;
   ULTIMAS[1]   = 0;
-  MAXIMAS[0]   = 0;
-  MAXIMAS[1]   = 0;
   VOL_AVG[0]   = 0;
   VOL_AVG[1]   = 0;
   NRM_AVG[0]   = 0;
   NRM_AVG[1]   = 0;
   REV_AVG[0]   = 0;
   REV_AVG[1]   = 0;
+  //MAXIMAS[0]   = 0;
+  //MAXIMAS[1]   = 0;
   //FORES_TOT[0] = 0;
   //FORES_TOT[1] = 0;
   //BACKS_TOT[0] = 0;
@@ -295,10 +295,10 @@ void draw () {
 void player (String[] campos, int p, int i) {
   PONTOS[p]      = int(campos[i+0]);
   boolean is_beh = (int(campos[i+1]) == 1) && (TEMPO_JOGADO >= 30);
-  MAXIMAS[p]     = int(campos[i+2]);
-  VOL_AVG[p]     = int(campos[i+3]);
-  NRM_AVG[p]     = int(campos[i+4]);
-  REV_AVG[p]     = int(campos[i+5]);
+  VOL_AVG[p]     = int(campos[i+2]);
+  NRM_AVG[p]     = int(campos[i+3]);
+  REV_AVG[p]     = int(campos[i+4]);
+  //MAXIMAS[p]     = int(campos[i+2]);
   //FORES_TOT[p]   = int(campos[i+?]);      // TODO
   //int fore_max   = int(campos[i+3]);
   //BACKS_TOT[p]   = int(campos[i+?]);      // TODO
@@ -494,7 +494,7 @@ void draw_media (int media, boolean apply) {
   }
 
   textSize(30*dy);
-  text("km/h", 5*W, 3.5*H+50*dy);
+  text("Média", 5*W, 3.5*H+50*dy);
 }
 
 /*
