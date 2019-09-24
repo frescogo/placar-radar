@@ -538,7 +538,7 @@ void draw_pontos (float x, int pontos, boolean is_behind) {
   fill(0);
   textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(pontos, x+1.5*W, 5.5*H-5*dy);
+  text(nf(pontos/100,2,2), x+1.5*W, 5.5*H-5*dy);
 }
 
 void draw_total (int total) {
@@ -547,5 +547,5 @@ void draw_total (int total) {
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(150*dy);
-  text(total, width/2, 5*H-20*dy);
+  text(nf(total/100,2,2), width/2, 5*H-20*dy);
 }
