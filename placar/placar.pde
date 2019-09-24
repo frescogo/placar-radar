@@ -52,6 +52,7 @@ void setup () {
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! v1.12.1");
+  //size(1024, 768);
   size(640, 480);
   //fullScreen();
   IMG = loadImage("data/fresco.png");
@@ -199,7 +200,7 @@ void draw () {
   } else if (GRAVANDO == 2) {
     delay(1000);
     SERIAL.write("relatorio\n");
-    delay(40000);
+    delay(35000);
     byte[] LOG = new byte[32768];
     LOG = SERIAL.readBytes();
     saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
@@ -382,6 +383,9 @@ void draw_logos () {
 }
 
 void draw_tempo (int tempo) {
+  if (tempo < 0) {
+    tempo = 0;
+  }
   String mins = nf(tempo / 60, 2);
   String segs = nf(tempo % 60, 2);
 
