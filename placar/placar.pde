@@ -271,8 +271,8 @@ void draw () {
     // FALL
     case 4: {
       QUEDAS = int(campos[1]);
-      player(campos, 0,  2);
-      player(campos, 1, 10);
+      player(campos, 0, 2);
+      player(campos, 1, 7);
       TEMPO_EXIBIDO = TEMPO_JOGADO;
       GOLPE_IDX     = 255;
       ULTIMAS[0]    = 0;
@@ -283,7 +283,7 @@ void draw () {
     // END
     case 5: {
       player(campos, 0, 1);
-      player(campos, 1, 9);
+      player(campos, 1, 6);
       GRAVANDO  = 1;    // salva o jogo no frame seguinte
       IS_FIM    = true;
       TEMPO_EXIBIDO = TEMPO_JOGADO;
@@ -348,12 +348,12 @@ void draw_tudo (boolean is_end) {
   //draw_maxima(4*W, MAXIMAS[0]);
   //draw_maxima(5*W, MAXIMAS[1]);
 
-  draw_lado(0*W, color(200,200,250), "Volume", VOL_AVG[0]);
-  draw_lado(1*W, color(200,250,200), "Normal", NRM_AVG[0]);
-  draw_lado(2*W, color(250,200,200), "Revés",  REV_AVG[0]);
-  draw_lado(7*W, color(200,200,250), "Volume", VOL_AVG[1]);
-  draw_lado(8*W, color(200,250,200), "Normal", NRM_AVG[1]);
-  draw_lado(9*W, color(250,200,200), "Revés",  REV_AVG[1]);
+  draw_lado(0*W, color(200,200,250), "Volume", VOL_AVG[0]/100);
+  draw_lado(1*W, color(200,250,200), "Normal", NRM_AVG[0]/100);
+  draw_lado(2*W, color(250,200,200), "Revés",  REV_AVG[0]/100);
+  draw_lado(7*W, color(200,200,250), "Volume", VOL_AVG[1]/100);
+  draw_lado(8*W, color(200,250,200), "Normal", NRM_AVG[1]/100);
+  draw_lado(9*W, color(250,200,200), "Revés",  REV_AVG[1]/100);
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
@@ -527,7 +527,7 @@ void draw_lado (float x, int cor, String lado, int avg) {
   text(avg, x+W/2, 4.5*H+7*dy);
 }
 
-void draw_pontos (float x, int pontos, boolean is_behind) {
+void draw_pontos (float x, float pontos, boolean is_behind) {
   stroke(0);
   if (is_behind) {
       fill(255,0,0);
@@ -541,7 +541,7 @@ void draw_pontos (float x, int pontos, boolean is_behind) {
   text(nf(pontos/100,2,2), x+1.5*W, 5.5*H-5*dy);
 }
 
-void draw_total (int total) {
+void draw_total (float total) {
   fill(0);
   rect(3*W, 4*H, 4*W, 2*H);
   fill(255);
