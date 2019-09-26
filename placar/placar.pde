@@ -527,7 +527,11 @@ void draw_lado (float x, int cor, String lado, int avg) {
 
   textAlign(CENTER, CENTER);
   textSize(50*dy);
-  text(avg, x+W/2, 4.5*H+7*dy);
+  text(avg, x+W/2, 4.5*H-2*dy);
+
+  textAlign(CENTER, BOTTOM);
+  textSize(25*dy);
+  text("km/h", x+W/2, 5*H-5*dy);
 }
 
 void draw_pontos (float x, float pontos, boolean is_behind) {
