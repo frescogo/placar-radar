@@ -51,9 +51,8 @@ void setup () {
   //SERIAL.clear();
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
-  surface.setTitle("FrescoGO! v1.12.1");
-  //size(1024, 768);
-  size(640, 480);
+  surface.setTitle("FrescoGO! v2.0");
+  size(800, 600);
   //fullScreen();
   IMG = loadImage("data/fresco.png");
 
@@ -498,7 +497,7 @@ void draw_media (int media, boolean apply) {
   }
 
   textSize(30*dy);
-  text("Média", 5*W, 3.5*H+50*dy);
+  text("km/h", 5*W, 3.5*H+50*dy);
 }
 
 /*
