@@ -1,6 +1,7 @@
 String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
+int     CFG_RECORDE = 0;
 
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
@@ -52,7 +53,7 @@ void setup () {
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! v2.0");
-  size(800, 600);
+  size(1024, 768);
   //fullScreen();
   IMG = loadImage("data/fresco.png");
 
@@ -109,7 +110,7 @@ void serial_liga () {
   ellipseMode(CENTER);
   fill(0);
   stroke(15, 56, 164);
-  ellipse(7*W, 5*H, 60*dy, 60*dy);
+  ellipse(0.5*W, 0.5*H, 60*dy, 60*dy);
 }
 
 void serial_desliga () {
@@ -119,7 +120,7 @@ void serial_desliga () {
   ellipseMode(CENTER);
   fill(255,0,0);
   stroke(15, 56, 164);
-  ellipse(7*W, 5*H, 60*dy, 60*dy);
+  ellipse(0.5*W, 0.5*H, 60*dy, 60*dy);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -288,6 +289,9 @@ void draw () {
       IS_FIM    = true;
       TEMPO_EXIBIDO = TEMPO_JOGADO;
       GOLPE_IDX = 255;
+      if (PONTOS_TOTAL > CFG_RECORDE) {
+        CFG_RECORDE = PONTOS_TOTAL;
+      }
     }
   }
 }
@@ -358,6 +362,7 @@ void draw_tudo (boolean is_end) {
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
+  draw_recorde(CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   draw_juiz(NOMES[2], DIGITANDO!=2);
 
   if (is_end) {
@@ -416,6 +421,17 @@ void draw_nome (float x, String nome, boolean ok) {
   text(nome, x+2*W, H+H/2-5*dy);
 }
 
+void draw_recorde (float v, boolean batido) {
+  if (batido) {
+    fill(255,100,100);
+  } else {
+      fill(100,100,100);
+  }
+  textSize(25*dy);
+  textAlign(LEFT, BOTTOM);
+  text("Recorde: " + nf(v/100,2,2), 3*W+5*dy, height);
+}
+
 void draw_juiz (String nome, boolean ok) {
   if (ok) {
     fill(100,100,100);
@@ -423,7 +439,7 @@ void draw_juiz (String nome, boolean ok) {
     fill(255,0,0);
     nome = nome + "_";
   }
-  textSize(30*dy);
+  textSize(25*dy);
   textAlign(RIGHT, BOTTOM);
   text("Juiz: " + nome, 7*W-5*dy, height);
 }
