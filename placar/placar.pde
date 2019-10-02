@@ -53,8 +53,8 @@ void setup () {
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
   surface.setTitle("FrescoGO! v2.0");
-  size(1024, 768);
-  //fullScreen();
+  //size(1024, 768);
+  fullScreen();
   IMG = loadImage("data/fresco.png");
 
   dy = 0.001 * height;
@@ -193,7 +193,7 @@ void draw () {
   // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
   if (GRAVANDO == 1) {
     GRAVANDO_TS = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-    saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".png");
+    saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+"-placar.png");
     draw_tudo(true);
     GRAVANDO = 2;
     return;
