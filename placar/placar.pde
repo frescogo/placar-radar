@@ -9,7 +9,7 @@ import processing.serial.*;
 
 Serial   SERIAL;
 
-PImage   IMG;
+//PImage   IMG;
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -55,12 +55,12 @@ void setup () {
   surface.setTitle("FrescoGO! v2.0");
   size(1024, 768);
   //fullScreen();
-  IMG = loadImage("data/fresco.png");
+  //IMG = loadImage("data/fresco.png");
 
   dy = 0.001 * height;
 
-  W = 0.10   * width;
-  H = 0.08333 * height;
+  W = width  / 9.0;
+  H = height / 7.0;
 
   zera();
 
@@ -109,7 +109,7 @@ void serial_liga () {
 
   ellipseMode(CENTER);
   fill(0);
-  stroke(15, 56, 164);
+  noStroke();
   ellipse(0.5*W, 1*H, 60*dy, 60*dy);
 }
 
@@ -119,7 +119,7 @@ void serial_desliga () {
 
   ellipseMode(CENTER);
   fill(255,0,0);
-  stroke(15, 56, 164);
+  noStroke();
   ellipse(0.5*W, 1*H, 60*dy, 60*dy);
 }
 
@@ -324,42 +324,42 @@ void draw_tudo (boolean is_end) {
   background(255,255,255);
 
   draw_nome(0,   NOMES[0], DIGITANDO!=0);
-  draw_nome(7*W, NOMES[1], DIGITANDO!=1);
+  draw_nome(6*W, NOMES[1], DIGITANDO!=1);
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
+
+  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
   draw_quedas(QUEDAS);
+  draw_golpes(GOLPES_TOT);
 
   if (GOLPE_IDX != 255) {
-    draw_ultima(0,   ULTIMAS[0]);
-    draw_ultima(6*W, ULTIMAS[1]);
+    draw_ultima(0,   1.5*W, ULTIMAS[0]);
+    draw_ultima(5*W, 7.5*W, ULTIMAS[1]);
 
     ellipseMode(CENTER);
     fill(GOLPE_CLR);
-    stroke(15, 56, 164);
+    noStroke();
     if (GOLPE_IDX == 0) {
-      ellipse(6*W+80*dy, 4*H+10*dy, 60*dy, 60*dy);
+      ellipse(6*W, 3.5*H, 60*dy, 60*dy);
     } else {
-      ellipse(4*W-80*dy, 4*H+10*dy, 60*dy, 60*dy);
+      ellipse(3*W, 3.5*H, 60*dy, 60*dy);
     }
   } else {
-    draw_logos();
+    draw_lado(0*W,     color(200,200,250), "Volume", VOL_AVG[0]/100);
+    draw_lado(1*W,     color(200,250,200), "Normal", NRM_AVG[0]/100);
+    draw_lado(2*W,     color(250,200,200), "Revés",  REV_AVG[0]/100);
+    draw_lado(6*W+0*W, color(200,200,250), "Volume", VOL_AVG[1]/100);
+    draw_lado(6*W+1*W, color(200,250,200), "Normal", NRM_AVG[1]/100);
+    draw_lado(6*W+2*W, color(250,200,200), "Revés",  REV_AVG[1]/100);
+
+    textAlign(CENTER, CENTER);
+    fill(0);
+    textSize(25*dy);
+    //text("Máximas", 2*W, 3.5*H+130*dy);
+    text("Máximas", 2*W, 3.5*H-110*dy);
+    //text("Máximas", 8*W, 3.5*H+130*dy);
+    text("Máximas", 8*W, 3.5*H-110*dy);
   }
-
-  draw_golpes(GOLPES_TOT);
-  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
-
-  //fill(255);
-  //rect(4*W, 3*H, 2*W, H);
-  //draw_maxima(4*W, MAXIMAS[0]);
-  //draw_maxima(5*W, MAXIMAS[1]);
-
-  float w = 4*W/3;
-  draw_lado(0*w,     color(225,225,250), "Volume", VOL_AVG[0]/100);
-  draw_lado(1*w,     color(225,250,225), "Normal", NRM_AVG[0]/100);
-  draw_lado(2*w,     color(250,225,225), "Revés",  REV_AVG[0]/100);
-  draw_lado(6*W+0*w, color(225,225,250), "Volume", VOL_AVG[1]/100);
-  draw_lado(6*W+1*w, color(225,250,225), "Normal", NRM_AVG[1]/100);
-  draw_lado(6*W+2*w, color(250,225,225), "Revés",  REV_AVG[1]/100);
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
@@ -375,8 +375,19 @@ void draw_tudo (boolean is_end) {
     textAlign(CENTER, CENTER);
     text("Aguarde...", width/2, height/2);
   }
+
+  strokeWeight(2);
+  stroke(0);
+  noFill();
+  rect(0, 2*H, 9*W, 3*H);
+  if (GOLPE_IDX != 255) {
+    rect(3.5*W, 2*H, 2*W, 3*H);
+  } else {
+    rect(3.0*W, 2*H, 3*W, 3*H);
+  }
 }
 
+/*
 void draw_logos () {
   fill(255);
   float w = 4*W;
@@ -386,6 +397,7 @@ void draw_logos () {
   image(IMG, 0*W+w/2, 4*H);
   image(IMG, 6*W+w/2, 4*H);
 }
+*/
 
 void draw_tempo (int tempo) {
   if (tempo < 0) {
@@ -399,7 +411,7 @@ void draw_tempo (int tempo) {
   } else {
     fill(0);
   }
-  rect(3*W, 0, 4*W, 2*H);
+  rect(3*W, 0, 3*W, 2*H);
 
   fill(255);
   textSize(120*dy);
@@ -408,7 +420,7 @@ void draw_tempo (int tempo) {
 }
 
 void draw_nome (float x, String nome, boolean ok) {
-  stroke(0);
+  noStroke();
   fill(255);
   rect(x, 0, 3*W, 2*H);
   if (ok) {
@@ -429,8 +441,8 @@ void draw_recorde (float v, boolean batido) {
       fill(100,100,100);
   }
   textSize(25*dy);
-  textAlign(LEFT, BOTTOM);
-  text("Recorde: " + nf(v/100,2,2), 3*W+5*dy, height);
+  textAlign(CENTER, BOTTOM);
+  text("Recorde: " + nf(v/100,2,2), 3*W, height);
 }
 
 void draw_juiz (String nome, boolean ok) {
@@ -441,31 +453,49 @@ void draw_juiz (String nome, boolean ok) {
     nome = nome + "_";
   }
   textSize(25*dy);
-  textAlign(RIGHT, BOTTOM);
-  text("Juiz: " + nome, 7*W-5*dy, height);
+  textAlign(CENTER, BOTTOM);
+  text("Juiz: " + nome, 6*W, height);
 }
 
-void draw_ultima (float x, int ultima) {
-  stroke(0);
+void draw_ultima (float x1, float x2, int ultima) {
+  noStroke();
   fill(255);
-  rect(x, 2*H, 4*W, 4*H);
+  rect(x1, 2*H, 4*W, 3*H);
 
-  textAlign(CENTER, CENTER);
   fill(0);
+  textAlign(CENTER, CENTER);
 
   if (ultima != 0) {
     textSize(160*dy);
-    text(ultima, x+2*W, 4*H-50*dy);
+    text(ultima, x2, 3.5*H-50*dy);
     textSize(40*dy);
-    text("km/h", x+2*W, 4*H+70*dy);
+    text("km/h", x2, 3.5*H+70*dy);
   }
 }
 
-void draw_quedas (int quedas) {
-  float h = 7*H/3;
-  stroke(0);
+void draw_media (int media, boolean apply) {
+  noStroke();
   fill(255);
-  rect(4*W, 2*H, 2*W, 2*h);
+  rect(4*W, 2*H, W, H);
+
+  fill(0);
+  textAlign(CENTER, CENTER);
+
+  textSize(60*dy);
+  if (apply) {
+    text(media, 4.5*W, 2.5*H-20*dy);
+  } else {
+    text("-",   4.5*W, 2.5*H-20*dy);
+  }
+
+  textSize(20*dy);
+  text("km/h", 4.5*W, 2.5*H+30*dy);
+}
+
+void draw_quedas (int quedas) {
+  noStroke();
+  fill(255);
+  rect(4*W, 3*H, W, H);
 
 
 /*
@@ -476,48 +506,27 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(5*W, 2*H+h/2, h-10*dy, h-10*dy);
+  ellipse(4.5*W, 3.5*H, H-10*dy, H-10*dy);
 
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(100*dy);
-  text(quedas, width/2, 2*H+h/2-10*dy);
+  text(quedas, width/2, 3.5*H-10*dy);
 }
 
 void draw_golpes (int golpes) {
-  float h = 7*H/3;
-  stroke(0);
+  noStroke();
   fill(255);
-  rect(4*W, 2*H+h, 2*W, h);
+  rect(4*W, 4*H, W, H);
 
   fill(0);
   textAlign(CENTER, CENTER);
 
   textSize(60*dy);
-  text(golpes, 5*W, 2*H+1.5*h-25*dy);
+  text(golpes, 4.5*W, 4.5*H-20*dy);
 
-  textSize(30*dy);
-  text("Golpes", 5*W, 2*H+1.5*h+50*dy);
-}
-
-void draw_media (int media, boolean apply) {
-  float h = 7*H/3;
-  stroke(0);
-  fill(255);
-  rect(4*W, 2*H+2*h, 2*W, h);
-
-  fill(0);
-  textAlign(CENTER, CENTER);
-
-  textSize(60*dy);
-  if (apply) {
-    text(media, 5*W, 2*H+2.5*h-25*dy);
-  } else {
-    text("-",   5*W, 2*H+2.5*h-25*dy);
-  }
-
-  textSize(30*dy);
-  text("km/h", 5*W, 2*H+2.5*h+50*dy);
+  textSize(20*dy);
+  text("Golpes", 4.5*W, 4.5*H+30*dy);
 }
 
 /*
@@ -536,49 +545,48 @@ void draw_maxima (float x, int maxima) {
 */
 
 void draw_lado (float x, int cor, String lado, int avg) {
-  stroke(0);
+  noStroke();
   fill(cor);
-  float w = 4*W/3;
-  rect(x, 6*H, w, 3*H);
-
-  fill(50);
-  textAlign(CENTER, TOP);
-  textSize(20*dy);
-  text(lado, x+w/2, 6*H+30*dy);
+  rect(x, 2*H, W, 3*H);
 
   textAlign(CENTER, CENTER);
-  textSize(80*dy);
-  text(avg, x+w/2, 7.5*H-10*dy);
+  fill(0);
 
-  textAlign(CENTER, BOTTOM);
   textSize(20*dy);
-  text("km/h", x+w/2, 9*H-30*dy);
+  text(lado,   x+W/2, 3.5*H-65*dy);
+
+  textSize(80*dy);
+  text(avg,    x+W/2, 3.5*H-10*dy);
+
+  textSize(20*dy);
+  text("km/h", x+W/2, 3.5*H+60*dy);
 }
 
 void draw_pontos (float x, float pontos, boolean is_behind) {
-  stroke(0);
+  noStroke();
   if (is_behind) {
       fill(255,0,0);
   } else {
       fill(255);
   }
-  rect(x, 9*H, 3*W, 3*H);
+  rect(x, 5*H, 2*W, 2*H);
 
   if (is_behind) {
       fill(255);
   } else {
       fill(0);
   }
-  textSize(100*dy);
+  textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(nf(pontos/100,2,2), x+1.5*W, 10.5*H-10*dy);
+  text(nf(pontos/100,2,2), x+1*W, 6*H-10*dy);
 }
 
 void draw_total (float total) {
+  noStroke();
   fill(0);
-  rect(3*W, 9*H, 4*W, 3*H);
+  rect(2*W, 5*H, 5*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
-  textSize(120*dy);
-  text(nf(total/100,2,2), width/2, 10.5*H-15*dy);
+  textSize(140*dy);
+  text(nf(total/100,2,2), width/2, 6*H-15*dy);
 }
