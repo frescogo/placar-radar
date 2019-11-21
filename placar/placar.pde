@@ -558,7 +558,12 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
       fill(255);
   }
   rect(x, 5*H, 3*W, H);
-  fill(0);
+
+  if (is_behind) {
+      fill(255);
+  } else {
+      fill(0);
+  }
   textSize(70*dy);
   textAlign(CENTER, CENTER);
   text(nf(pontos/100,2,2), x+1.5*W, 5.5*H-5*dy);
