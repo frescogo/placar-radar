@@ -9,7 +9,7 @@ import processing.serial.*;
 
 Serial   SERIAL;
 
-//PImage   IMG;
+PImage   IMG;
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -55,7 +55,10 @@ void setup () {
   surface.setTitle("FrescoGO! v2.0");
   size(1024, 768);
   //fullScreen();
-  //IMG = loadImage("data/fresco.png");
+  IMG = loadImage("data/fresco-alpha.png");
+  IMG.resize(0,height/5);
+  imageMode(CENTER);
+  tint(255, 128);
 
   dy = 0.001 * height;
 
@@ -387,18 +390,6 @@ void draw_tudo (boolean is_end) {
   }
 }
 
-/*
-void draw_logos () {
-  fill(255);
-  float w = 4*W;
-  rect(0,   2*H, w, 4*H);
-  rect(6*W, 2*H, w, 4*H);
-  imageMode(CENTER);
-  image(IMG, 0*W+w/2, 4*H);
-  image(IMG, 6*W+w/2, 4*H);
-}
-*/
-
 void draw_tempo (int tempo) {
   if (tempo < 0) {
     tempo = 0;
@@ -423,6 +414,7 @@ void draw_nome (float x, String nome, boolean ok) {
   noStroke();
   fill(255);
   rect(x, 0, 3*W, 2*H);
+  //image(IMG, x+1.5*W, 1*H);
   if (ok) {
     fill(0, 0, 255);
   } else {
@@ -431,7 +423,7 @@ void draw_nome (float x, String nome, boolean ok) {
   }
   textSize(85*dy);
   textAlign(CENTER, CENTER);
-  text(nome, x+1.5*W, H-5*dy);
+  text(nome, x+1.5*W, H-10*dy);
 }
 
 void draw_recorde (float v, boolean batido) {
