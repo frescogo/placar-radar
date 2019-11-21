@@ -367,15 +367,6 @@ void draw_tudo (boolean is_end) {
   draw_recorde(CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   draw_juiz(NOMES[2], DIGITANDO!=2);
 
-  if (is_end) {
-    fill(255,0,0);
-    rect(W, 5*H, 8*W, 3*H);
-    fill(255);
-    textSize(120*dy);
-    textAlign(CENTER, CENTER);
-    text("Aguarde...", width/2, height/2);
-  }
-
   strokeWeight(2);
   stroke(0);
   noFill();
@@ -384,6 +375,15 @@ void draw_tudo (boolean is_end) {
     rect(3.5*W, 2*H, 2*W, 3*H);
   } else {
     rect(3.0*W, 2*H, 3*W, 3*H);
+  }
+
+  if (is_end) {
+    fill(255,0,0);
+    rect(0, 2*H, 9*W, 3*H);
+    fill(255);
+    textSize(120*dy);
+    textAlign(CENTER, CENTER);
+    text("Aguarde...", width/2, height/2);
   }
 }
 
