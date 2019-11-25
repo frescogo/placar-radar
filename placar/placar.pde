@@ -354,12 +354,12 @@ void draw_tudo (boolean is_end) {
       ellipse(3*W, 3*H, 60*dy, 60*dy);
     }
   } else {
-    draw_lado(0*W,     color(200,200,250), "Volume", VOL_AVG[ZER]/100);
-    draw_lado(1*W,     color(200,250,200), "Normal", NRM_AVG[ZER]/100);
-    draw_lado(2*W,     color(250,200,200), "Revés",  REV_AVG[ZER]/100);
-    draw_lado(6*W+0*W, color(200,200,250), "Volume", VOL_AVG[ONE]/100);
-    draw_lado(6*W+1*W, color(200,250,200), "Normal", NRM_AVG[ONE]/100);
-    draw_lado(6*W+2*W, color(250,200,200), "Revés",  REV_AVG[ONE]/100);
+    draw_lado(0*W,     color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
+    draw_lado(1*W,     color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
+    draw_lado(2*W,     color(250,200,200), "Revés",  15, REV_AVG[ZER]/100);
+    draw_lado(6*W+0*W, color(200,200,250), "Volume", 60, VOL_AVG[ONE]/100);
+    draw_lado(6*W+1*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
+    draw_lado(6*W+2*W, color(250,200,200), "Revés",  15, REV_AVG[ONE]/100);
 
     textAlign(CENTER, CENTER);
     fill(0);
@@ -368,6 +368,14 @@ void draw_tudo (boolean is_end) {
     text("Máximas", 2*W, 3*H-110*dy);
     //text("Máximas", 8*W, 3.5*H+130*dy);
     text("Máximas", 8*W, 3*H-110*dy);
+
+/*
+    strokeWeight(1);
+    stroke(0);
+    noFill();
+    rect(1.125*W, 2.5*H, 1.75*W, 1*H);
+    rect(7.125*W, 2.5*H, 1.75*W, 1*H);
+*/
   }
 
   draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==0 && EQUILIBRIO);
@@ -556,7 +564,7 @@ void draw_maxima (float x, int maxima) {
 }
 */
 
-void draw_lado (float x, int cor, String lado, int avg) {
+void draw_lado (float x, int cor, String lado, int pct, int avg) {
   noStroke();
   fill(cor);
   rect(x, 2*H, W, 2*H);
@@ -572,6 +580,11 @@ void draw_lado (float x, int cor, String lado, int avg) {
 
   textSize(20*dy);
   text("km/h", x+W/2, 3*H+60*dy);
+
+  textAlign(CENTER, BOTTOM);
+  fill(100,100,100);
+  textSize(20*dy);
+  text("("+pct+"%)", x+W/2, 4*H-20*dy);
 }
 
 void draw_pontos (float x, float pontos, boolean is_behind) {
