@@ -1,5 +1,3 @@
-// inverter tela
-
 String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
@@ -12,6 +10,8 @@ import processing.serial.*;
 Serial   SERIAL;
 
 PImage   IMG;
+
+String   VERSAO       = "FrescoGO! v2.0";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -331,6 +331,11 @@ void draw_tudo (boolean is_end) {
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
 
+  fill(75,75,75);
+  textSize(15*dy);
+  textAlign(CENTER, TOP);
+  text(VERSAO, width/2, 0);
+
   draw_quedas(QUEDAS);
 
   draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
@@ -494,18 +499,18 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(4.5*W, 2.5*H, H-10*dy, H-10*dy);
+  ellipse(4.5*W, 2.5*H+20*dy, H-10*dy, H-10*dy);
 
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(100*dy);
-  text(quedas, width/2, 2.5*H-10*dy);
+  text(quedas, width/2, 2.5*H+10*dy);
 }
 
 void draw_golpes (int golpes) {
   noStroke();
   fill(255);
-  rect(3.5*W, 3*H, W, H);
+  rect(3.5*W, 3*H+20*dy, W, H-20*dy);
 
   fill(0);
   textAlign(CENTER, CENTER);
@@ -520,7 +525,7 @@ void draw_golpes (int golpes) {
 void draw_media (int media, boolean apply) {
   noStroke();
   fill(255);
-  rect(4.5*W, 3*H, W, H);
+  rect(4.5*W, 3*H+20*dy, W, H-20*dy);
 
   fill(0);
   textAlign(CENTER, CENTER);
