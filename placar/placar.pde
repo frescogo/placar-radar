@@ -1,6 +1,4 @@
-// testar serial
 // inverter tela
-// H / 6
 
 String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
@@ -19,6 +17,10 @@ int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando J
 
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
+
+boolean  IS_INVERTIDO = false;
+int      ZER          = 0;
+int      ONE          = 1;
 
 boolean  IS_FIM;
 boolean  EQUILIBRIO;
@@ -159,6 +161,10 @@ void keyPressed () {
       } else if (key == ctrl('j')) {    // CTRL-J
         DIGITANDO = 2;
         NOMES[2] = "";
+      } else if (key == ctrl('i')) {    // CTRL-I
+        IS_INVERTIDO = !IS_INVERTIDO;
+        ZER = 1 - ZER;
+        ONE = 1 - ONE;
       } else if (key == ctrl('s')) {    // CTRL-S
         if (SERIAL == null) {
           serial_liga();
@@ -320,8 +326,8 @@ void player (String[] campos, int p, int i) {
 void draw_tudo (boolean is_end) {
   background(255,255,255);
 
-  draw_nome(0,   NOMES[0], DIGITANDO!=0);
-  draw_nome(6*W, NOMES[1], DIGITANDO!=1);
+  draw_nome(0,   NOMES[ZER], DIGITANDO!=ZER);
+  draw_nome(6*W, NOMES[ONE], DIGITANDO!=ONE);
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
 
@@ -331,24 +337,24 @@ void draw_tudo (boolean is_end) {
   draw_golpes(GOLPES_TOT);
 
   if (GOLPE_IDX != 255) {
-    draw_ultima(0,     1.5*W, ULTIMAS[0]);
-    draw_ultima(5.5*W, 7.5*W, ULTIMAS[1]);
+    draw_ultima(0,     1.5*W, ULTIMAS[ZER]);
+    draw_ultima(5.5*W, 7.5*W, ULTIMAS[ONE]);
 
     ellipseMode(CENTER);
     fill(GOLPE_CLR);
     noStroke();
-    if (GOLPE_IDX == 0) {
+    if (GOLPE_IDX == ZER) {
       ellipse(6*W, 3*H, 60*dy, 60*dy);
     } else {
       ellipse(3*W, 3*H, 60*dy, 60*dy);
     }
   } else {
-    draw_lado(0*W,     color(200,200,250), "Volume", VOL_AVG[0]/100);
-    draw_lado(1*W,     color(200,250,200), "Normal", NRM_AVG[0]/100);
-    draw_lado(2*W,     color(250,200,200), "Revés",  REV_AVG[0]/100);
-    draw_lado(6*W+0*W, color(200,200,250), "Volume", VOL_AVG[1]/100);
-    draw_lado(6*W+1*W, color(200,250,200), "Normal", NRM_AVG[1]/100);
-    draw_lado(6*W+2*W, color(250,200,200), "Revés",  REV_AVG[1]/100);
+    draw_lado(0*W,     color(200,200,250), "Volume", VOL_AVG[ZER]/100);
+    draw_lado(1*W,     color(200,250,200), "Normal", NRM_AVG[ZER]/100);
+    draw_lado(2*W,     color(250,200,200), "Revés",  REV_AVG[ZER]/100);
+    draw_lado(6*W+0*W, color(200,200,250), "Volume", VOL_AVG[ONE]/100);
+    draw_lado(6*W+1*W, color(200,250,200), "Normal", NRM_AVG[ONE]/100);
+    draw_lado(6*W+2*W, color(250,200,200), "Revés",  REV_AVG[ONE]/100);
 
     textAlign(CENTER, CENTER);
     fill(0);
@@ -359,11 +365,18 @@ void draw_tudo (boolean is_end) {
     text("Máximas", 8*W, 3*H-110*dy);
   }
 
-  draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
-  draw_pontos(7*W, PONTOS[1], IS_DESEQ==1 && EQUILIBRIO);
+  draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==0 && EQUILIBRIO);
+  draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==1 && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
   draw_recorde(CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   draw_juiz(NOMES[2], DIGITANDO!=2);
+
+  if (IS_INVERTIDO) {
+    fill(255,0,0);
+    textSize(25*dy);
+    textAlign(CENTER, BOTTOM);
+    text("inv", width/2, height);
+  }
 
   strokeWeight(2);
   stroke(0);
