@@ -1,3 +1,7 @@
+// testar serial
+// inverter tela
+// H / 6
+
 String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
@@ -63,7 +67,7 @@ void setup () {
   dy = 0.001 * height;
 
   W = width  / 9.0;
-  H = height / 7.0;
+  H = height / 6.0;
 
   zera();
 
@@ -109,21 +113,11 @@ void zera () {
 
 void serial_liga () {
   SERIAL = new Serial(this, CFG_PORTA, 9600);
-
-  ellipseMode(CENTER);
-  fill(0);
-  noStroke();
-  ellipse(0.5*W, 1*H, 60*dy, 60*dy);
 }
 
 void serial_desliga () {
   SERIAL.stop();
   SERIAL = null;
-
-  ellipseMode(CENTER);
-  fill(255,0,0);
-  noStroke();
-  ellipse(0.5*W, 1*H, 60*dy, 60*dy);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -331,21 +325,22 @@ void draw_tudo (boolean is_end) {
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
 
-  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
   draw_quedas(QUEDAS);
+
+  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
   draw_golpes(GOLPES_TOT);
 
   if (GOLPE_IDX != 255) {
-    draw_ultima(0,   1.5*W, ULTIMAS[0]);
-    draw_ultima(5*W, 7.5*W, ULTIMAS[1]);
+    draw_ultima(0,     1.5*W, ULTIMAS[0]);
+    draw_ultima(5.5*W, 7.5*W, ULTIMAS[1]);
 
     ellipseMode(CENTER);
     fill(GOLPE_CLR);
     noStroke();
     if (GOLPE_IDX == 0) {
-      ellipse(6*W, 3.5*H, 60*dy, 60*dy);
+      ellipse(6*W, 3*H, 60*dy, 60*dy);
     } else {
-      ellipse(3*W, 3.5*H, 60*dy, 60*dy);
+      ellipse(3*W, 3*H, 60*dy, 60*dy);
     }
   } else {
     draw_lado(0*W,     color(200,200,250), "Volume", VOL_AVG[0]/100);
@@ -359,9 +354,9 @@ void draw_tudo (boolean is_end) {
     fill(0);
     textSize(25*dy);
     //text("Máximas", 2*W, 3.5*H+130*dy);
-    text("Máximas", 2*W, 3.5*H-110*dy);
+    text("Máximas", 2*W, 3*H-110*dy);
     //text("Máximas", 8*W, 3.5*H+130*dy);
-    text("Máximas", 8*W, 3.5*H-110*dy);
+    text("Máximas", 8*W, 3*H-110*dy);
   }
 
   draw_pontos(0*W, PONTOS[0], IS_DESEQ==0 && EQUILIBRIO);
@@ -373,20 +368,27 @@ void draw_tudo (boolean is_end) {
   strokeWeight(2);
   stroke(0);
   noFill();
-  rect(0, 2*H, 9*W, 3*H);
+  rect(0, 2*H, 9*W, 2*H);
   if (GOLPE_IDX != 255) {
-    rect(3.5*W, 2*H, 2*W, 3*H);
+    rect(3.5*W, 2*H, 2*W, 2*H);
   } else {
-    rect(3.0*W, 2*H, 3*W, 3*H);
+    rect(3.0*W, 2*H, 3*W, 2*H);
   }
 
   if (is_end) {
     fill(255,0,0);
-    rect(0, 2*H, 9*W, 3*H);
+    rect(0, 2*H, 9*W, 2*H);
     fill(255);
     textSize(120*dy);
     textAlign(CENTER, CENTER);
     text("Aguarde...", width/2, height/2);
+  }
+
+  if (SERIAL == null) {
+    ellipseMode(CENTER);
+    fill(255,0,0);
+    noStroke();
+    ellipse(width-50*dy, height-50*dy, 20*dy, 20*dy);
   }
 }
 
@@ -452,42 +454,23 @@ void draw_juiz (String nome, boolean ok) {
 void draw_ultima (float x1, float x2, int ultima) {
   noStroke();
   fill(255);
-  rect(x1, 2*H, 4*W, 3*H);
+  rect(x1, 2*H, 3.5*W, 2*H);
 
   fill(0);
   textAlign(CENTER, CENTER);
 
   if (ultima != 0) {
     textSize(160*dy);
-    text(ultima, x2, 3.5*H-50*dy);
+    text(ultima, x2, 3*H-50*dy);
     textSize(40*dy);
-    text("km/h", x2, 3.5*H+70*dy);
+    text("km/h", x2, 3*H+70*dy);
   }
-}
-
-void draw_media (int media, boolean apply) {
-  noStroke();
-  fill(255);
-  rect(4*W, 2*H, W, H);
-
-  fill(0);
-  textAlign(CENTER, CENTER);
-
-  textSize(60*dy);
-  if (apply) {
-    text(media, 4.5*W, 2.5*H-20*dy);
-  } else {
-    text("-",   4.5*W, 2.5*H-20*dy);
-  }
-
-  textSize(20*dy);
-  text("km/h", 4.5*W, 2.5*H+30*dy);
 }
 
 void draw_quedas (int quedas) {
   noStroke();
   fill(255);
-  rect(4*W, 3*H, W, H);
+  rect(4*W, 2*H, W, H);
 
 
 /*
@@ -498,27 +481,46 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(4.5*W, 3.5*H, H-10*dy, H-10*dy);
+  ellipse(4.5*W, 2.5*H, H-10*dy, H-10*dy);
 
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(100*dy);
-  text(quedas, width/2, 3.5*H-10*dy);
+  text(quedas, width/2, 2.5*H-10*dy);
 }
 
 void draw_golpes (int golpes) {
   noStroke();
   fill(255);
-  rect(4*W, 4*H, W, H);
+  rect(3.5*W, 3*H, W, H);
 
   fill(0);
   textAlign(CENTER, CENTER);
 
   textSize(60*dy);
-  text(golpes, 4.5*W, 4.5*H-20*dy);
+  text(golpes, 4*W, 3.5*H-20*dy);
 
   textSize(20*dy);
-  text("Golpes", 4.5*W, 4.5*H+30*dy);
+  text("Golpes", 4*W, 3.5*H+30*dy);
+}
+
+void draw_media (int media, boolean apply) {
+  noStroke();
+  fill(255);
+  rect(4.5*W, 3*H, W, H);
+
+  fill(0);
+  textAlign(CENTER, CENTER);
+
+  textSize(60*dy);
+  if (apply) {
+    text(media, 5*W, 3.5*H-20*dy);
+  } else {
+    text("-",   5*W, 3.5*H-20*dy);
+  }
+
+  textSize(20*dy);
+  text("km/h", 5*W, 3.5*H+30*dy);
 }
 
 /*
@@ -539,19 +541,19 @@ void draw_maxima (float x, int maxima) {
 void draw_lado (float x, int cor, String lado, int avg) {
   noStroke();
   fill(cor);
-  rect(x, 2*H, W, 3*H);
+  rect(x, 2*H, W, 2*H);
 
   textAlign(CENTER, CENTER);
   fill(0);
 
   textSize(20*dy);
-  text(lado,   x+W/2, 3.5*H-65*dy);
+  text(lado,   x+W/2, 3*H-65*dy);
 
   textSize(80*dy);
-  text(avg,    x+W/2, 3.5*H-10*dy);
+  text(avg,    x+W/2, 3*H-10*dy);
 
   textSize(20*dy);
-  text("km/h", x+W/2, 3.5*H+60*dy);
+  text("km/h", x+W/2, 3*H+60*dy);
 }
 
 void draw_pontos (float x, float pontos, boolean is_behind) {
@@ -561,7 +563,7 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
   } else {
       fill(255);
   }
-  rect(x, 5*H, 2*W, 2*H);
+  rect(x, 4*H, 2*W, 2*H);
 
   if (is_behind) {
       fill(255);
@@ -570,15 +572,15 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
   }
   textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(nf(pontos/100,2,2), x+1*W, 6*H-10*dy);
+  text(nf(pontos/100,2,2), x+1*W, 5*H-10*dy);
 }
 
 void draw_total (float total) {
   noStroke();
   fill(0);
-  rect(2*W, 5*H, 5*W, 2*H);
+  rect(2*W, 4*H, 5*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(140*dy);
-  text(nf(total/100,2,2), width/2, 6*H-15*dy);
+  text(nf(total/100,2,2), width/2, 5*H-15*dy);
 }
