@@ -378,8 +378,8 @@ void draw_tudo (boolean is_end) {
 */
   }
 
-  draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==0 && EQUILIBRIO);
-  draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==1 && EQUILIBRIO);
+  draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
+  draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
   draw_recorde(CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   draw_juiz(NOMES[2], DIGITANDO!=2);
