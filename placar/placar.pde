@@ -402,12 +402,10 @@ void draw_tudo (boolean is_end) {
   }
 
   if (is_end) {
-    fill(255,0,0);
-    rect(0, 2*H, 9*W, 2*H);
     fill(255);
-    textSize(120*dy);
+    textSize(50*dy);
     textAlign(CENTER, CENTER);
-    text("Aguarde...", width/2, height/2);
+    text("Aguarde...", width/2, 1.60*H);
   }
 
   if (SERIAL == null) {
@@ -458,11 +456,11 @@ void draw_recorde (float v, boolean batido) {
   if (batido) {
     fill(255,100,100);
   } else {
-      fill(100,100,100);
+    fill(255);
   }
-  textSize(25*dy);
+  textSize(35*dy);
   textAlign(CENTER, BOTTOM);
-  text("Recorde: " + nf(v/100,2,2), 3*W, height);
+  text("Máx: " + nf(v/100,2,2), 3*W, height);
 }
 
 void draw_juiz (String nome, boolean ok) {
