@@ -3,13 +3,22 @@ String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "COM6";
 int     CFG_RECORDE = 0;
 
+bool    CFG_IMGS    = true;
+String  CFG_IMG1    = "data/fresco-alpha.png";
+String  CFG_IMG2    = "data/fresco-alpha.png";
+
+///////////////////////////////////////////////////////////////////////////////
+// NAO EDITAR NADA ABAIXO DAQUI
+///////////////////////////////////////////////////////////////////////////////
+
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
 import processing.serial.*;
 
 Serial   SERIAL;
 
-PImage   IMG;
+PImage   IMG1;
+PImage   IMG2;
 
 String   VERSAO       = "FrescoGO! v2.0";
 
@@ -61,8 +70,11 @@ void setup () {
   surface.setTitle("FrescoGO! v2.0");
   size(1024, 768);
   //fullScreen();
-  IMG = loadImage("data/fresco-alpha.png");
-  IMG.resize(0,height/5);
+
+  IMG1 = loadImage(CFG_IMG1);
+  IMG1.resize(0,height/5);
+  IMG2 = loadImage(CFG_IMG2);
+  IMG2.resize(0,height/5);
   imageMode(CENTER);
   tint(255, 128);
 
@@ -436,11 +448,18 @@ void draw_tempo (int tempo) {
   text(mins+":"+segs, width/2, H-10*dy);
 }
 
+void draw_img (float x, PImage img) {
+  noStroke();
+  fill(255);
+  rect(x, 0, 3*W, H);
+  image(img, x+1.5*W, 0.5*H);
+}
+
 void draw_nome (float x, String nome, boolean ok) {
   noStroke();
   fill(255);
   rect(x, 0, 3*W, 2*H);
-  //image(IMG, x+1.5*W, 1*H);
+  //image(IMG1, x+1.5*W, 1*H);
   if (ok) {
     fill(0, 0, 255);
   } else {
