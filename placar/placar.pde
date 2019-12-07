@@ -20,12 +20,14 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.0";
+String   VERSAO       = "FrescoGO! v2.0.1";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
+
+String   DIST         = "?";
 
 boolean  IS_INVERTIDO = false;
 int      ZER          = 0;
@@ -144,12 +146,7 @@ int ctrl (char key) {
 
 void trata_nome (float x, int idx, String lado) {
   if (key==ENTER || key==RETURN) {
-    //println(lado + " " + NOMES[idx] + "\n");
     SERIAL.write(lado + " " + NOMES[idx] + "\n");
-    delay(500);
-    String linha = SERIAL.readStringUntil('\n');
-    //println("<<<",linha);
-    //assert(linha == "ok");/
     DIGITANDO = 255;
   } else if (key==BACKSPACE) {
     if (NOMES[idx].length() > 0) {
@@ -183,6 +180,15 @@ void keyPressed () {
         } else {
           serial_desliga();
         }
+      } else if (key == '1') {          // 1
+        DIST = "700 cm";
+        SERIAL.write("distancia 700\n");
+      } else if (key == '2') {          // 2
+        DIST = "750 cm";
+        SERIAL.write("distancia 750\n");
+      } else if (key == '3') {          // 3
+        DIST = "800 cm";
+        SERIAL.write("distancia 800\n");
       }
       break;
 
@@ -230,7 +236,10 @@ void draw () {
   if (linha == null) {
     return;
   }
-  //print(">>>",linha);
+  if (linha.equals("ok\r\n")) {
+    return;
+  }
+  print(">>>", linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -352,6 +361,12 @@ void draw_tudo (boolean is_end) {
   textAlign(CENTER, TOP);
   text(VERSAO, width/2, 0);
 
+  if (IS_INVERTIDO) {
+    textSize(15*dy);
+    textAlign(CENTER, TOP);
+    text("inv", width/2, 15*dy);
+  }
+
   draw_quedas(QUEDAS);
 
   draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
@@ -397,15 +412,10 @@ void draw_tudo (boolean is_end) {
   draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
-  draw_recorde(CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
-  draw_juiz(NOMES[2], DIGITANDO!=2);
 
-  if (IS_INVERTIDO) {
-    fill(255,0,0);
-    textSize(25*dy);
-    textAlign(CENTER, BOTTOM);
-    text("inv", width/2, height);
-  }
+  draw_recorde(3*W, CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
+  draw_dist(4.5*W, DIST);
+  draw_juiz(6*W, NOMES[2], DIGITANDO!=2);
 
   strokeWeight(2);
   stroke(0);
@@ -479,7 +489,7 @@ void draw_nome (float x, String nome, boolean ok) {
   text(nome, x+1.5*W, h+H/2-10*dy);
 }
 
-void draw_recorde (float v, boolean batido) {
+void draw_recorde (float x, float v, boolean batido) {
   if (batido) {
     fill(255,100,100);
   } else {
@@ -487,10 +497,17 @@ void draw_recorde (float v, boolean batido) {
   }
   textSize(35*dy);
   textAlign(CENTER, BOTTOM);
-  text("Máx: " + nf(v/100,2,2), 3*W, height);
+  text("Máx: " + nf(v/100,2,2), x, height);
 }
 
-void draw_juiz (String nome, boolean ok) {
+void draw_dist (float x, String dist) {
+  fill(100,100,100);
+  textSize(25*dy);
+  textAlign(CENTER, BOTTOM);
+  text(dist, x, height);
+}
+
+void draw_juiz (float x, String nome, boolean ok) {
   if (ok) {
     fill(100,100,100);
   } else {
@@ -499,7 +516,7 @@ void draw_juiz (String nome, boolean ok) {
   }
   textSize(25*dy);
   textAlign(CENTER, BOTTOM);
-  text("Juiz: " + nome, 6*W, height);
+  text("Juiz: " + nome, x, height);
 }
 
 void draw_ultima (float x1, float x2, int ultima) {
