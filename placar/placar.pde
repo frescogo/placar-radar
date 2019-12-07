@@ -3,7 +3,7 @@ String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "COM6";
 int     CFG_RECORDE = 0;
 
-bool    CFG_IMGS    = true;
+boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
 String  CFG_IMG2    = "data/fresco-alpha.png";
 
@@ -72,9 +72,9 @@ void setup () {
   //fullScreen();
 
   IMG1 = loadImage(CFG_IMG1);
-  IMG1.resize(0,height/5);
+  IMG1.resize(0,height/8);
   IMG2 = loadImage(CFG_IMG2);
-  IMG2.resize(0,height/5);
+  IMG2.resize(0,height/8);
   imageMode(CENTER);
   tint(255, 128);
 
@@ -338,6 +338,10 @@ void player (String[] campos, int p, int i) {
 void draw_tudo (boolean is_end) {
   background(255,255,255);
 
+  if (CFG_IMGS) {
+    draw_img(0*W, IMG1);
+    draw_img(6*W, IMG2);
+  }
   draw_nome(0,   NOMES[ZER], DIGITANDO!=ZER);
   draw_nome(6*W, NOMES[ONE], DIGITANDO!=ONE);
 
@@ -456,9 +460,13 @@ void draw_img (float x, PImage img) {
 }
 
 void draw_nome (float x, String nome, boolean ok) {
-  noStroke();
+  float y = (CFG_IMGS ? H : 0);
+  float h = (CFG_IMGS ? H : 2*H);
+  int SZ  = (CFG_IMGS ? 70 : 85);
+
+  stroke(0);
   fill(255);
-  rect(x, 0, 3*W, 2*H);
+  rect(x, y, 3*W, h);
   //image(IMG1, x+1.5*W, 1*H);
   if (ok) {
     fill(0, 0, 255);
@@ -466,9 +474,9 @@ void draw_nome (float x, String nome, boolean ok) {
     nome = nome + "_";
     fill(255, 0, 0);
   }
-  textSize(85*dy);
+  textSize(SZ*dy);
   textAlign(CENTER, CENTER);
-  text(nome, x+1.5*W, H-10*dy);
+  text(nome, x+1.5*W, h+H/2-10*dy);
 }
 
 void draw_recorde (float v, boolean batido) {
