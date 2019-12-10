@@ -261,6 +261,7 @@ void draw () {
 
     // SEQ
     case 1: {
+      IS_FIM       = false; // por causa do UNDO
       TEMPO_JOGADO = int(campos[1]);
       QUEDAS       = int(campos[2]);
       NOMES[0]     = campos[3];
