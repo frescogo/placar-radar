@@ -21,6 +21,7 @@ PImage   IMG1;
 PImage   IMG2;
 
 String   VERSAO       = "FrescoGO! v2.0.1";
+String   PARS         = "(?)";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -254,6 +255,7 @@ void draw () {
       NOMES[0]     = campos[3];
       NOMES[1]     = campos[4];
       NOMES[2]     = campos[5];
+      PARS         = campos[6];
       break;
     }
 
@@ -359,12 +361,13 @@ void draw_tudo (boolean is_end) {
   fill(75,75,75);
   textSize(15*dy);
   textAlign(CENTER, TOP);
+  fill(75,75,75);
+  textSize(15*dy);
+  textAlign(CENTER, TOP);
   text(VERSAO, width/2, 0);
 
   if (IS_INVERTIDO) {
-    textSize(15*dy);
-    textAlign(CENTER, TOP);
-    text("inv", width/2, 15*dy);
+    text("inv", width/2, 30*dy);
   }
 
   draw_quedas(QUEDAS);
@@ -412,6 +415,13 @@ void draw_tudo (boolean is_end) {
   draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
   draw_total(PONTOS_TOTAL);
+
+  {
+    fill(75,75,75);
+    textSize(15*dy);
+    textAlign(CENTER, TOP);
+    text(PARS, width/2, 4*H);
+  }
 
   draw_recorde(3*W, CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   draw_dist(4.5*W, DIST);
