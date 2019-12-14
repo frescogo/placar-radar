@@ -20,7 +20,7 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.0.2";
+String   VERSAO       = "FrescoGO! v2.0.3";
 String   PARS         = "(?)";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
@@ -153,7 +153,7 @@ void trata_nome (float x, int idx, String lado) {
     if (NOMES[idx].length() > 0) {
       NOMES[idx] = NOMES[idx].substring(0, NOMES[idx].length()-1);
     }
-  } else if (int(key)>=int('a') && int(key)<='z' || int(key)>=int('A') && int(key)<=int('Z') || key=='_'){
+  } else if (int(key)>=int('a') && int(key)<=int('z') || int(key)>=int('A') && int(key)<=int('Z') || key=='_'){
     NOMES[idx] = NOMES[idx] + key;
     //println(">>>", key);
   }
@@ -168,7 +168,7 @@ void keyPressed () {
       } else if (key == ctrl('d')) {    // CTRL-D
         DIGITANDO = 1;
         NOMES[1] = "";
-      } else if (key == ctrl('j')) {    // CTRL-J
+      } else if (key == ctrl('a')) {    // CTRL-A
         DIGITANDO = 2;
         NOMES[2] = "";
       } else if (key == ctrl('i')) {    // CTRL-I
@@ -240,7 +240,7 @@ void draw () {
   if (linha.equals("ok\r\n")) {
     return;
   }
-  print(">>>", linha);
+  //print(">>>", linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -527,7 +527,7 @@ void draw_juiz (float x, String nome, boolean ok) {
   }
   textSize(25*dy);
   textAlign(CENTER, BOTTOM);
-  text("Juiz: " + nome, x, height);
+  text("Árbitro: " + nome, x, height);
 }
 
 void draw_ultima (float x1, float x2, int ultima) {
