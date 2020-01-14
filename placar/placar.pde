@@ -500,7 +500,7 @@ void draw_nome (float x, String nome, boolean ok) {
   text(nome, x+1.5*W, h+H/2-10*dy);
 }
 
-void draw_recorde (float x, float v, boolean batido) {
+void draw_recorde (float x, int v, boolean batido) {
   if (batido) {
     fill(255,100,100);
   } else {
@@ -508,7 +508,7 @@ void draw_recorde (float x, float v, boolean batido) {
   }
   textSize(35*dy);
   textAlign(CENTER, BOTTOM);
-  text("Máx: " + nf(v/100,2,2), x, height);
+  text("Máx: " + v, x, height);
 }
 
 void draw_dist (float x, String dist) {
@@ -640,7 +640,7 @@ void draw_lado (float x, int cor, String lado, int pct, int avg) {
   text("("+pct+"%)", x+W/2, 4*H-20*dy);
 }
 
-void draw_pontos (float x, float pontos, boolean is_behind) {
+void draw_pontos (float x, int pontos, boolean is_behind) {
   noStroke();
   if (is_behind) {
       fill(255,0,0);
@@ -656,15 +656,15 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
   }
   textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(nf(pontos/100,2,2), x+1*W, 5*H-10*dy);
+  text(pontos, x+1*W, 5*H-10*dy);
 }
 
-void draw_total (float total) {
+void draw_total (int total) {
   noStroke();
   fill(0);
   rect(2*W, 4*H, 5*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(140*dy);
-  text(nf(total/100,2,2), width/2, 5*H-15*dy);
+  text(total, width/2, 5*H-15*dy);
 }
