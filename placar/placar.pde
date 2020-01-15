@@ -20,7 +20,7 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.0.3";
+String   VERSAO       = "FrescoGO! v2.2.0";
 String   PARS         = "(?)";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
@@ -40,6 +40,7 @@ int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      TEMPO_EXIBIDO;
 int      PONTOS_TOTAL;
+int      PONTOS_ACUM;
 int      QUEDAS;
 int      GOLPES_TOT;
 int      GOLPES_AVG;
@@ -96,6 +97,7 @@ void zera () {
   TEMPO_JOGADO = 0;
   TEMPO_EXIBIDO = 0;
   PONTOS_TOTAL = 0;
+  PONTOS_ACUM  = 0;
   QUEDAS       = 0;
   GOLPES_TOT   = 0;
   GOLPES_AVG   = 0;
@@ -287,8 +289,9 @@ void draw () {
     case 3: {
       TEMPO_JOGADO = int(campos[1]);
       PONTOS_TOTAL = int(campos[2]);
-      GOLPES_TOT   = int(campos[3]);
-      GOLPES_AVG   = int(campos[4]);
+      PONTOS_ACUM  = int(campos[3]);
+      GOLPES_TOT   = int(campos[4]);
+      GOLPES_AVG   = int(campos[5]);
 
       if (TEMPO_JOGADO >= (TEMPO_EXIBIDO-TEMPO_EXIBIDO%5)+5) {
         TEMPO_EXIBIDO = TEMPO_JOGADO;
@@ -415,7 +418,7 @@ void draw_tudo (boolean is_end) {
 
   draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
-  draw_total(PONTOS_TOTAL);
+  draw_total(PONTOS_TOTAL, PONTOS_ACUM);
 
   {
     fill(75,75,75);
@@ -659,12 +662,16 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
   text(nf(pontos/100,2,2), x+1*W, 5*H-10*dy);
 }
 
-void draw_total (float total) {
+void draw_total (float total, int acum) {
   noStroke();
   fill(0);
   rect(2*W, 4*H, 5*W, 2*H);
   fill(255);
   textAlign(CENTER, CENTER);
-  textSize(140*dy);
-  text(nf(total/100,2,2), width/2, 5*H-15*dy);
+
+  textSize(100*dy);
+  text(acum, width/2, 4.5*H-15*dy);
+
+  textSize(75*dy);
+  text(nf(total/100,2,2), width/2, 5.5*H-15*dy);
 }
