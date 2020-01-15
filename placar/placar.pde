@@ -669,9 +669,9 @@ void draw_total (float total, int acum) {
   fill(255);
   textAlign(CENTER, CENTER);
 
-  textSize(100*dy);
-  text(acum, width/2, 4.5*H-15*dy);
+  textSize(110*dy);
+  text(acum, width/2, 4.75*H-15*dy);
 
-  textSize(75*dy);
-  text(nf(total/100,2,2), width/2, 5.5*H-15*dy);
+  textSize(55*dy);
+  text("("+nf(total/100,2,2)+")", width/2, 5.5*H-15*dy);
 }
