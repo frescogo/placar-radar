@@ -21,7 +21,7 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.2.0";
+String   VERSAO       = "FrescoGO! v2.2.1";
 String   PARS         = "(?)";
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
