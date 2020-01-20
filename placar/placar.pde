@@ -2,6 +2,7 @@ String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
 int     CFG_RECORDE = 0;
+boolean CFG_ACUM    = true;
 
 boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
@@ -669,9 +670,13 @@ void draw_total (float total, int acum) {
   fill(255);
   textAlign(CENTER, CENTER);
 
-  textSize(110*dy);
-  text(acum, width/2, 4.75*H-15*dy);
-
-  textSize(55*dy);
-  text("("+nf(total/100,2,2)+")", width/2, 5.5*H-15*dy);
+  if (CFG_ACUM) {
+    textSize(110*dy);
+    text(acum, width/2, 4.75*H-15*dy);
+    textSize(55*dy);
+    text("("+nf(total/100,2,2)+")", width/2, 5.5*H-15*dy);
+  } else {
+    textSize(140*dy);
+    text(nf(total/100,2,2), width/2, 5*H-15*dy);
+  }
 }
