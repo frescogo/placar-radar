@@ -404,10 +404,10 @@ void draw_tudo (boolean is_end) {
       draw_lado(7.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
       draw_lado(8.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ONE]/100);
     } else {
-      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ZER]/100);
-      draw_lado(1.5*W, 1.5*W, color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
-      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ONE]/100);
-      draw_lado(7.5*W, 1.5*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
+      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume",  75, VOL_AVG[ZER]/100);
+      draw_lado(1.5*W, 1.5*W, color(200,250,200), "Máximas", 25, NRM_AVG[ZER]/100);
+      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume",  75, VOL_AVG[ONE]/100);
+      draw_lado(7.5*W, 1.5*W, color(200,250,200), "Máximas", 25, NRM_AVG[ONE]/100);
     }
 
     textAlign(CENTER, CENTER);
@@ -417,8 +417,8 @@ void draw_tudo (boolean is_end) {
       text("Máximas", 2*W, 3*H-110*dy);
       text("Máximas", 8*W, 3*H-110*dy);
     } else {
-      text("Máximas", 2.25*W, 3*H-110*dy);
-      text("Máximas", 8.25*W, 3*H-110*dy);
+      //text("Máximas", 2.25*W, 3*H-110*dy);
+      //text("Máximas", 8.25*W, 3*H-110*dy);
     }
 
 /*
