@@ -261,7 +261,7 @@ void draw () {
       NOMES[2]     = campos[5];
       PARS         = campos[6];
       PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d)\\)/equ\\d/cont\\d+/fim\\d+");
-      println(PARSS);
+      //println(PARSS);
       break;
     }
 
