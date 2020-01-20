@@ -21,8 +21,9 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.2.1";
+String   VERSAO       = "FrescoGO! v2.3.0";
 String   PARS         = "(?)";
+String   PARSS[];
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -259,6 +260,8 @@ void draw () {
       NOMES[1]     = campos[4];
       NOMES[2]     = campos[5];
       PARS         = campos[6];
+      PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d)\\)/equ\\d/cont\\d+/fim\\d+");
+      println(PARSS);
       break;
     }
 
@@ -393,20 +396,30 @@ void draw_tudo (boolean is_end) {
       ellipse(3*W, 3*H, 60*dy, 60*dy);
     }
   } else {
-    draw_lado(0*W,     color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
-    draw_lado(1*W,     color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
-    draw_lado(2*W,     color(250,200,200), "Revés",  15, REV_AVG[ZER]/100);
-    draw_lado(6*W+0*W, color(200,200,250), "Volume", 60, VOL_AVG[ONE]/100);
-    draw_lado(6*W+1*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
-    draw_lado(6*W+2*W, color(250,200,200), "Revés",  15, REV_AVG[ONE]/100);
+    if (PARSS != null && PARSS[4].equals("1")) {
+      draw_lado(0.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
+      draw_lado(1.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
+      draw_lado(2.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ZER]/100);
+      draw_lado(6.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ONE]/100);
+      draw_lado(7.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
+      draw_lado(8.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ONE]/100);
+    } else {
+      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ZER]/100);
+      draw_lado(1.5*W, 1.5*W, color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
+      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ONE]/100);
+      draw_lado(7.5*W, 1.5*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
+    }
 
     textAlign(CENTER, CENTER);
     fill(0);
     textSize(25*dy);
-    //text("Máximas", 2*W, 3.5*H+130*dy);
-    text("Máximas", 2*W, 3*H-110*dy);
-    //text("Máximas", 8*W, 3.5*H+130*dy);
-    text("Máximas", 8*W, 3*H-110*dy);
+    if (PARSS != null && PARSS[4].equals("1")) {
+      text("Máximas", 2*W, 3*H-110*dy);
+      text("Máximas", 8*W, 3*H-110*dy);
+    } else {
+      text("Máximas", 2.25*W, 3*H-110*dy);
+      text("Máximas", 8.25*W, 3*H-110*dy);
+    }
 
 /*
     strokeWeight(1);
@@ -429,7 +442,7 @@ void draw_tudo (boolean is_end) {
   }
 
   draw_recorde(3*W, CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
-  draw_dist(4.5*W, DIST);
+  //draw_dist(4.5*W, DIST);
   draw_juiz(6*W, NOMES[2], DIGITANDO!=2);
 
   strokeWeight(2);
@@ -515,12 +528,14 @@ void draw_recorde (float x, float v, boolean batido) {
   text("Máx: " + nf(v/100,2,2), x, height);
 }
 
+/*
 void draw_dist (float x, String dist) {
   fill(100,100,100);
   textSize(25*dy);
   textAlign(CENTER, BOTTOM);
   text(dist, x, height);
 }
+*/
 
 void draw_juiz (float x, String nome, boolean ok) {
   if (ok) {
@@ -621,27 +636,27 @@ void draw_maxima (float x, int maxima) {
 }
 */
 
-void draw_lado (float x, int cor, String lado, int pct, int avg) {
+void draw_lado (float x, float w, int cor, String lado, int pct, int avg) {
   noStroke();
   fill(cor);
-  rect(x, 2*H, W, 2*H);
+  rect(x, 2*H, w, 2*H);
 
   textAlign(CENTER, CENTER);
   fill(0);
 
   textSize(20*dy);
-  text(lado,   x+W/2, 3*H-65*dy);
+  text(lado,   x+w/2, 3*H-65*dy);
 
   textSize(80*dy);
-  text(avg,    x+W/2, 3*H-10*dy);
+  text(avg,    x+w/2, 3*H-10*dy);
 
   textSize(20*dy);
-  text("km/h", x+W/2, 3*H+60*dy);
+  text("km/h", x+w/2, 3*H+60*dy);
 
   textAlign(CENTER, BOTTOM);
   fill(100,100,100);
   textSize(20*dy);
-  text("("+pct+"%)", x+W/2, 4*H-20*dy);
+  text("("+pct+"%)", x+w/2, 4*H-20*dy);
 }
 
 void draw_pontos (float x, float pontos, boolean is_behind) {
