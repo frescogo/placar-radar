@@ -260,7 +260,7 @@ void draw () {
       NOMES[1]     = campos[4];
       NOMES[2]     = campos[5];
       PARS         = campos[6];
-      PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d)\\)/equ\\d/cont\\d+/fim\\d+");
+      PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d+)\\)/equ\\d/cont\\d+/fim\\d+");
       //println(PARSS);
       break;
     }
@@ -396,7 +396,7 @@ void draw_tudo (boolean is_end) {
       ellipse(3*W, 3*H, 60*dy, 60*dy);
     }
   } else {
-    if (PARSS != null && PARSS[4].equals("1")) {
+    if (PARSS!=null && !PARSS[4].equals("0")) {
       draw_lado(0.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
       draw_lado(1.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
       draw_lado(2.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ZER]/100);
@@ -413,7 +413,7 @@ void draw_tudo (boolean is_end) {
     textAlign(CENTER, CENTER);
     fill(0);
     textSize(25*dy);
-    if (PARSS != null && PARSS[4].equals("1")) {
+    if (PARSS != null && !PARSS[4].equals("0")) {
       text("Máximas", 2*W, 3*H-110*dy);
       text("Máximas", 8*W, 3*H-110*dy);
     } else {
