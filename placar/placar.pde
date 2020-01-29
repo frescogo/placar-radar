@@ -21,7 +21,7 @@ Serial   SERIAL;
 PImage   IMG1;
 PImage   IMG2;
 
-String   VERSAO       = "FrescoGO! v2.3.0";
+String   VERSAO       = "FrescoGO! v2.4.0";
 String   PARS         = "(?)";
 String   PARSS[];
 
@@ -41,6 +41,7 @@ boolean  EQUILIBRIO;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      TEMPO_EXIBIDO;
+int      TEMPO_DESC;
 int      PONTOS_TOTAL;
 int      PONTOS_ACUM;
 int      QUEDAS;
@@ -73,7 +74,7 @@ void setup () {
   //SERIAL.clear();
   //SERIAL = new Serial(this, Serial.list()[0], 9600);
 
-  surface.setTitle("FrescoGO! v2.0");
+  surface.setTitle(VERSAO);
   size(1024, 768);
   //fullScreen();
 
@@ -98,6 +99,7 @@ void zera () {
   IS_FIM       = false;
   TEMPO_JOGADO = 0;
   TEMPO_EXIBIDO = 0;
+  TEMPO_DESC   = 0;
   PONTOS_TOTAL = 0;
   PONTOS_ACUM  = 0;
   QUEDAS       = 0;
@@ -269,10 +271,11 @@ void draw () {
     case 1: {
       IS_FIM       = false; // por causa do UNDO
       TEMPO_JOGADO = int(campos[1]);
-      QUEDAS       = int(campos[2]);
-      NOMES[0]     = campos[3];
-      NOMES[1]     = campos[4];
-      NOMES[2]     = campos[5];
+      TEMPO_DESC   = int(campos[2]);
+      QUEDAS       = int(campos[3]);
+      NOMES[0]     = campos[4];
+      NOMES[1]     = campos[5];
+      NOMES[2]     = campos[6];
       TEMPO_EXIBIDO = TEMPO_JOGADO;
       break;
     }
@@ -326,6 +329,13 @@ void draw () {
       if (PONTOS_TOTAL > CFG_RECORDE) {
         CFG_RECORDE = PONTOS_TOTAL;
       }
+      break;
+    }
+
+    // DESC
+    case 6: {
+      TEMPO_DESC = int(campos[1]);
+      break;
     }
   }
 }
@@ -364,13 +374,11 @@ void draw_tudo (boolean is_end) {
   draw_nome(0,   NOMES[ZER], DIGITANDO!=ZER);
   draw_nome(6*W, NOMES[ONE], DIGITANDO!=ONE);
 
-  draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO);
+  draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO, TEMPO_DESC);
 
-  fill(75,75,75);
+  fill(150,150,150);
   textSize(15*dy);
   textAlign(CENTER, TOP);
-  fill(75,75,75);
-  textSize(15*dy);
   textAlign(CENTER, TOP);
   text(VERSAO, width/2, 0);
 
@@ -435,7 +443,7 @@ void draw_tudo (boolean is_end) {
   draw_total(PONTOS_TOTAL, PONTOS_ACUM);
 
   {
-    fill(75,75,75);
+    fill(150,150,150);
     textSize(15*dy);
     textAlign(CENTER, TOP);
     text(PARS, width/2, 4*H);
@@ -470,7 +478,7 @@ void draw_tudo (boolean is_end) {
   }
 }
 
-void draw_tempo (int tempo) {
+void draw_tempo (int tempo, int desc) {
   if (tempo < 0) {
     tempo = 0;
   }
@@ -488,6 +496,13 @@ void draw_tempo (int tempo) {
   textSize(120*dy);
   textAlign(CENTER, CENTER);
   text(mins+":"+segs, width/2, H-10*dy);
+
+  fill(150,150,150);
+  textSize(25*dy);
+  textAlign(CENTER, BOTTOM);
+  text(desc+" s", width/2, 2*H-25*dy);
+  textSize(15*dy);
+  text("(descanso)", width/2, 2*H-10*dy);
 }
 
 void draw_img (float x, PImage img) {
@@ -539,7 +554,7 @@ void draw_dist (float x, String dist) {
 
 void draw_juiz (float x, String nome, boolean ok) {
   if (ok) {
-    fill(100,100,100);
+    fill(150,150,150);
   } else {
     fill(255,0,0);
     nome = nome + "_";
