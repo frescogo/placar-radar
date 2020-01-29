@@ -62,6 +62,13 @@ int[]    REV_AVG = new int[2];
 //int[]    FORES_TOT    = new int[2];
 //int[]    BACKS_TOT    = new int[2];
 
+int REF_TIMEOUT = 240;
+int REF_BESTS   = 20;
+int REF_REVES   = 3/5;
+int REF_CONT    = 15;
+int HITS_NRM    = 0;  //(S.timeout*REF_BESTS/REF_TIMEOUT/1000)
+int HITS_REV    = 0;  //HITS_NRM*REF_REVES
+
 float dy; // 0.001 height
 
 float W;
@@ -264,6 +271,9 @@ void draw () {
       PARS         = campos[6];
       PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d+)\\)/equ\\d/cont\\d+/fim\\d+");
       //println(PARSS);
+
+      HITS_NRM = TEMPO_TOTAL * REF_BESTS / REF_TIMEOUT;
+      HITS_REV = HITS_NRM * REF_REVES;
       break;
     }
 
@@ -405,17 +415,20 @@ void draw_tudo (boolean is_end) {
     }
   } else {
     if (PARSS!=null && !PARSS[4].equals("0")) {
+      String normal = "Normal (" + nf(HITS_NRM) + "+)";
+      String reves  = "Revés ("  + nf(HITS_REV) + "+)";
       draw_lado(0.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
-      draw_lado(1.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ZER]/100);
-      draw_lado(2.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ZER]/100);
+      draw_lado(1.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
+      draw_lado(2.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ZER]/100);
       draw_lado(6.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ONE]/100);
-      draw_lado(7.0*W, 1.0*W, color(200,250,200), "Normal", 25, NRM_AVG[ONE]/100);
-      draw_lado(8.0*W, 1.0*W, color(250,200,200), "Revés",  15, REV_AVG[ONE]/100);
+      draw_lado(7.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ONE]/100);
+      draw_lado(8.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ONE]/100);
     } else {
-      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume",  75, VOL_AVG[ZER]/100);
-      draw_lado(1.5*W, 1.5*W, color(200,250,200), "Máximas", 25, NRM_AVG[ZER]/100);
-      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume",  75, VOL_AVG[ONE]/100);
-      draw_lado(7.5*W, 1.5*W, color(200,250,200), "Máximas", 25, NRM_AVG[ONE]/100);
+      String normal = "Máximas (" + nf(HITS_NRM) + "+)";
+      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ZER]/100);
+      draw_lado(1.5*W, 1.5*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
+      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ONE]/100);
+      draw_lado(7.5*W, 1.5*W, color(200,250,200), normal,   25, NRM_AVG[ONE]/100);
     }
 
     textAlign(CENTER, CENTER);
