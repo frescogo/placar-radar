@@ -64,7 +64,7 @@ int[]    REV_AVG = new int[2];
 
 int REF_TIMEOUT = 240;
 int REF_BESTS   = 20;
-int REF_REVES   = 3/5;
+//int REF_REVES   = 3/5;
 int REF_CONT    = 15;
 int HITS_NRM    = 0;  //(S.timeout*REF_BESTS/REF_TIMEOUT/1000)
 int HITS_REV    = 0;  //HITS_NRM*REF_REVES
@@ -76,10 +76,8 @@ float H;
 
 void setup () {
   serial_liga();
-  //delay(50);
-  //SERIAL.bufferUntil('\n');
-  //SERIAL.clear();
-  //SERIAL = new Serial(this, Serial.list()[0], 9600);
+  delay(1500);          // espera reset e Serial.begin() do arduino
+  SERIAL.write(1);      // envia MOD_PC
 
   surface.setTitle(VERSAO);
   size(1024, 768);
@@ -253,7 +251,7 @@ void draw () {
   if (linha.equals("ok\r\n")) {
     return;
   }
-  //print(">>>", linha);
+  print(">>>", linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -273,7 +271,7 @@ void draw () {
       //println(PARSS);
 
       HITS_NRM = TEMPO_TOTAL * REF_BESTS / REF_TIMEOUT;
-      HITS_REV = HITS_NRM * REF_REVES;
+      HITS_REV = HITS_NRM * 3 / 5; //REF_REVES;
       break;
     }
 
@@ -415,8 +413,8 @@ void draw_tudo (boolean is_end) {
     }
   } else {
     if (PARSS!=null && !PARSS[4].equals("0")) {
-      String normal = "Normal (" + nf(HITS_NRM) + "+)";
-      String reves  = "Revés ("  + nf(HITS_REV) + "+)";
+      String normal = "Normal " + nf(HITS_NRM) + "+";
+      String reves  = "Revés "  + nf(HITS_REV) + "+";
       draw_lado(0.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
       draw_lado(1.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
       draw_lado(2.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ZER]/100);
@@ -424,7 +422,7 @@ void draw_tudo (boolean is_end) {
       draw_lado(7.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ONE]/100);
       draw_lado(8.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ONE]/100);
     } else {
-      String normal = "Máximas (" + nf(HITS_NRM) + "+)";
+      String normal = "Máximas " + nf(HITS_NRM) + "+";
       draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ZER]/100);
       draw_lado(1.5*W, 1.5*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
       draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ONE]/100);
@@ -435,8 +433,9 @@ void draw_tudo (boolean is_end) {
     fill(0);
     textSize(25*dy);
     if (PARSS != null && !PARSS[4].equals("0")) {
-      text("Máximas", 2*W, 3*H-110*dy);
-      text("Máximas", 8*W, 3*H-110*dy);
+      fill(100,100,100);
+      text("Máximas", 2*W, 3*H-125*dy);
+      text("Máximas", 8*W, 3*H-125*dy);
     } else {
       //text("Máximas", 2.25*W, 3*H-110*dy);
       //text("Máximas", 8.25*W, 3*H-110*dy);
@@ -607,12 +606,12 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(4.5*W, 2.5*H+20*dy, H-10*dy, H-10*dy);
+  ellipse(4.5*W, 2.5*H+25*dy, H-10*dy, H-10*dy);
 
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(100*dy);
-  text(quedas, width/2, 2.5*H+10*dy);
+  text(quedas, width/2, 2.5*H+15*dy);
 }
 
 void draw_golpes (int golpes) {
@@ -673,13 +672,13 @@ void draw_lado (float x, float w, int cor, String lado, int pct, int avg) {
   fill(0);
 
   textSize(20*dy);
-  text(lado,   x+w/2, 3*H-65*dy);
+  text(lado,   x+w/2, 3*H-75*dy);
 
   textSize(80*dy);
   text(avg,    x+w/2, 3*H-10*dy);
 
   textSize(20*dy);
-  text("km/h", x+w/2, 3*H+60*dy);
+  text("km/h", x+w/2, 3*H+70*dy);
 
   textAlign(CENTER, BOTTOM);
   fill(100,100,100);
