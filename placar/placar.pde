@@ -251,7 +251,7 @@ void draw () {
   if (linha.equals("ok\r\n")) {
     return;
   }
-  print(">>>", linha);
+  //print(">>>", linha);
 
   String[] campos = split(linha, ";");
   int      codigo = int(campos[0]);
@@ -479,7 +479,7 @@ void draw_tudo (boolean is_end) {
     fill(255);
     textSize(50*dy);
     textAlign(CENTER, CENTER);
-    text("Aguarde...", width/2, 1.60*H);
+    text("Aguarde...", width/2, 0.35*H);
   }
 
   if (SERIAL == null) {
