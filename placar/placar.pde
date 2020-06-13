@@ -187,9 +187,9 @@ void keyPressed () {
                 ONE = 1 - ONE;
             } else if (key == ctrl('s')) {    // CTRL-S
                 if (SERIAL == null) {
-                  serial_liga();
+                    serial_liga();
                 } else {
-                  serial_desliga();
+                    serial_desliga();
                 }
             } else if (key == '1') {          // 1
                 DIST = "700 cm";
@@ -432,21 +432,9 @@ void draw_tudo (boolean is_end) {
 
         // params
         fill(150,150,150);
-        textSize(15*dy);
-        textAlign(CENTER, CENTER);
-        text(PARS, 4.5*W, 8.5*H);
-
-        // recorde
-        if (PONTOS_TOTAL > CFG_RECORDE) {
-            fill(255,100,100);
-        } else {
-            fill(255);
-        }
-        textSize(30*dy);
-        textAlign(CENTER, CENTER);
-        text(nf(CFG_RECORDE/100,2,2), 5.5*W, 8.5*H-15*dy);
         textSize(10*dy);
-        text("(Recorde)",             5.5*W, 8.5*H+15*dy);
+        textAlign(CENTER, BOTTOM);
+        text(PARS, width/2, 9*H+10*dy);
 
         // juiz
         String nome = NOMES[2];
@@ -457,10 +445,20 @@ void draw_tudo (boolean is_end) {
             nome = nome + "_";
         }
         textSize(15*dy);
+        textAlign(CENTER, BOTTOM);
+        text("Árbitro: " + nome, width/2, 9*H-30*dy);
+
+        // recorde
+        if (PONTOS_TOTAL > CFG_RECORDE) {
+            fill(255,100,100);
+        } else {
+            fill(255);
+        }
+        textSize(30*dy);
         textAlign(CENTER, CENTER);
-        text(nome,        6.5*W, 8.5*H-15*dy);
+        text(nf(CFG_RECORDE/100,2,2), width/2, 8*H-15*dy);
         textSize(10*dy);
-        text("(Árbitro)", 6.5*W, 8.5*H+15*dy);
+        text("(Recorde)",             width/2, 8*H+15*dy);
     }
 
     //draw_dist(4.5*W, DIST);
