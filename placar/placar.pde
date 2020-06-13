@@ -2,7 +2,6 @@ String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
 int     CFG_RECORDE = 0;
-boolean CFG_ACUM    = true;
 
 boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
@@ -92,8 +91,8 @@ void setup () {
 
   dy = 0.001 * height;
 
-  W = width  / 9.0;
-  H = height / 6.0;
+  W = width  / 11.0;
+  H = height /  9.0;
 
   zera();
 
@@ -114,9 +113,9 @@ void zera () {
 
   GOLPE_IDX    = 255;
 
-  NOMES[0]     = "";
-  NOMES[1]     = "";
-  NOMES[2]     = "";
+  NOMES[0]     = "Esquerda";
+  NOMES[1]     = "Direita";
+  NOMES[2]     = "Árbitro";
   PONTOS[0]    = 0;
   PONTOS[1]    = 0;
   ULTIMAS[0]   = 0;
@@ -156,7 +155,7 @@ int ctrl (char key) {
   return char(int(key) - int('a') + 1);
 }
 
-void trata_nome (float x, int idx, String lado) {
+void trata_nome (int idx, String lado) {
   if (key==ENTER || key==RETURN) {
     SERIAL.write(lado + " " + NOMES[idx] + "\n");
     DIGITANDO = 255;
@@ -205,13 +204,13 @@ void keyPressed () {
       break;
 
     case 0: // DIGITANDO ESQ
-      trata_nome(0, 0, "esquerda");
+      trata_nome(0, "esquerda");
       break;
     case 1: // DIGITANDO DIR
-      trata_nome(6*W, 1, "direita");
+      trata_nome(1, "direita");
       break;
     case 2: // DIGITANDO JUIZ
-      trata_nome(4*W, 2, "juiz");
+      trata_nome(2, "juiz");
       break;
   }
 }
@@ -377,10 +376,10 @@ void draw_tudo (boolean is_end) {
 
   if (CFG_IMGS) {
     draw_img(0*W, IMG1);
-    draw_img(6*W, IMG2);
+    draw_img(7*W, IMG2);
   }
-  draw_nome(0,   NOMES[ZER], DIGITANDO!=ZER);
-  draw_nome(6*W, NOMES[ONE], DIGITANDO!=ONE);
+  draw_nome(0*W, NOMES[ZER], DIGITANDO!=ZER);
+  draw_nome(7*W, NOMES[ONE], DIGITANDO!=ONE);
 
   draw_tempo(TEMPO_TOTAL-TEMPO_EXIBIDO, TEMPO_DESC);
 
@@ -396,75 +395,77 @@ void draw_tudo (boolean is_end) {
 
   draw_quedas(QUEDAS);
 
-  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
-  draw_golpes(GOLPES_TOT);
+//  draw_media(GOLPES_AVG, TEMPO_EXIBIDO>=5);
+//  draw_golpes(GOLPES_TOT);
 
   if (GOLPE_IDX != 255) {
-    draw_ultima(0,     1.5*W, ULTIMAS[ZER]);
-    draw_ultima(5.5*W, 7.5*W, ULTIMAS[ONE]);
+    draw_ultima(0*W, 1.5*W, ULTIMAS[ZER]);
+    draw_ultima(7*W, 9.5*W, ULTIMAS[ONE]);
 
     ellipseMode(CENTER);
     fill(GOLPE_CLR);
     noStroke();
     if (GOLPE_IDX == ZER) {
-      ellipse(6*W, 3*H, 60*dy, 60*dy);
+      ellipse(8*W, 4.5*H, 60*dy, 60*dy);
     } else {
-      ellipse(3*W, 3*H, 60*dy, 60*dy);
+      ellipse(3*W, 4.5*H, 60*dy, 60*dy);
     }
   } else {
-    if (PARSS!=null && !PARSS[4].equals("0")) {
-      String normal = "Normal " + nf(HITS_NRM) + "+";
-      String reves  = "Revés "  + nf(HITS_REV) + "+";
-      draw_lado(0.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ZER]/100);
-      draw_lado(1.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
-      draw_lado(2.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ZER]/100);
-      draw_lado(6.0*W, 1.0*W, color(200,200,250), "Volume", 60, VOL_AVG[ONE]/100);
-      draw_lado(7.0*W, 1.0*W, color(200,250,200), normal,   25, NRM_AVG[ONE]/100);
-      draw_lado(8.0*W, 1.0*W, color(250,200,200), reves,    15, REV_AVG[ONE]/100);
-    } else {
-      String normal = "Máximas " + nf(HITS_NRM) + "+";
-      draw_lado(0.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ZER]/100);
-      draw_lado(1.5*W, 1.5*W, color(200,250,200), normal,   25, NRM_AVG[ZER]/100);
-      draw_lado(6.0*W, 1.5*W, color(200,200,250), "Volume", 75, VOL_AVG[ONE]/100);
-      draw_lado(7.5*W, 1.5*W, color(200,250,200), normal,   25, NRM_AVG[ONE]/100);
-    }
-
-    textAlign(CENTER, CENTER);
-    fill(0);
-    textSize(25*dy);
-    if (PARSS != null && !PARSS[4].equals("0")) {
-      fill(100,100,100);
-      text("Máximas", 2*W, 3*H-125*dy);
-      text("Máximas", 8*W, 3*H-125*dy);
-    } else {
-      //text("Máximas", 2.25*W, 3*H-110*dy);
-      //text("Máximas", 8.25*W, 3*H-110*dy);
-    }
+    // TODO: propaganda?
+  }
 
 /*
-    strokeWeight(1);
-    stroke(0);
-    noFill();
-    rect(1.125*W, 2.5*H, 1.75*W, 1*H);
-    rect(7.125*W, 2.5*H, 1.75*W, 1*H);
-*/
-  }
-
   draw_pontos(0*W, PONTOS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
   draw_pontos(7*W, PONTOS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
-  draw_total(PONTOS_TOTAL, PONTOS_ACUM);
+*/
 
   {
+    noStroke();
+    fill(0);
+    rect(4*W, 6*H, 3*W, 3*H);
+
+    // TOTAL
+    fill(255);
+    textSize(120*dy);
+    textAlign(CENTER, CENTER);
+    text(nf(PONTOS_TOTAL/100,2,2), width/2, 7*H-15*dy);
+
+    // params
     fill(150,150,150);
     textSize(15*dy);
-    textAlign(CENTER, TOP);
-    text(PARS, width/2, 4*H);
+    textAlign(CENTER, CENTER);
+    text(PARS, 4.5*W, 8.5*H);
+
+    // recorde
+    if (PONTOS_TOTAL > CFG_RECORDE) {
+      fill(255,100,100);
+    } else {
+      fill(255);
+    }
+    textSize(30*dy);
+    textAlign(CENTER, CENTER);
+    text(nf(CFG_RECORDE/100,2,2), 5.5*W, 8.5*H-15*dy);
+    textSize(10*dy);
+    text("(Recorde)",             5.5*W, 8.5*H+15*dy);
+
+    // juiz
+    String nome = NOMES[2];
+    if (DIGITANDO != 2) {
+      fill(150,150,150);
+    } else {
+      fill(255,0,0);
+      nome = nome + "_";
+    }
+    textSize(15*dy);
+    textAlign(CENTER, CENTER);
+    text(nome,        6.5*W, 8.5*H-15*dy);
+    textSize(10*dy);
+    text("(Árbitro)", 6.5*W, 8.5*H+15*dy);
   }
 
-  draw_recorde(3*W, CFG_RECORDE, PONTOS_TOTAL>CFG_RECORDE);
   //draw_dist(4.5*W, DIST);
-  draw_juiz(6*W, NOMES[2], DIGITANDO!=2);
 
+/*
   strokeWeight(2);
   stroke(0);
   noFill();
@@ -474,6 +475,7 @@ void draw_tudo (boolean is_end) {
   } else {
     rect(3.0*W, 2*H, 3*W, 2*H);
   }
+*/
 
   if (is_end) {
     fill(255);
@@ -502,36 +504,32 @@ void draw_tempo (int tempo, int desc) {
   } else {
     fill(0);
   }
-  rect(3*W, 0, 3*W, 2*H);
+  rect(4*W, 0, 3*W, 3*H);
 
   fill(255);
   textSize(120*dy);
   textAlign(CENTER, CENTER);
-  text(mins+":"+segs, width/2, H-10*dy);
+  text(mins+":"+segs, width/2, 1.25*H-10*dy);
 
   fill(150,150,150);
   textSize(25*dy);
-  textAlign(CENTER, BOTTOM);
-  text(desc+" s", width/2, 2*H-25*dy);
+  textAlign(CENTER, CENTER);
+  text(desc+" s",    width/2, 2.5*H-10*dy);
   textSize(15*dy);
-  text("(descanso)", width/2, 2*H-10*dy);
+  text("(descanso)", width/2, 2.5*H+10*dy);
 }
 
 void draw_img (float x, PImage img) {
   noStroke();
   fill(255);
-  rect(x, 0, 3*W, H);
-  image(img, x+1.5*W, 0.5*H);
+  rect(x, 0, 4*W, 2*H);
+  image(img, x+2*W, H);
 }
 
 void draw_nome (float x, String nome, boolean ok) {
-  float y = (CFG_IMGS ? H : 0);
-  float h = (CFG_IMGS ? H : 2*H);
-  int SZ  = (CFG_IMGS ? 70 : 85);
-
   stroke(0);
   fill(255);
-  rect(x, y, 3*W, h);
+  rect(x, 2*H, 4*W, H);
   //image(IMG1, x+1.5*W, 1*H);
   if (ok) {
     fill(0, 0, 255);
@@ -539,20 +537,9 @@ void draw_nome (float x, String nome, boolean ok) {
     nome = nome + "_";
     fill(255, 0, 0);
   }
-  textSize(SZ*dy);
+  textSize(70*dy);
   textAlign(CENTER, CENTER);
-  text(nome, x+1.5*W, h+H/2-10*dy);
-}
-
-void draw_recorde (float x, float v, boolean batido) {
-  if (batido) {
-    fill(255,100,100);
-  } else {
-    fill(255);
-  }
-  textSize(35*dy);
-  textAlign(CENTER, BOTTOM);
-  text("Máx: " + nf(v/100,2,2), x, height);
+  text(nome, x+2*W, 2.5*H-10*dy);
 }
 
 /*
@@ -564,39 +551,26 @@ void draw_dist (float x, String dist) {
 }
 */
 
-void draw_juiz (float x, String nome, boolean ok) {
-  if (ok) {
-    fill(150,150,150);
-  } else {
-    fill(255,0,0);
-    nome = nome + "_";
-  }
-  textSize(25*dy);
-  textAlign(CENTER, BOTTOM);
-  text("Árbitro: " + nome, x, height);
-}
-
 void draw_ultima (float x1, float x2, int ultima) {
   noStroke();
   fill(255);
-  rect(x1, 2*H, 3.5*W, 2*H);
+  //rect(x1, 3*H, 4*W, 3*H);
 
   fill(0);
   textAlign(CENTER, CENTER);
 
   if (ultima != 0) {
-    textSize(160*dy);
-    text(ultima, x2, 3*H-50*dy);
+    textSize(120*dy);
+    text(ultima, x2, 4.5*H-50*dy);
     textSize(40*dy);
-    text("km/h", x2, 3*H+70*dy);
+    text("km/h", x2, 4.5*H+70*dy);
   }
 }
 
 void draw_quedas (int quedas) {
   noStroke();
   fill(255);
-  rect(4*W, 2*H, W, H);
-
+  rect(4*W, 3*H, 3*W, 3*H);
 
 /*
   fill(0);
@@ -606,12 +580,12 @@ void draw_quedas (int quedas) {
 
   fill(255, 0, 0);
   ellipseMode(CENTER);
-  ellipse(4.5*W, 2.5*H+25*dy, H-10*dy, H-10*dy);
+  ellipse(width/2, height/2, 2*H, 2*H);
 
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(100*dy);
-  text(quedas, width/2, 2.5*H+15*dy);
+  text(quedas, width/2, height/2-10*dy);
 }
 
 void draw_golpes (int golpes) {
@@ -703,22 +677,4 @@ void draw_pontos (float x, float pontos, boolean is_behind) {
   textSize(70*dy);
   textAlign(CENTER, CENTER);
   text(nf(pontos/100,2,2), x+1*W, 5*H-10*dy);
-}
-
-void draw_total (float total, int acum) {
-  noStroke();
-  fill(0);
-  rect(2*W, 4*H, 5*W, 2*H);
-  fill(255);
-  textAlign(CENTER, CENTER);
-
-  if (CFG_ACUM) {
-    textSize(110*dy);
-    text(acum, width/2, 4.75*H-15*dy);
-    textSize(55*dy);
-    text("("+nf(total/100,2,2)+")", width/2, 5.5*H-15*dy);
-  } else {
-    textSize(140*dy);
-    text(nf(total/100,2,2), width/2, 5*H-15*dy);
-  }
 }
