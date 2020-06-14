@@ -21,7 +21,7 @@ PImage   IMG1;
 PImage   IMG2;
 PImage   IMG_SPEED;
 PImage   IMG_RAQUETE;
-//PImage   IMG_ADD;
+PImage   IMG_BAND;
 PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
@@ -80,9 +80,9 @@ void setup () {
     SERIAL.write(1);      // envia MOD_PC
 
     surface.setTitle(VERSAO);
-    //size(640, 480);
-    size(1024, 768);
-    //fullScreen();
+    size(640, 480);
+    //size(1024, 768);
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -94,7 +94,7 @@ void setup () {
     IMG2         = loadImage(CFG_IMG2);
     IMG_SPEED    = loadImage("speed-03.png");
     IMG_RAQUETE  = loadImage("raq-03.png");
-    //IMG_ADD      = loadImage("add.png");
+    IMG_BAND     = loadImage("flag.png");
     IMG_APITO    = loadImage("apito-04.png");
     IMG_TROFEU   = loadImage("trophy-02.png");
     IMG_DESCANSO = loadImage("timeout-03.png");
@@ -103,7 +103,7 @@ void setup () {
     IMG2.resize(0,height/8);
     IMG_SPEED.resize(0,(int)(45*dy));
     IMG_RAQUETE.resize(0,(int)(50*dy));
-    //IMG_ADD.resize(0,(int)(50*dy));
+    IMG_BAND.resize(0,(int)(40*dy));
     IMG_APITO.resize(0,(int)(20*dy));
     IMG_TROFEU.resize(0,(int)(30*dy));
     IMG_DESCANSO.resize(0,(int)(25*dy));
@@ -493,7 +493,7 @@ void draw_tudo (boolean is_end) {
             textSize(10*dy);
             text("km/h", off, 7.5*H+25*dy);
 
-            //image(IMG_ADD, off, 8.5*H+5*dy);
+            image(IMG_BAND, off, 8.5*H+5*dy);
         }
     } else {
         draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0]);
@@ -514,7 +514,7 @@ void draw_tudo (boolean is_end) {
             textSize(10*dy);
             text("km/h", off, 7.5*H+25*dy);
 
-            //image(IMG_ADD, off, 8.5*H+5*dy);
+            image(IMG_BAND, off, 8.5*H+5*dy);
         }
     }
 
