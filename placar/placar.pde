@@ -21,7 +21,10 @@ PImage   IMG1;
 PImage   IMG2;
 PImage   IMG_SPEED;
 PImage   IMG_RAQUETE;
-PImage   IMG_ADD;
+//PImage   IMG_ADD;
+PImage   IMG_APITO;
+PImage   IMG_TROFEU;
+PImage   IMG_DESCANSO;
 
 String   VERSAO       = "FrescoGO! v3.0.0";
 String   PARS         = "(?)";
@@ -78,8 +81,8 @@ void setup () {
 
     surface.setTitle(VERSAO);
     //size(640, 480);
-    //size(1024, 768);
-    fullScreen();
+    size(1024, 768);
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -87,16 +90,24 @@ void setup () {
     W = width  / 11.0;
     H = height /  9.0;
 
-    IMG1 = loadImage(CFG_IMG1);
+    IMG1         = loadImage(CFG_IMG1);
+    IMG2         = loadImage(CFG_IMG2);
+    IMG_SPEED    = loadImage("speed-03.png");
+    IMG_RAQUETE  = loadImage("raq-03.png");
+    //IMG_ADD      = loadImage("add.png");
+    IMG_APITO    = loadImage("apito-04.png");
+    IMG_TROFEU   = loadImage("trophy-02.png");
+    IMG_DESCANSO = loadImage("timeout-03.png");
+
     IMG1.resize(0,height/8);
-    IMG2 = loadImage(CFG_IMG2);
     IMG2.resize(0,height/8);
-    IMG_SPEED = loadImage("speed.png");
-    IMG_SPEED.resize(0,(int)(40*dy));
-    IMG_RAQUETE = loadImage("raq-03.png");
+    IMG_SPEED.resize(0,(int)(45*dy));
     IMG_RAQUETE.resize(0,(int)(50*dy));
-    IMG_ADD = loadImage("add.png");
-    IMG_ADD.resize(0,(int)(50*dy));
+    //IMG_ADD.resize(0,(int)(50*dy));
+    IMG_APITO.resize(0,(int)(20*dy));
+    IMG_TROFEU.resize(0,(int)(30*dy));
+    IMG_DESCANSO.resize(0,(int)(25*dy));
+
     imageMode(CENTER);
     tint(255, 128);
 
@@ -394,9 +405,9 @@ void draw_tudo (boolean is_end) {
         fill(150,150,150);
         textSize(25*dy);
         textAlign(CENTER, CENTER);
-        text(TEMPO_DESC+" s",    width/2, 2.5*H-20*dy);
-        textSize(15*dy);
-        text("(descanso)", width/2, 2.5*H);
+        text(TEMPO_DESC+" s", width/2, 2.25*H);
+        float w = textWidth(TEMPO_DESC+" s");
+        image(IMG_DESCANSO, width/2-w-15*dx, 2.25*H);
 
         // params
         fill(150,150,150);
@@ -476,13 +487,13 @@ void draw_tudo (boolean is_end) {
 
             image(IMG_RAQUETE, off, 6.5*H+5*dy);
 
-            image(IMG_SPEED, off, 7.5*H+5*dy);
+            image(IMG_SPEED, off, 7.5*H+10*dy);
             textAlign(CENTER, CENTER);
-            fill(220,220,220);
+            fill(100,100,100);
             textSize(10*dy);
-            text("km/h", off, 7.5*H+15*dy);
+            text("km/h", off, 7.5*H+25*dy);
 
-            image(IMG_ADD, off, 8.5*H+5*dy);
+            //image(IMG_ADD, off, 8.5*H+5*dy);
         }
     } else {
         draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0]);
@@ -499,13 +510,11 @@ void draw_tudo (boolean is_end) {
 
             image(IMG_SPEED, off, 7.5*H+5*dy);
             textAlign(CENTER, CENTER);
-            fill(220,220,220);
+            fill(100,100,100);
             textSize(10*dy);
-            text("km/h", off, 7.5*H+15*dy);
+            text("km/h", off, 7.5*H+25*dy);
 
-            image(IMG_ADD, off, 8.5*H+5*dy);
-
-            text(LADOS[ZER][0][2], off, 6.5*H+12*dy);
+            //image(IMG_ADD, off, 8.5*H+5*dy);
         }
     }
 
@@ -524,7 +533,9 @@ void draw_tudo (boolean is_end) {
         }
         textSize(15*dy);
         textAlign(CENTER, TOP);
-        text("Árbitro: " + nome, width/2, 6*H);
+        text(nome, width/2, 6*H);
+        float w1 = textWidth(nome);
+        image(IMG_APITO, width/2-w1/2-15*dx, 6*H+5*dy);
 
         // recorde
         if (PONTOS_TOTAL > CFG_RECORDE) {
@@ -534,9 +545,9 @@ void draw_tudo (boolean is_end) {
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CFG_RECORDE, width/2, 6.75*H);
-        textSize(15*dy);
-        text("(Recorde)", width/2, 6.75*H+30*dy);
+        text(CFG_RECORDE, width/2, 7*H);
+        float w2 = textWidth(str(CFG_RECORDE));
+        image(IMG_TROFEU, width/2-w2/2-25*dx, 7*H+5*dy);
 
         // TOTAL
         fill(255);
@@ -632,8 +643,11 @@ void draw_lado (float x, int cor, int[] dados) {
     text(dados[1], x+W, 6.5*H);
     fill(150,150,150);
     textSize(20*dy);
-    text("/"+dados[2], x+W+25*dx, 6.5*H+25*dy);
+    float w = textWidth(str(dados[1]));
+    textAlign(TOP, LEFT);
+    text("/"+dados[2], x+W+w+10*dx, 6.5*H+30*dy);
 
+    textAlign(CENTER, CENTER);
     text("x", x+W, 7*H);
     text("=", x+W, 8*H);
 }
