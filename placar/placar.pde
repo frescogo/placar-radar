@@ -1,7 +1,7 @@
 String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
 //String  CFG_PORTA   = "COM6";
-int     CFG_RECORDE = 0;
+int     CFG_RECORDE = 100;
 
 boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
@@ -326,14 +326,14 @@ void draw () {
 void player (String[] campos, int p, int i) {
     PONTOS[p]      = int(campos[i++]);
     boolean is_beh = (int(campos[i++]) == 1) && (TEMPO_JOGADO >= 30);
-    println();
     for (int j=0; j<2; j++) {
-        LADOS[p][j][0] = int(campos[i++]); println(LADOS[p][j][0]);
-        LADOS[p][j][1] = int(campos[i++]); println(LADOS[p][j][1]);
-        LADOS[p][j][2] = int(campos[i++]); println(LADOS[p][j][2]);
-        LADOS[p][j][3] = int(campos[i++]); println(LADOS[p][j][3]);
-        LADOS[p][j][4] = int(campos[i++]); println(LADOS[p][j][4]);
-        LADOS[p][j][5] = int(campos[i++]); println(LADOS[p][j][5]);
+        LADOS[p][j][0] = int(campos[i++]);
+        LADOS[p][j][1] = int(campos[i++]);
+        LADOS[p][j][2] = int(campos[i++]);
+        LADOS[p][j][3] = int(campos[i++]);
+        LADOS[p][j][4] = int(campos[i++]);
+        LADOS[p][j][5] = int(campos[i++]);
+
     }
 
     if (is_beh) {
@@ -382,12 +382,12 @@ void draw_tudo (boolean is_end) {
         fill(255);
         textAlign(CENTER, CENTER);
         textSize(120*dy);
-        text(QUEDAS, width/2, height/2-10*dy);
+        text(QUEDAS, width/2, height/2-15*dy);
     }
 
     if (GOLPE_IDX != 255) {
-        draw_ultima(0*W, 1.5*W, ULTIMAS[ZER]);
-        draw_ultima(7*W, 9.5*W, ULTIMAS[ONE]);
+        draw_ultima(1.5*W, ULTIMAS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
+        draw_ultima(9.5*W, ULTIMAS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
 
         ellipseMode(CENTER);
         fill(GOLPE_CLR);
@@ -404,15 +404,19 @@ void draw_tudo (boolean is_end) {
     if (PARSS!=null && !PARSS[4].equals("0")) {
         draw_lado(0*W, color(200,250,200), LADOS[ZER][0]);
         draw_lado(2*W, color(250,200,200), LADOS[ZER][1]);
-        draw_lado(7*W, color(200,250,200), LADOS[ONE][0]);
-        draw_lado(9*W, color(250,200,200), LADOS[ONE][1]);
+        draw_lado(7*W, color(250,200,200), LADOS[ONE][1]);
+        draw_lado(9*W, color(200,250,200), LADOS[ONE][0]);
 
         textSize(15*dy);
         fill(150,150,150);
         for (int i=0; i<2; i++) {
             textAlign(CENTER, TOP);
             float off = i*7*W + 2*W;
-            text("Normal | Revés ", off, 6*H);
+            if (i == 0) {
+                text("Normal | Revés ", off, 6*H);
+            } else {
+                text(" Revés | Normal", off, 6*H);
+            }
 
             textAlign(CENTER, CENTER);
             text("km/h",    off, 6.5*H);
@@ -457,15 +461,15 @@ void draw_tudo (boolean is_end) {
 
         // recorde
         if (PONTOS_TOTAL > CFG_RECORDE) {
-            fill(255,100,100);
+            fill(150,150,150);
         } else {
-            fill(255);
+            fill(200,100,100);
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CFG_RECORDE, width/2, 6.5*H+30*dy);
+        text(CFG_RECORDE, width/2, 6.75*H);
         textSize(15*dy);
-        text("(Recorde)", width/2, 6.5*H);
+        text("(Recorde)", width/2, 6.75*H+30*dy);
 
         // TOTAL
         fill(255);
@@ -568,20 +572,26 @@ void draw_dist (float x, String dist) {
 }
 */
 
-void draw_ultima (float x1, float x2, int ultima) {
-    noStroke();
-    fill(255);
-    //rect(x1, 3*H, 4*W, 3*H);
-
-    fill(0);
-    textAlign(CENTER, CENTER);
-
-    if (ultima != 0) {
-        textSize(120*dy);
-        text(ultima, x2, 4.5*H-50*dy);
-        textSize(40*dy);
-        text("km/h", x2, 4.5*H+70*dy);
+void draw_ultima (float x, int ultima, boolean is_beh) {
+    if (ultima == 0) {
+        return;
     }
+
+    //is_beh = true;
+    if (is_beh) {
+        noStroke();
+        fill(255,0,0);
+        rect(x-90*dy, 4.5*H-50*dy-50*dy, 180*dy, 200*dy);
+        fill(255);
+    } else {
+        fill(0);
+    }
+
+    textAlign(CENTER, CENTER);
+    textSize(120*dy);
+    text(ultima, x, 4.5*H-50*dy);
+    textSize(40*dy);
+    text("km/h", x, 4.5*H+70*dy);
 }
 
 void draw_golpes (int golpes) {
