@@ -369,9 +369,21 @@ void draw_tudo (boolean is_end) {
         text("inv", width/2, 30*dy);
     }
 
-    draw_quedas(QUEDAS);
+    // QUEDAS
+    {
+        //stroke();
+        fill(255);
+        rect(1, 3*H+1, 11*W-2, 3*H-2);
 
-//  draw_golpes(GOLPES_TOT);
+        fill(255, 0, 0);
+        ellipseMode(CENTER);
+        ellipse(width/2, height/2, 2*H, 2*H);
+
+        fill(255);
+        textAlign(CENTER, CENTER);
+        textSize(120*dy);
+        text(QUEDAS, width/2, height/2-10*dy);
+    }
 
     if (GOLPE_IDX != 255) {
         draw_ultima(0*W, 1.5*W, ULTIMAS[ZER]);
@@ -570,27 +582,6 @@ void draw_ultima (float x1, float x2, int ultima) {
         textSize(40*dy);
         text("km/h", x2, 4.5*H+70*dy);
     }
-}
-
-void draw_quedas (int quedas) {
-    noStroke();
-    fill(255);
-    rect(4*W, 3*H, 3*W, 3*H);
-
-/*
-    fill(0);
-    textSize(30*dy);
-    text("Quedas", width/2, H+5*dy);
-*/
-
-    fill(255, 0, 0);
-    ellipseMode(CENTER);
-    ellipse(width/2, height/2, 2*H, 2*H);
-
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(120*dy);
-    text(quedas, width/2, height/2-10*dy);
 }
 
 void draw_golpes (int golpes) {
