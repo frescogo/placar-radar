@@ -81,14 +81,14 @@ void setup () {
 
     surface.setTitle(VERSAO);
     //size(640, 480);
-    //size(1024, 768);
-    fullScreen();
+    size(1024, 768);
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
 
     W = width  / 11.0;
-    H = height /  9.0;
+    H = height /  8.0;
 
     IMG1         = loadImage(CFG_IMG1);
     IMG2         = loadImage(CFG_IMG2);
@@ -247,10 +247,14 @@ void draw () {
     if (linha == null) {
         return;
     }
+    //print(">>>", linha);
     if (linha.equals("ok\r\n")) {
         return;
     }
-    print(">>>", linha);
+    if (linha.length()>20 && linha.substring(0,20).equals("= FrescoGO! (versao ")) {
+        println("Dispositivo nao pareado, tente novamente...");
+        return;
+    }
 
     String[] campos = split(linha, ";");
     int      codigo = int(campos[0]);
@@ -431,17 +435,17 @@ void draw_tudo (boolean is_end) {
     // MEIO
     stroke(0);
     fill(255);
-    rect(0, 3*H, 11*W, 3*H-1);
+    rect(0, 3*H, 11*W, 2*H-1);
 
     // QUEDAS
     {
         fill(255, 0, 0);
         ellipseMode(CENTER);
-        ellipse(width/2, height/2, 2*H, 2*H);
+        ellipse(width/2, height/2, 1.5*H, 1.5*H);
 
         fill(255);
         textAlign(CENTER, CENTER);
-        textSize(120*dy);
+        textSize(90*dy);
         text(QUEDAS, width/2, height/2-15*dy);
     }
 
@@ -453,9 +457,9 @@ void draw_tudo (boolean is_end) {
         fill(GOLPE_CLR);
         noStroke();
         if (GOLPE_IDX == ZER) {
-            ellipse(8*W, 4.5*H, 60*dy, 60*dy);
+            ellipse(8*W, 4*H, 60*dy, 60*dy);
         } else {
-            ellipse(3*W, 4.5*H, 60*dy, 60*dy);
+            ellipse(3*W, 4*H, 60*dy, 60*dy);
         }
     } else {
         // TODO: propaganda?
@@ -473,28 +477,28 @@ void draw_tudo (boolean is_end) {
             fill(150,150,150);
             if (i == 0) {
                 textAlign(LEFT, TOP);
-                text("Normal", off-2*W+10*dx, 6*H);
+                text("Normal", off-2*W+10*dx, 5*H);
                 textAlign(RIGHT, TOP);
-                text("Revés", off+2*W-10*dx, 6*H);
+                text("Revés", off+2*W-10*dx, 5*H);
             } else {
                 textAlign(LEFT, TOP);
-                text("Revés", off-2*W+10*dx, 6*H);
+                text("Revés", off-2*W+10*dx, 5*H);
                 textAlign(RIGHT, TOP);
-                text("Normal", off+2*W-10*dx, 6*H);
+                text("Normal", off+2*W-10*dx, 5*H);
             }
 
             noStroke();
             noFill();
 
-            image(IMG_RAQUETE, off, 6.5*H+5*dy);
+            image(IMG_RAQUETE, off, 5.5*H+5*dy);
 
-            image(IMG_SPEED, off, 7.5*H+10*dy);
+            image(IMG_SPEED, off, 6.5*H+10*dy);
             textAlign(CENTER, CENTER);
             fill(100,100,100);
             textSize(10*dy);
-            text("km/h", off, 7.5*H+25*dy);
+            text("km/h", off, 6.5*H+25*dy);
 
-            image(IMG_BAND, off, 8.5*H+10*dy);
+            image(IMG_BAND, off, 7.5*H+10*dy);
         }
     } else {
         draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0], false);
@@ -507,22 +511,22 @@ void draw_tudo (boolean is_end) {
             noStroke();
             noFill();
 
-            image(IMG_RAQUETE, off, 6.5*H+5*dy);
+            image(IMG_RAQUETE, off, 5.5*H+5*dy);
 
-            image(IMG_SPEED, off, 7.5*H+5*dy);
+            image(IMG_SPEED, off, 6.5*H+5*dy);
             textAlign(CENTER, CENTER);
             fill(100,100,100);
             textSize(10*dy);
-            text("km/h", off, 7.5*H+25*dy);
+            text("km/h", off, 6.5*H+25*dy);
 
-            image(IMG_BAND, off, 8.5*H+10*dy);
+            image(IMG_BAND, off, 7.5*H+10*dy);
         }
     }
 
     {
         noStroke();
         fill(0);
-        rect(4*W, 6*H, 3*W, 3*H);
+        rect(4*W, 5*H, 3*W, 3*H);
 
         // juiz
         String nome = NOMES[2];
@@ -534,9 +538,9 @@ void draw_tudo (boolean is_end) {
         }
         textSize(20*dy);
         textAlign(CENTER, TOP);
-        text(nome, width/2, 6*H+12*dy);
+        text(nome, width/2, 5*H+12*dy);
         float w1 = textWidth(nome);
-        image(IMG_APITO, width/2-w1/2-15*dx, 6*H+20*dy);
+        image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // recorde
         if (PONTOS_TOTAL > CFG_RECORDE) {
@@ -546,15 +550,15 @@ void draw_tudo (boolean is_end) {
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CFG_RECORDE, width/2, 7*H-5*dy);
+        text(CFG_RECORDE, width/2, 6*H-5*dy);
         float w2 = textWidth(str(CFG_RECORDE));
-        image(IMG_TROFEU, width/2-w2/2-25*dx, 7*H);
+        image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H);
 
         // TOTAL
         fill(255);
         textSize(120*dy);
         textAlign(CENTER, CENTER);
-        text(PONTOS_TOTAL, width/2, 8*H);
+        text(PONTOS_TOTAL, width/2, 7*H);
     }
 
     //draw_dist(4.5*W, DIST);
@@ -600,7 +604,7 @@ void draw_nome (float x, int idx, boolean ok) {
         nome = nome + "_";
         fill(255, 0, 0);
     }
-    textSize(70*dy);
+    textSize(60*dy);
     textAlign(CENTER, CENTER);
     text(nome, x+2*W, 2.5*H-10*dy);
 }
@@ -614,40 +618,45 @@ void draw_dist (float x, String dist) {
 }
 */
 
-void draw_ultima (float x, int ultima) {
-    if (ultima == 0) {
+void draw_ultima (float x, int kmh) {
+    if (kmh == 0) {
         return;
     }
-    fill(0);
-    textAlign(CENTER, CENTER);
-    textSize(120*dy);
-    text(ultima, x, 4.5*H-50*dy);
+    if (kmh >= 50) {
+        fill(0);
+    } else {
+        fill(200,200,200);
+    }
+    textAlign(CENTER, BOTTOM);
+    textSize(90*dy);
+    text(kmh, x, 4*H+20*dy);
+    textAlign(CENTER, TOP);
     textSize(40*dy);
-    text("km/h", x, 4.5*H+70*dy);
+    text("km/h", x, 4*H+20*dy);
 }
 
 void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
     noStroke();
     fill(cor);
-    rect(x, 6*H, 2*W, 3*H);
+    rect(x, 5*H, 2*W, 3*H);
     fill(0);
     textAlign(CENTER, CENTER);
     textSize(50*dy);
-    text(dados[3], x+W, 7.5*H);
-    text(dados[0], x+W, 8.5*H);
+    text(dados[3], x+W, 6.5*H);
+    text(dados[0], x+W, 7.5*H);
 
     if (dados[1] >= dados[2]) {
         fill(255,0,0);
     }
-    text(dados[1], x+W, 6.5*H);
+    text(dados[1], x+W, 5.5*H);
     fill(150,150,150);
     textSize(20*dy);
     float w1 = textWidth(str(dados[1]));
     textAlign(TOP, LEFT);
-    text("/"+dados[2], x+W+w1+10*dx, 6.5*H+30*dy);
+    text("/"+dados[2], x+W+w1+10*dx, 5.5*H+30*dy);
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
-    text("(x)", x+W, 7*H);
-    text("(=)", x+W, 8*H);
+    text("(x)", x+W, 6*H);
+    text("(=)", x+W, 7*H);
 }
