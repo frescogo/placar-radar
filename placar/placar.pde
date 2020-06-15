@@ -80,7 +80,7 @@ void setup () {
     SERIAL.write(1);      // envia MOD_PC
 
     surface.setTitle(VERSAO);
-    size(640, 480);
+    //size(640, 480);
     //size(1024, 768);
     fullScreen();
 
@@ -104,7 +104,7 @@ void setup () {
     IMG_SPEED.resize(0,(int)(45*dy));
     IMG_RAQUETE.resize(0,(int)(50*dy));
     IMG_BAND.resize(0,(int)(40*dy));
-    IMG_APITO.resize(0,(int)(20*dy));
+    IMG_APITO.resize(0,(int)(30*dy));
     IMG_TROFEU.resize(0,(int)(30*dy));
     IMG_DESCANSO.resize(0,(int)(25*dy));
 
@@ -378,8 +378,8 @@ void draw_tudo (boolean is_end) {
         draw_logo(0*W, IMG1);
         draw_logo(7*W, IMG2);
     }
-    draw_nome(0*W, NOMES[ZER], DIGITANDO!=ZER);
-    draw_nome(7*W, NOMES[ONE], DIGITANDO!=ONE);
+    draw_nome(0*W, ZER, DIGITANDO!=ZER);
+    draw_nome(7*W, ONE, DIGITANDO!=ONE);
 
     // TEMPO
     {
@@ -411,7 +411,7 @@ void draw_tudo (boolean is_end) {
 
         // params
         fill(150,150,150);
-        textSize(10*dy);
+        textSize(12*dy);
         textAlign(CENTER, BOTTOM);
         text(PARS, width/2, 3*H+10*dy);
     }
@@ -428,12 +428,13 @@ void draw_tudo (boolean is_end) {
         text("inv", width/2, 30*dy);
     }
 
+    // MEIO
+    stroke(0);
+    fill(255);
+    rect(0, 3*H, 11*W, 3*H-1);
+
     // QUEDAS
     {
-        //stroke();
-        fill(255);
-        rect(1, 3*H+1, 11*W-2, 3*H-2);
-
         fill(255, 0, 0);
         ellipseMode(CENTER);
         ellipse(width/2, height/2, 2*H, 2*H);
@@ -445,8 +446,8 @@ void draw_tudo (boolean is_end) {
     }
 
     if (GOLPE_IDX != 255) {
-        draw_ultima(1.5*W, ULTIMAS[ZER], IS_DESEQ==ZER && EQUILIBRIO);
-        draw_ultima(9.5*W, ULTIMAS[ONE], IS_DESEQ==ONE && EQUILIBRIO);
+        draw_ultima(1.5*W, ULTIMAS[ZER]);
+        draw_ultima(9.5*W, ULTIMAS[ONE]);
 
         ellipseMode(CENTER);
         fill(GOLPE_CLR);
@@ -461,10 +462,10 @@ void draw_tudo (boolean is_end) {
     }
 
     if (PARSS!=null && !PARSS[4].equals("0")) {
-        draw_lado(0*W, color(200,250,200), LADOS[ZER][0]);
-        draw_lado(2*W, color(250,200,200), LADOS[ZER][1]);
-        draw_lado(7*W, color(250,200,200), LADOS[ONE][1]);
-        draw_lado(9*W, color(200,250,200), LADOS[ONE][0]);
+        draw_lado(0*W, color(200,250,200), LADOS[ZER][0], true);
+        draw_lado(2*W, color(250,200,200), LADOS[ZER][1], false);
+        draw_lado(7*W, color(250,200,200), LADOS[ONE][1], true);
+        draw_lado(9*W, color(200,250,200), LADOS[ONE][0], false);
 
         for (int i=0; i<2; i++) {
             float off = i*7*W + 2*W;
@@ -493,11 +494,11 @@ void draw_tudo (boolean is_end) {
             textSize(10*dy);
             text("km/h", off, 7.5*H+25*dy);
 
-            image(IMG_BAND, off, 8.5*H+5*dy);
+            image(IMG_BAND, off, 8.5*H+10*dy);
         }
     } else {
-        draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0]);
-        draw_lado(7.5*W, color(255,255,255), LADOS[ONE][0]);
+        draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0], false);
+        draw_lado(7.5*W, color(255,255,255), LADOS[ONE][0], false);
 
         textSize(15*dy);
         fill(150,150,150);
@@ -514,7 +515,7 @@ void draw_tudo (boolean is_end) {
             textSize(10*dy);
             text("km/h", off, 7.5*H+25*dy);
 
-            image(IMG_BAND, off, 8.5*H+5*dy);
+            image(IMG_BAND, off, 8.5*H+10*dy);
         }
     }
 
@@ -531,11 +532,11 @@ void draw_tudo (boolean is_end) {
             fill(255,0,0);
             nome = nome + "_";
         }
-        textSize(15*dy);
+        textSize(20*dy);
         textAlign(CENTER, TOP);
-        text(nome, width/2, 6*H);
+        text(nome, width/2, 6*H+12*dy);
         float w1 = textWidth(nome);
-        image(IMG_APITO, width/2-w1/2-15*dx, 6*H+5*dy);
+        image(IMG_APITO, width/2-w1/2-15*dx, 6*H+20*dy);
 
         // recorde
         if (PONTOS_TOTAL > CFG_RECORDE) {
@@ -545,9 +546,9 @@ void draw_tudo (boolean is_end) {
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CFG_RECORDE, width/2, 7*H);
+        text(CFG_RECORDE, width/2, 7*H-5*dy);
         float w2 = textWidth(str(CFG_RECORDE));
-        image(IMG_TROFEU, width/2-w2/2-25*dx, 7*H+5*dy);
+        image(IMG_TROFEU, width/2-w2/2-25*dx, 7*H);
 
         // TOTAL
         fill(255);
@@ -580,13 +581,21 @@ void draw_logo (float x, PImage img) {
     image(img, x+2*W, H);
 }
 
-void draw_nome (float x, String nome, boolean ok) {
+void draw_nome (float x, int idx, boolean ok) {
+    String nome = NOMES[idx];
     stroke(0);
     fill(255);
     rect(x, 2*H, 4*W, H);
     //image(IMG1, x+1.5*W, 1*H);
     if (ok) {
-        fill(0, 0, 255);
+        noStroke();
+        if (IS_DESEQ==idx && EQUILIBRIO) {
+            fill(255, 0, 0);
+            rect(x+3*dx, 2*H+2*dy, 4*W-6*dx, H-4*dy);
+            fill(255);
+        } else {
+            fill(00);
+        }
     } else {
         nome = nome + "_";
         fill(255, 0, 0);
@@ -605,21 +614,11 @@ void draw_dist (float x, String dist) {
 }
 */
 
-void draw_ultima (float x, int ultima, boolean is_beh) {
+void draw_ultima (float x, int ultima) {
     if (ultima == 0) {
         return;
     }
-
-    //is_beh = true;
-    if (is_beh) {
-        noStroke();
-        fill(255,0,0);
-        rect(x-90*dy, 4.5*H-50*dy-50*dy, 180*dy, 200*dy);
-        fill(255);
-    } else {
-        fill(0);
-    }
-
+    fill(0);
     textAlign(CENTER, CENTER);
     textSize(120*dy);
     text(ultima, x, 4.5*H-50*dy);
@@ -627,7 +626,7 @@ void draw_ultima (float x, int ultima, boolean is_beh) {
     text("km/h", x, 4.5*H+70*dy);
 }
 
-void draw_lado (float x, int cor, int[] dados) {
+void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
     noStroke();
     fill(cor);
     rect(x, 6*H, 2*W, 3*H);
@@ -643,11 +642,12 @@ void draw_lado (float x, int cor, int[] dados) {
     text(dados[1], x+W, 6.5*H);
     fill(150,150,150);
     textSize(20*dy);
-    float w = textWidth(str(dados[1]));
+    float w1 = textWidth(str(dados[1]));
     textAlign(TOP, LEFT);
-    text("/"+dados[2], x+W+w+10*dx, 6.5*H+30*dy);
+    text("/"+dados[2], x+W+w1+10*dx, 6.5*H+30*dy);
 
+    textSize(15*dy);
     textAlign(CENTER, CENTER);
-    text("x", x+W, 7*H);
-    text("=", x+W, 8*H);
+    text("(x)", x+W, 7*H);
+    text("(=)", x+W, 8*H);
 }
