@@ -1,6 +1,6 @@
-String  CFG_PORTA   = "/dev/ttyUSB0";
+String  CFG_PORTA   = "COM6";
+//String  CFG_PORTA   = "/dev/ttyUSB0";
 //String  CFG_PORTA   = "/dev/ttyACM0";
-//String  CFG_PORTA   = "COM6";
 int     CFG_RECORDE = 0;
 
 boolean CFG_IMGS    = true;
@@ -29,6 +29,8 @@ PImage   IMG_DESCANSO;
 String   VERSAO       = "FrescoGO! v3.0.0";
 String   PARS         = "(?)";
 String   PARSS[];
+
+String[] PORTAS = { "/dev/ttyACM", "/dev/ttyUSB", "COM" };
 
 int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
 
@@ -139,7 +141,23 @@ void zera () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void serial_liga () {
-    SERIAL = new Serial(this, CFG_PORTA, 9600);
+    try {
+        SERIAL = new Serial(this, CFG_PORTA, 9600);
+        return;
+    } catch (RuntimeException e) {
+        // error, try PORTAS
+    }
+    for (int i=0; i<PORTAS.length; i++) {
+        for (int j=0; j<10; j++) {
+            try {
+                SERIAL = new Serial(this, PORTAS[i]+j, 9600);
+                println(PORTAS[i]+j);
+                return;
+            } catch (RuntimeException e) {
+                // error, try next
+            }
+        }
+    }
 }
 
 void serial_desliga () {
