@@ -26,7 +26,7 @@ PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
 
-String   VERSAO       = "FrescoGO! v3.0.0";
+String   VERSAO       = "FrescoGO! v3.0.2";
 String   PARS         = "(?)";
 String   PARSS[];
 
@@ -373,12 +373,12 @@ void player (String[] campos, int p, int i) {
     PONTOS[p]      = int(campos[i++]);
     boolean is_beh = (int(campos[i++]) == 1) && (TEMPO_JOGADO >= 30);
     for (int j=0; j<2; j++) {
-        LADOS[p][j][0] = int(campos[i++]);
-        LADOS[p][j][1] = int(campos[i++]);
-        LADOS[p][j][2] = int(campos[i++]);
-        LADOS[p][j][3] = int(campos[i++]);
-        LADOS[p][j][4] = int(campos[i++]);
-        LADOS[p][j][5] = int(campos[i++]);
+        LADOS[p][j][0] = int(campos[i++]);  // pontos
+        LADOS[p][j][1] = int(campos[i++]);  // golpes
+        LADOS[p][j][2] = int(campos[i++]);  // hits_nrm / rev
+        LADOS[p][j][3] = int(campos[i++]);  // media1
+        LADOS[p][j][4] = int(campos[i++]);  // min
+        LADOS[p][j][5] = int(campos[i++]);  // max
 
     }
 
@@ -659,19 +659,23 @@ void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
     rect(x, 5*H, 2*W, 3*H);
     fill(0);
     textAlign(CENTER, CENTER);
-    textSize(50*dy);
-    text(dados[3], x+W, 6.5*H);
-    text(dados[0], x+W, 7.5*H);
 
-    if (dados[1] >= dados[2]) {
+    textSize(15*dy);
+    text("." + nf(dados[3]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
+
+    textSize(50*dy);
+    text(dados[3]/100, x+W, 6.5*H);         // media1
+    text(dados[0], x+W, 7.5*H);             // pontos
+
+    if (dados[1] >= dados[2]) {             // golpes vs limite
         fill(255,0,0);
     }
-    text(dados[1], x+W, 5.5*H);
+    text(dados[1], x+W, 5.5*H);             // golpes
     fill(150,150,150);
     textSize(20*dy);
-    float w1 = textWidth(str(dados[1]));
+    float w1 = textWidth(str(dados[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+dados[2], x+W+w1+10*dx, 5.5*H+30*dy);
+    text("/"+dados[2], x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
