@@ -1,8 +1,6 @@
 String  CFG_PORTA   = "COM6";
-//String  CFG_PORTA   = "/dev/ttyUSB0";
-//String  CFG_PORTA   = "/dev/ttyACM0";
+boolean CFG_RADAR   = true;
 int     CFG_RECORDE = 0;
-
 boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
 String  CFG_IMG2    = "data/fresco-alpha.png";
@@ -474,10 +472,10 @@ void draw_tudo (boolean is_end) {
         ellipseMode(CENTER);
         fill(GOLPE_CLR);
         noStroke();
-        if (GOLPE_IDX == ZER) {
-            ellipse(8*W, 4*H, 60*dy, 60*dy);
-        } else {
+        if (CFG_RADAR && GOLPE_IDX==ZER || !CFG_RADAR && GOLPE_IDX==ONE) {
             ellipse(3*W, 4*H, 60*dy, 60*dy);
+        } else {
+            ellipse(8*W, 4*H, 60*dy, 60*dy);
         }
     } else {
         // TODO: propaganda?
