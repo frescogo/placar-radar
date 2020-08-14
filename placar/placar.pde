@@ -1,5 +1,4 @@
 String  CFG_PORTA   = "COM6";
-boolean CFG_RADAR   = true;
 int     CFG_RECORDE = 0;
 boolean CFG_IMGS    = true;
 String  CFG_IMG1    = "data/fresco-alpha.png";
@@ -319,7 +318,7 @@ void draw () {
             boolean is_back = int(campos[2]) == 1;
             ULTIMAS[idx]    = int(campos[3]);
 
-            GOLPE_IDX = idx;
+            GOLPE_IDX = 1-idx;  // is_out=1 becomes 0 to be in the left
             GOLPE_CLR = (is_back ? color(255,0,0) : color(0,0,255));
             GOLPE_TMR = millis();
             break;
@@ -474,7 +473,7 @@ void draw_tudo (boolean is_end) {
             //noStroke();
             stroke(GOLPE_CLR);
             strokeWeight(10*dy);
-            if (CFG_RADAR && GOLPE_IDX==ZER || !CFG_RADAR && GOLPE_IDX==ONE) {
+            if (GOLPE_IDX == ZER) {
                 //ellipse(3*W, 4*H, 60*dy, 60*dy);
                 line(2.5*W, 4*H, 2.5*W+60*dy, 4*H);
                 line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H+20*dy);
