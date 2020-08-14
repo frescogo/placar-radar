@@ -44,7 +44,6 @@ boolean  IS_FIM;
 boolean  EQUILIBRIO;
 int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
-int      TEMPO_EXIBIDO;
 int      TEMPO_DESC;
 int      PONTOS_TOTAL;
 int      QUEDAS;
@@ -52,7 +51,6 @@ int      GOLPES_TOT;
 int      IS_DESEQ;
 
 int      GOLPE_IDX;
-int      GOLPE_CLR;
 int      GOLPE_TMR = 0;
 
 String[]  NOMES   = new String[3];
@@ -128,7 +126,6 @@ void setup () {
 void zera () {
     IS_FIM       = false;
     TEMPO_JOGADO = 0;
-    TEMPO_EXIBIDO = 0;
     TEMPO_DESC   = 0;
     PONTOS_TOTAL = 0;
     QUEDAS       = 0;
@@ -308,18 +305,16 @@ void draw () {
             NOMES[0]     = campos[4];
             NOMES[1]     = campos[5];
             NOMES[2]     = campos[6];
-            TEMPO_EXIBIDO = TEMPO_JOGADO;
+            TEMPO_JOGADO = TEMPO_JOGADO - TEMPO_JOGADO%5;
             break;
         }
 
         // HIT
         case 2: {
-            int idx         = int(campos[1]);
-            boolean is_back = int(campos[2]) == 1;
-            ULTIMAS[idx]    = int(campos[3]);
+            int idx      = int(campos[1]);
+            ULTIMAS[idx] = int(campos[2]);
 
-            GOLPE_IDX = 1-idx;  // is_out=1 becomes 0 to be in the left
-            GOLPE_CLR = (is_back ? color(255,0,0) : color(0,0,255));
+            GOLPE_IDX = idx;
             GOLPE_TMR = millis();
             break;
         }
@@ -331,10 +326,7 @@ void draw () {
             GOLPES_TOT   = int(campos[3]);
             player(campos, 0, 4);
             player(campos, 1, 4+4);
-
-            if (TEMPO_JOGADO >= (TEMPO_EXIBIDO-TEMPO_EXIBIDO%5)+5) {
-                TEMPO_EXIBIDO = TEMPO_JOGADO;
-            }
+            TEMPO_JOGADO = TEMPO_JOGADO - TEMPO_JOGADO%5;
             break;
         }
 
@@ -343,7 +335,6 @@ void draw () {
             QUEDAS = int(campos[1]);
             player(campos, 0, 2);
             player(campos, 1, 2+4);
-            TEMPO_EXIBIDO = TEMPO_JOGADO;
             GOLPE_IDX     = 255;
             ULTIMAS[0]    = 0;
             ULTIMAS[1]    = 0;
@@ -356,7 +347,6 @@ void draw () {
             player(campos, 1, 1+4);
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
             IS_FIM    = true;
-            TEMPO_EXIBIDO = TEMPO_JOGADO;
             GOLPE_IDX = 255;
             if (PONTOS_TOTAL > CFG_RECORDE) {
                 CFG_RECORDE = PONTOS_TOTAL;
@@ -401,7 +391,7 @@ void draw_tudo (boolean is_end) {
 
     // TEMPO
     {
-        int tempo = TEMPO_TOTAL-TEMPO_EXIBIDO;
+        int tempo = TEMPO_TOTAL-TEMPO_JOGADO;
         if (tempo < 0) {
             tempo = 0;
         }
@@ -471,7 +461,7 @@ void draw_tudo (boolean is_end) {
             //ellipseMode(CENTER);
             //fill(GOLPE_CLR);
             //noStroke();
-            stroke(GOLPE_CLR);
+            stroke(color(0,0,255));
             strokeWeight(10*dy);
             if (GOLPE_IDX == ZER) {
                 //ellipse(3*W, 4*H, 60*dy, 60*dy);
@@ -490,8 +480,8 @@ void draw_tudo (boolean is_end) {
         // TODO: propaganda?
     }
 
-    draw_lado(1.5*W, color(255,255,255), JOGS[ZER], false);
-    draw_lado(7.5*W, color(255,255,255), JOGS[ONE], false);
+    draw_lado(1.5*W, JOGS[ZER]);
+    draw_lado(7.5*W, JOGS[ONE]);
 
     textSize(15*dy);
     fill(150,150,150);
@@ -623,9 +613,9 @@ void draw_ultima (float x, int kmh) {
     text("km/h", x, 4*H+20*dy);
 }
 
-void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
+void draw_lado (float x, int[] dados) {
     noStroke();
-    fill(cor);
+    fill(color(255,255,255));
     rect(x, 5*H, 2*W, 3*H);
     fill(0);
     textAlign(CENTER, CENTER);
