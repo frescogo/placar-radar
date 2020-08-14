@@ -24,9 +24,9 @@ PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
 
-String   VERSAO       = "FrescoGO! v3.0.2";
+String   VERSAO       = "FrescoGO! r3.1.0";
 String   PARS         = "(?)";
-String   PARSS[];
+String   PARSS[]      = {};
 
 String[] PORTAS = { "/dev/ttyACM", "/dev/ttyUSB", "COM" };
 
@@ -50,16 +50,15 @@ int      TEMPO_DESC;
 int      PONTOS_TOTAL;
 int      QUEDAS;
 int      GOLPES_TOT;
-int      GOLPES_AVG;
 int      IS_DESEQ;
 
 int      GOLPE_IDX;
 int      GOLPE_CLR;
+int      GOLPE_TMR = 0;
 
 String[]  NOMES   = new String[3];
-int[]     PONTOS  = new int[2];
 int[]     ULTIMAS = new int[2];
-int[][][] LADOS   = new int[2][2][7];
+int[][]   JOGS    = new int[2][3];
 
 int REF_TIMEOUT = 240;
 int REF_BESTS   = 20;
@@ -76,8 +75,19 @@ float H;
 
 void setup () {
     serial_liga();
-    delay(1500);          // espera reset e Serial.begin() do arduino
+
+    while (SERIAL.available() == 0) {
+        // wait
+        println("Reinicie o Arduino...");
+        delay(1000);
+    }
+    char c = SERIAL.readChar();
+    if (c != 1) {
+        println("Arduino nao encontrado, tente novamente...");
+        return;
+    }
     SERIAL.write(1);      // envia MOD_PC
+    println("OK");
 
     surface.setTitle(VERSAO);
     //size(640, 480);
@@ -124,7 +134,6 @@ void zera () {
     PONTOS_TOTAL = 0;
     QUEDAS       = 0;
     GOLPES_TOT   = 0;
-    GOLPES_AVG   = 0;
     IS_DESEQ     = 255;
 
     GOLPE_IDX    = 255;
@@ -236,7 +245,9 @@ void keyPressed () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-    draw_tudo(false);
+    if (PARSS.length > 0) {
+        draw_tudo(false);
+    }
 
     // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
     if (GRAVANDO == 1) {
@@ -263,12 +274,8 @@ void draw () {
     if (linha == null) {
         return;
     }
-    //print(">>>", linha);
+    print(">>>", linha);
     if (linha.equals("ok\r\n")) {
-        return;
-    }
-    if (linha.length()>20 && linha.substring(0,20).equals("= FrescoGO! (versao ")) {
-        println("Dispositivo nao pareado, tente novamente...");
         return;
     }
 
@@ -286,8 +293,7 @@ void draw () {
             NOMES[1]     = campos[4];
             NOMES[2]     = campos[5];
             PARS         = campos[6];
-            PARSS        = match(PARS, "v(\\d+)/(\\d+)cm/(\\d+)s/maxs\\(\\d+,(\\d+)\\)/equ\\d/cont\\d+/fim\\d+");
-            //println(PARSS);
+            PARSS        = match(PARS, "r(\\d+)/(\\d+)s/ata(\\d+)/equ\\d/cont\\d+/fim\\d+");
 
             HITS_NRM = TEMPO_TOTAL * REF_BESTS / REF_TIMEOUT;
             HITS_REV = HITS_NRM * 3 / 5; //REF_REVES;
@@ -315,6 +321,7 @@ void draw () {
 
             GOLPE_IDX = idx;
             GOLPE_CLR = (is_back ? color(255,0,0) : color(0,0,255));
+            GOLPE_TMR = millis();
             break;
         }
 
@@ -323,9 +330,8 @@ void draw () {
             TEMPO_JOGADO = int(campos[1]);
             PONTOS_TOTAL = int(campos[2]);
             GOLPES_TOT   = int(campos[3]);
-            GOLPES_AVG   = int(campos[4]);
-            player(campos, 0, 5);
-            player(campos, 1, 5+14);
+            player(campos, 0, 4);
+            player(campos, 1, 4+4);
 
             if (TEMPO_JOGADO >= (TEMPO_EXIBIDO-TEMPO_EXIBIDO%5)+5) {
                 TEMPO_EXIBIDO = TEMPO_JOGADO;
@@ -337,7 +343,7 @@ void draw () {
         case 4: {
             QUEDAS = int(campos[1]);
             player(campos, 0, 2);
-            player(campos, 1, 2+14);
+            player(campos, 1, 2+4);
             TEMPO_EXIBIDO = TEMPO_JOGADO;
             GOLPE_IDX     = 255;
             ULTIMAS[0]    = 0;
@@ -348,7 +354,7 @@ void draw () {
         // END
         case 5: {
             player(campos, 0, 1);
-            player(campos, 1, 1+14);
+            player(campos, 1, 1+4);
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
             IS_FIM    = true;
             TEMPO_EXIBIDO = TEMPO_JOGADO;
@@ -368,17 +374,10 @@ void draw () {
 }
 
 void player (String[] campos, int p, int i) {
-    PONTOS[p]      = int(campos[i++]);
     boolean is_beh = (int(campos[i++]) == 1) && (TEMPO_JOGADO >= 30);
-    for (int j=0; j<2; j++) {
-        LADOS[p][j][0] = int(campos[i++]);  // pontos
-        LADOS[p][j][1] = int(campos[i++]);  // golpes
-        LADOS[p][j][2] = int(campos[i++]);  // hits_nrm / rev
-        LADOS[p][j][3] = int(campos[i++]);  // media1
-        LADOS[p][j][4] = int(campos[i++]);  // min
-        LADOS[p][j][5] = int(campos[i++]);  // max
-
-    }
+    JOGS[p][0] = int(campos[i++]);  // pontos
+    JOGS[p][1] = int(campos[i++]);  // golpes
+    JOGS[p][2] = int(campos[i++]);  // media1
 
     if (is_beh) {
         IS_DESEQ = p;
@@ -469,74 +468,48 @@ void draw_tudo (boolean is_end) {
         draw_ultima(1.5*W, ULTIMAS[ZER]);
         draw_ultima(9.5*W, ULTIMAS[ONE]);
 
-        ellipseMode(CENTER);
-        fill(GOLPE_CLR);
-        noStroke();
-        if (CFG_RADAR && GOLPE_IDX==ZER || !CFG_RADAR && GOLPE_IDX==ONE) {
-            ellipse(3*W, 4*H, 60*dy, 60*dy);
-        } else {
-            ellipse(8*W, 4*H, 60*dy, 60*dy);
+        if (millis() <= GOLPE_TMR+500) {
+            //ellipseMode(CENTER);
+            //fill(GOLPE_CLR);
+            //noStroke();
+            stroke(GOLPE_CLR);
+            strokeWeight(10*dy);
+            if (CFG_RADAR && GOLPE_IDX==ZER || !CFG_RADAR && GOLPE_IDX==ONE) {
+                //ellipse(3*W, 4*H, 60*dy, 60*dy);
+                line(2.5*W, 4*H, 2.5*W+60*dy, 4*H);
+                line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H+20*dy);
+                line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H-20*dy);
+            } else {
+                //ellipse(8*W, 4*H, 60*dy, 60*dy);
+                line(8.5*W, 4*H, 8.5*W-60*dy, 4*H);
+                line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H-20*dy);
+                line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H+20*dy);
+            }
+            strokeWeight(1);
         }
     } else {
         // TODO: propaganda?
     }
 
-    if (PARSS!=null && !PARSS[4].equals("0")) {
-        draw_lado(0*W, color(200,250,200), LADOS[ZER][0], true);
-        draw_lado(2*W, color(250,200,200), LADOS[ZER][1], false);
-        draw_lado(7*W, color(250,200,200), LADOS[ONE][1], true);
-        draw_lado(9*W, color(200,250,200), LADOS[ONE][0], false);
+    draw_lado(1.5*W, color(255,255,255), JOGS[ZER], false);
+    draw_lado(7.5*W, color(255,255,255), JOGS[ONE], false);
 
-        for (int i=0; i<2; i++) {
-            float off = i*7*W + 2*W;
-            textSize(20*dy);
-            fill(150,150,150);
-            if (i == 0) {
-                textAlign(LEFT, TOP);
-                text("Normal", off-2*W+10*dx, 5*H);
-                textAlign(RIGHT, TOP);
-                text("Revés", off+2*W-10*dx, 5*H);
-            } else {
-                textAlign(LEFT, TOP);
-                text("Revés", off-2*W+10*dx, 5*H);
-                textAlign(RIGHT, TOP);
-                text("Normal", off+2*W-10*dx, 5*H);
-            }
+    textSize(15*dy);
+    fill(150,150,150);
+    for (int i=0; i<2; i++) {
+        float off = (i==0) ? 1*W : 10*W;
+        noStroke();
+        noFill();
 
-            noStroke();
-            noFill();
+        image(IMG_RAQUETE, off, 5.5*H+5*dy);
 
-            image(IMG_RAQUETE, off, 5.5*H+5*dy);
+        image(IMG_SPEED, off, 6.5*H+5*dy);
+        textAlign(CENTER, CENTER);
+        fill(100,100,100);
+        textSize(10*dy);
+        text("km/h", off, 6.5*H+25*dy);
 
-            image(IMG_SPEED, off, 6.5*H+10*dy);
-            textAlign(CENTER, CENTER);
-            fill(100,100,100);
-            textSize(10*dy);
-            text("km/h", off, 6.5*H+25*dy);
-
-            image(IMG_BAND, off, 7.5*H+10*dy);
-        }
-    } else {
-        draw_lado(1.5*W, color(255,255,255), LADOS[ZER][0], false);
-        draw_lado(7.5*W, color(255,255,255), LADOS[ONE][0], false);
-
-        textSize(15*dy);
-        fill(150,150,150);
-        for (int i=0; i<2; i++) {
-            float off = (i==0) ? 1*W : 10*W;
-            noStroke();
-            noFill();
-
-            image(IMG_RAQUETE, off, 5.5*H+5*dy);
-
-            image(IMG_SPEED, off, 6.5*H+5*dy);
-            textAlign(CENTER, CENTER);
-            fill(100,100,100);
-            textSize(10*dy);
-            text("km/h", off, 6.5*H+25*dy);
-
-            image(IMG_BAND, off, 7.5*H+10*dy);
-        }
+        image(IMG_BAND, off, 7.5*H+10*dy);
     }
 
     {
@@ -658,14 +631,16 @@ void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
     fill(0);
     textAlign(CENTER, CENTER);
 
+    int limite = int(PARSS[3]);
+
     textSize(15*dy);
-    text("." + nf(dados[3]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
+    text("." + nf(dados[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
 
     textSize(50*dy);
-    text(dados[3]/100, x+W, 6.5*H);         // media1
+    text(dados[2]/100, x+W, 6.5*H);         // media1
     text(dados[0], x+W, 7.5*H);             // pontos
 
-    if (dados[1] >= dados[2]) {             // golpes vs limite
+    if (dados[1] >= limite) {             // golpes vs limite
         fill(255,0,0);
     }
     text(dados[1], x+W, 5.5*H);             // golpes
@@ -673,7 +648,7 @@ void draw_lado (float x, int cor, int[] dados, boolean is_esq) {
     textSize(20*dy);
     float w1 = textWidth(str(dados[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+dados[2], x+W+w1+10*dx, 5.5*H+30*dy);  // limite
+    text("/"+limite, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
