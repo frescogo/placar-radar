@@ -1,17 +1,11 @@
-String  CFG_PORTA   = "COM6";
-int     CFG_RECORDE = 0;
-boolean CFG_IMGS    = true;
-String  CFG_IMG1    = "data/fresco-alpha.png";
-String  CFG_IMG2    = "data/fresco-alpha.png";
-
-///////////////////////////////////////////////////////////////////////////////
-// NAO EDITAR NADA ABAIXO DAQUI
-///////////////////////////////////////////////////////////////////////////////
-
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
 import processing.serial.*;
 
+int J_RECORDE = 0;
+int J_LIMITE  = 0;
+
+JSONObject JSON;
 Serial   SERIAL;
 
 PImage   IMG1;
@@ -71,20 +65,17 @@ float W;
 float H;
 
 void setup () {
-    serial_liga();
+    JSON = loadJSONObject("config.json");
 
-    while (SERIAL.available() == 0) {
-        // wait
-        println("Reinicie o Arduino...");
-        delay(1000);
+    J_RECORDE = JSON.getInt("recorde");
+    J_LIMITE  = JSON.getInt("limite");
+
+    try {
+        SERIAL = new Serial(this, Serial.list()[0], 9600);
+    } catch (RuntimeException e) {
+        println("Erro na comunicação com o radar...");
+        //exit();
     }
-    char c = SERIAL.readChar();
-    if (c != 1) {
-        println("Arduino nao encontrado, tente novamente...");
-        return;
-    }
-    SERIAL.write(1);      // envia MOD_PC
-    println("OK");
 
     surface.setTitle(VERSAO);
     //size(640, 480);
@@ -97,8 +88,8 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    IMG1         = loadImage(CFG_IMG1);
-    IMG2         = loadImage(CFG_IMG2);
+    IMG1         = loadImage(JSON.getString("img1"));
+    IMG2         = loadImage(JSON.getString("img2"));
     IMG_SPEED    = loadImage("speed-03.png");
     IMG_RAQUETE  = loadImage("raq-03.png");
     IMG_BAND     = loadImage("flag.png");
@@ -140,35 +131,6 @@ void zera () {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// SERIAL
-///////////////////////////////////////////////////////////////////////////////
-
-void serial_liga () {
-    try {
-        SERIAL = new Serial(this, CFG_PORTA, 9600);
-        return;
-    } catch (RuntimeException e) {
-        // error, try PORTAS
-    }
-    for (int i=0; i<PORTAS.length; i++) {
-        for (int j=0; j<10; j++) {
-            try {
-                SERIAL = new Serial(this, PORTAS[i]+j, 9600);
-                println(PORTAS[i]+j);
-                return;
-            } catch (RuntimeException e) {
-                // error, try next
-            }
-        }
-    }
-}
-
-void serial_desliga () {
-    SERIAL.stop();
-    SERIAL = null;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // KEYBOARD
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -206,12 +168,6 @@ void keyPressed () {
                 IS_INVERTIDO = !IS_INVERTIDO;
                 ZER = 1 - ZER;
                 ONE = 1 - ONE;
-            } else if (key == ctrl('s')) {    // CTRL-S
-                if (SERIAL == null) {
-                    serial_liga();
-                } else {
-                    serial_desliga();
-                }
             } else if (key == '1') {          // 1
                 DIST = "700 cm";
                 SERIAL.write("distancia 700\n");
@@ -241,9 +197,7 @@ void keyPressed () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-    if (PARSS.length > 0) {
-        draw_tudo(false);
-    }
+    draw_tudo(false);
 
     // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
     if (GRAVANDO == 1) {
@@ -348,8 +302,8 @@ void draw () {
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
             IS_FIM    = true;
             GOLPE_IDX = 255;
-            if (PONTOS_TOTAL > CFG_RECORDE) {
-                CFG_RECORDE = PONTOS_TOTAL;
+            if (PONTOS_TOTAL > J_RECORDE) {
+                J_RECORDE = PONTOS_TOTAL;
             }
             break;
         }
@@ -382,10 +336,8 @@ void player (String[] campos, int p, int i) {
 void draw_tudo (boolean is_end) {
     background(255,255,255);
 
-    if (CFG_IMGS) {
-        draw_logo(0*W, IMG1);
-        draw_logo(7*W, IMG2);
-    }
+    draw_logo(0*W, IMG1);
+    draw_logo(7*W, IMG2);
     draw_nome(0*W, ZER, DIGITANDO!=ZER);
     draw_nome(7*W, ONE, DIGITANDO!=ONE);
 
@@ -521,15 +473,15 @@ void draw_tudo (boolean is_end) {
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // recorde
-        if (PONTOS_TOTAL > CFG_RECORDE) {
+        if (PONTOS_TOTAL > J_RECORDE) {
             fill(150,150,150);
         } else {
             fill(200,100,100);
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CFG_RECORDE, width/2, 6*H-5*dy);
-        float w2 = textWidth(str(CFG_RECORDE));
+        text(J_RECORDE, width/2, 6*H-5*dy);
+        float w2 = textWidth(str(J_RECORDE));
         image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H);
 
         // TOTAL
@@ -546,13 +498,6 @@ void draw_tudo (boolean is_end) {
         textSize(50*dy);
         textAlign(CENTER, CENTER);
         text("Aguarde...", width/2, 0.35*H);
-    }
-
-    if (SERIAL == null) {
-        ellipseMode(CENTER);
-        fill(255,0,0);
-        noStroke();
-        ellipse(width-50*dy, height-50*dy, 20*dy, 20*dy);
     }
 }
 
@@ -620,8 +565,6 @@ void draw_lado (float x, int[] dados) {
     fill(0);
     textAlign(CENTER, CENTER);
 
-    int limite = int(PARSS[3]);
-
     textSize(15*dy);
     text("." + nf(dados[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
 
@@ -629,7 +572,7 @@ void draw_lado (float x, int[] dados) {
     text(dados[2]/100, x+W, 6.5*H);         // media1
     text(dados[0], x+W, 7.5*H);             // pontos
 
-    if (dados[1] >= limite) {             // golpes vs limite
+    if (dados[1] >= J_LIMITE) {             // golpes vs limite
         fill(255,0,0);
     }
     text(dados[1], x+W, 5.5*H);             // golpes
@@ -637,7 +580,7 @@ void draw_lado (float x, int[] dados) {
     textSize(20*dy);
     float w1 = textWidth(str(dados[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+limite, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
+    text("/"+J_LIMITE, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
