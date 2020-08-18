@@ -1,6 +1,5 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
-// - total: equ/quedas
 // - is_deseq
 // - descanso
 // - voltar
@@ -46,7 +45,7 @@ int      ONE          = 1;
 
 boolean  IS_FIM = false;
 int      TEMPO_DESC = 0;
-int      IS_DESEQ = 255;
+int      EQU_BEHIND = 255;
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -124,14 +123,24 @@ int[] jogador (int idx) {
     return ret;
 }
 
-int TOTAL (int[] jog0, int[] jog1) {
+int[] TOTAL (int[] jog0, int[] jog1) {
     int p0   = jog0[0];
     int p1   = jog1[0];
+
     int avg  = (p0 + p1) / 2;
     int min_ = min(avg, min(p0,p1)*110/100);
+
+    int beh = 255;
+    if (avg != min_) {
+        beh = (p0 > p1) ? 1 : 0;
+    }
+
     int pct  = quedas() * conf_quedas();
     int pts  = (CONF_EQUILIBRIO ? min_ : avg);
-    return pts * (10000-pct) / 10000;
+    int tot  = pts * (10000-pct) / 10000;
+
+    int[] ret = { tot, beh };
+    return ret;
 }
 
 void setup () {
@@ -332,23 +341,26 @@ void draw () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw_tudo (boolean is_end) {
-    int[] jog0 = jogador(ZER);
-    int[] jog1 = jogador(ONE);
-    int total = TOTAL(jog0,jog1);
-    if (total > CONF_RECORDE) {
-        CONF_RECORDE = total;
+    int[] jog0  = jogador(ZER);
+    int[] jog1  = jogador(ONE);
+    int[] total = TOTAL(jog0,jog1);
+
+    if (total[0] > CONF_RECORDE) {
+        CONF_RECORDE = total[0];
     }
+    int t = tempo_jogado();
 
     background(255,255,255);
 
     draw_logo(0*W, IMG1);
     draw_logo(7*W, IMG2);
-    draw_nome(0*W, ZER, ESTADO_DIGITANDO!=ZER);
-    draw_nome(7*W, ONE, ESTADO_DIGITANDO!=ONE);
+
+    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER), ESTADO_DIGITANDO!=ZER);
+    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE), ESTADO_DIGITANDO!=ONE);
 
     // TEMPO
     {
-        int tempo = CONF_TEMPO-tempo_jogado();
+        int tempo = CONF_TEMPO-t;
         if (tempo < 0) {
             tempo = 0;
         }
@@ -504,7 +516,7 @@ void draw_tudo (boolean is_end) {
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // recorde
-        if (total > CONF_RECORDE) {
+        if (total[0] >= CONF_RECORDE) {
             fill(150,150,150);
         } else {
             fill(200,100,100);
@@ -519,7 +531,7 @@ void draw_tudo (boolean is_end) {
         fill(255);
         textSize(120*dy);
         textAlign(CENTER, CENTER);
-        text(total, width/2, 7*H);
+        text(total[0], width/2, 7*H);
     }
 
 
@@ -538,7 +550,7 @@ void draw_logo (float x, PImage img) {
     image(img, x+2*W, H);
 }
 
-void draw_nome (float x, int idx, boolean ok) {
+void draw_nome (float x, int idx, boolean beh, boolean ok) {
     String nome = CONF_NOMES[idx];
     stroke(0);
     fill(255);
@@ -546,7 +558,7 @@ void draw_nome (float x, int idx, boolean ok) {
     //image(IMG1, x+1.5*W, 1*H);
     if (ok) {
         noStroke();
-        if (IS_DESEQ==idx && CONF_EQUILIBRIO) {
+        if (beh) {
             fill(255, 0, 0);
             rect(x+3*dx, 2*H+2*dy, 4*W-6*dx, H-4*dy);
             fill(255);
