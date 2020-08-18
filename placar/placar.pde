@@ -2,11 +2,14 @@
 
 import processing.serial.*;
 
-int J_RECORDE = 0;
-int J_LIMITE  = 0;
-
-JSONObject JSON;
 Serial   SERIAL;
+
+JSONObject CONF;
+
+int      CONF_TEMPO;
+int      CONF_LIMITE;
+int      CONF_RECORDE;
+String[] CONF_NOMES = new String[3];
 
 PImage   IMG1;
 PImage   IMG2;
@@ -21,9 +24,12 @@ String   VERSAO       = "FrescoGO! r3.1.0";
 String   PARS         = "(?)";
 String   PARSS[]      = {};
 
-String[] PORTAS = { "/dev/ttyACM", "/dev/ttyUSB", "COM" };
+String   ESTADO = "ocioso";
+int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
+String   ESTADO_JOGANDO;            // sacando, jogando
 
-int      DIGITANDO    = 255;  // 0=digitando ESQ, 1=digitando DIR, 2=digitando JUIZ
+ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
+
 
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
@@ -36,7 +42,6 @@ int      ONE          = 1;
 
 boolean  IS_FIM;
 boolean  EQUILIBRIO;
-int      TEMPO_TOTAL;
 int      TEMPO_JOGADO;
 int      TEMPO_DESC;
 int      PONTOS_TOTAL;
@@ -47,16 +52,8 @@ int      IS_DESEQ;
 int      GOLPE_IDX;
 int      GOLPE_TMR = 0;
 
-String[]  NOMES   = new String[3];
 int[]     ULTIMAS = new int[2];
 int[][]   JOGS    = new int[2][3];
-
-int REF_TIMEOUT = 240;
-int REF_BESTS   = 20;
-//int REF_REVES   = 3/5;
-int REF_CONT    = 15;
-int HITS_NRM    = 0;  //(S.timeout*REF_BESTS/REF_TIMEOUT/1000)
-int HITS_REV    = 0;  //HITS_NRM*REF_REVES
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -65,10 +62,13 @@ float W;
 float H;
 
 void setup () {
-    JSON = loadJSONObject("config.json");
-
-    J_RECORDE = JSON.getInt("recorde");
-    J_LIMITE  = JSON.getInt("limite");
+    CONF = loadJSONObject("conf.json");
+    CONF_TEMPO    = CONF.getInt("tempo");
+    CONF_LIMITE   = CONF.getInt("limite");
+    CONF_RECORDE  = CONF.getInt("recorde");
+    CONF_NOMES[0] = CONF.getString("atleta1");
+    CONF_NOMES[1] = CONF.getString("atleta2");
+    CONF_NOMES[2] = CONF.getString("arbitro");
 
     try {
         SERIAL = new Serial(this, Serial.list()[0], 9600);
@@ -88,8 +88,8 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    IMG1         = loadImage(JSON.getString("img1"));
-    IMG2         = loadImage(JSON.getString("img2"));
+    IMG1         = loadImage(CONF.getString("img1"));
+    IMG2         = loadImage(CONF.getString("img2"));
     IMG_SPEED    = loadImage("speed-03.png");
     IMG_RAQUETE  = loadImage("raq-03.png");
     IMG_BAND     = loadImage("flag.png");
@@ -124,10 +124,6 @@ void zera () {
     IS_DESEQ     = 255;
 
     GOLPE_IDX    = 255;
-
-    NOMES[0]     = "Esquerda";
-    NOMES[1]     = "Direita";
-    NOMES[2]     = "Árbitro";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,57 +134,78 @@ int ctrl (char key) {
     return char(int(key) - int('a') + 1);
 }
 
-void trata_nome (int idx, String lado) {
+void trata_nome (int idx, String json) {
     if (key==ENTER || key==RETURN) {
-        SERIAL.write(lado + " " + NOMES[idx] + "\n");
-        DIGITANDO = 255;
+        CONF.setString(json, CONF_NOMES[idx]);
+        ESTADO = "ocioso";
     } else if (key==BACKSPACE) {
-        if (NOMES[idx].length() > 0) {
-            NOMES[idx] = NOMES[idx].substring(0, NOMES[idx].length()-1);
+        if (CONF_NOMES[idx].length() > 0) {
+            CONF_NOMES[idx] = CONF_NOMES[idx].substring(0, CONF_NOMES[idx].length()-1);
         }
     } else if (int(key)>=int('a') && int(key)<=int('z') || int(key)>=int('A') && int(key)<=int('Z') || key=='_'){
-        NOMES[idx] = NOMES[idx] + key;
+        CONF_NOMES[idx] = CONF_NOMES[idx] + key;
         //println(">>>", key);
     }
 }
 
-void keyPressed () {
-    switch (DIGITANDO) {
-        case 255: // OCIOSO
-            if (key == ctrl('e')) {           // CTRL-E
-                DIGITANDO = 0;
-                NOMES[0] = "";
-            } else if (key == ctrl('d')) {    // CTRL-D
-                DIGITANDO = 1;
-                NOMES[1] = "";
-            } else if (key == ctrl('a')) {    // CTRL-A
-                DIGITANDO = 2;
-                NOMES[2] = "";
-            } else if (key == ctrl('i')) {    // CTRL-I
+void keyPressed (KeyEvent e) {
+    if (ESTADO.equals("ocioso")) {
+        if (e.isControlDown()) {
+            //println(keyCode);
+            if (keyCode == '1') {                   // CTRL-1
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 0;
+                CONF_NOMES[0] = "";
+            } else if (keyCode == '2') {            // CTRL-2
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 1;
+                CONF_NOMES[1] = "";
+            } else if (keyCode == '0') {            // CTRL-0
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 2;
+                CONF_NOMES[2] = "";
+            } else if (keyCode == 'i') {            // CTRL-I
                 IS_INVERTIDO = !IS_INVERTIDO;
                 ZER = 1 - ZER;
                 ONE = 1 - ONE;
-            } else if (key == '1') {          // 1
-                DIST = "700 cm";
-                SERIAL.write("distancia 700\n");
-            } else if (key == '2') {          // 2
-                DIST = "750 cm";
-                SERIAL.write("distancia 750\n");
-            } else if (key == '3') {          // 3
-                DIST = "800 cm";
-                SERIAL.write("distancia 800\n");
+            } else if (keyCode == ' ') {            // CTRL-SPACE
+                ESTADO = "jogando";
+                ESTADO_JOGANDO = "sacando";
             }
-            break;
-
-        case 0: // DIGITANDO ESQ
-            trata_nome(0, "esquerda");
-            break;
-        case 1: // DIGITANDO DIR
-            trata_nome(1, "direita");
-            break;
-        case 2: // DIGITANDO JUIZ
-            trata_nome(2, "juiz");
-            break;
+        }
+    } else if (ESTADO.equals("jogando")) {
+        if (e.isControlDown()) {
+            if (keyCode==37 || keyCode==39) {       // CTRL-<>
+                int idx = (keyCode == 37) ? ZER : ONE;
+                int[] golpe = { millis(), idx, 50 };
+                //ULTIMAS[idx] = golpe[1];
+                //GOLPE_IDX = idx;
+                //GOLPE_TMR = millis();
+                if (ESTADO_JOGANDO.equals("sacando")) {
+                    ESTADO_JOGANDO = "jogando";
+                    JOGO.add(new ArrayList<int[]>());
+                }
+                JOGO.get(JOGO.size()-1).add(golpe);
+                for (int i=0; i<JOGO.size(); i++) {
+                    ArrayList<int[]> golpes = JOGO.get(i);
+                    for (int j=0; j<golpes.size(); j++) {
+                        //println(golpes.get(j));
+                    }
+                }
+            }
+        }
+    } else if (ESTADO.equals("digitando")) {
+        switch (ESTADO_DIGITANDO) {
+            case 0: // DIGITANDO ESQ
+                trata_nome(0, "atleta1");
+                break;
+            case 1: // DIGITANDO DIR
+                trata_nome(1, "atleta2");
+                break;
+            case 2: // DIGITANDO ARBITRO
+                trata_nome(2, "arbitro");
+                break;
+        }
     }
 }
 
@@ -202,7 +219,7 @@ void draw () {
     // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
     if (GRAVANDO == 1) {
         GRAVANDO_TS = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-        saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+"-placar.png");
+        saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
         draw_tudo(true);
         GRAVANDO = 2;
         return;
@@ -212,7 +229,7 @@ void draw () {
         delay(35000);
         byte[] LOG = new byte[32768];
         LOG = SERIAL.readBytes();
-        saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+NOMES[0]+"-"+NOMES[1]+".txt", LOG);
+        saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt", LOG);
         GRAVANDO = 0;
     }
 
@@ -237,16 +254,10 @@ void draw () {
         // RESTART
         case 0: {
             zera();
-            TEMPO_TOTAL  = int(campos[1]);
             EQUILIBRIO   = int(campos[2]) == 1;
-            NOMES[0]     = campos[3];
-            NOMES[1]     = campos[4];
-            NOMES[2]     = campos[5];
             PARS         = campos[6];
             PARSS        = match(PARS, "r(\\d+)/(\\d+)s/ata(\\d+)/equ\\d/cont\\d+/fim\\d+");
 
-            HITS_NRM = TEMPO_TOTAL * REF_BESTS / REF_TIMEOUT;
-            HITS_REV = HITS_NRM * 3 / 5; //REF_REVES;
             break;
         }
 
@@ -256,20 +267,7 @@ void draw () {
             TEMPO_JOGADO = int(campos[1]);
             TEMPO_DESC   = int(campos[2]);
             QUEDAS       = int(campos[3]);
-            NOMES[0]     = campos[4];
-            NOMES[1]     = campos[5];
-            NOMES[2]     = campos[6];
             TEMPO_JOGADO = TEMPO_JOGADO - TEMPO_JOGADO%5;
-            break;
-        }
-
-        // HIT
-        case 2: {
-            int idx      = int(campos[1]);
-            ULTIMAS[idx] = int(campos[2]);
-
-            GOLPE_IDX = idx;
-            GOLPE_TMR = millis();
             break;
         }
 
@@ -302,8 +300,8 @@ void draw () {
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
             IS_FIM    = true;
             GOLPE_IDX = 255;
-            if (PONTOS_TOTAL > J_RECORDE) {
-                J_RECORDE = PONTOS_TOTAL;
+            if (PONTOS_TOTAL > CONF_RECORDE) {
+                CONF_RECORDE = PONTOS_TOTAL;
             }
             break;
         }
@@ -338,12 +336,12 @@ void draw_tudo (boolean is_end) {
 
     draw_logo(0*W, IMG1);
     draw_logo(7*W, IMG2);
-    draw_nome(0*W, ZER, DIGITANDO!=ZER);
-    draw_nome(7*W, ONE, DIGITANDO!=ONE);
+    draw_nome(0*W, ZER, ESTADO_DIGITANDO!=ZER);
+    draw_nome(7*W, ONE, ESTADO_DIGITANDO!=ONE);
 
     // TEMPO
     {
-        int tempo = TEMPO_TOTAL-TEMPO_JOGADO;
+        int tempo = CONF_TEMPO-TEMPO_JOGADO;
         if (tempo < 0) {
             tempo = 0;
         }
@@ -405,31 +403,44 @@ void draw_tudo (boolean is_end) {
         text(QUEDAS, width/2, height/2-15*dy);
     }
 
-    if (GOLPE_IDX != 255) {
-        draw_ultima(1.5*W, ULTIMAS[ZER]);
-        draw_ultima(9.5*W, ULTIMAS[ONE]);
-
-        if (millis() <= GOLPE_TMR+500) {
-            //ellipseMode(CENTER);
-            //fill(GOLPE_CLR);
-            //noStroke();
-            stroke(color(0,0,255));
-            strokeWeight(10*dy);
-            if (GOLPE_IDX == ZER) {
-                //ellipse(3*W, 4*H, 60*dy, 60*dy);
-                line(2.5*W, 4*H, 2.5*W+60*dy, 4*H);
-                line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H+20*dy);
-                line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H-20*dy);
-            } else {
-                //ellipse(8*W, 4*H, 60*dy, 60*dy);
-                line(8.5*W, 4*H, 8.5*W-60*dy, 4*H);
-                line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H-20*dy);
-                line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H+20*dy);
+    if (JOGO.size() > 0) {
+        ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+        int idx = 255;
+        for (int i=1; i<=2; i++) {
+            if (seq.size() < i) {
+                continue;
             }
-            strokeWeight(1);
+
+            int[] golpe = seq.get(seq.size()-i); // millis/idx/kmh
+            if (golpe[1] == idx) {
+                // mesmo jogador deu os ultimos dois golpes
+            } else {
+                idx = golpe[1];
+                if (millis() <= golpe[0]+1000) {
+                    if (idx == ZER) {
+                        draw_ultima(1.5*W, golpe[2]);
+                    } else {
+                        draw_ultima(9.5*W, golpe[2]);
+                    }
+                }
+                if (millis() <= golpe[0]+500) {
+                    stroke(color(0,0,255));
+                    strokeWeight(10*dy);
+                    if (idx == ZER) {
+                        //ellipse(3*W, 4*H, 60*dy, 60*dy);
+                        line(2.5*W, 4*H, 2.5*W+60*dy, 4*H);
+                        line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H+20*dy);
+                        line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H-20*dy);
+                    } else {
+                        //ellipse(8*W, 4*H, 60*dy, 60*dy);
+                        line(8.5*W, 4*H, 8.5*W-60*dy, 4*H);
+                        line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H-20*dy);
+                        line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H+20*dy);
+                    }
+                    strokeWeight(1);
+                }
+            }
         }
-    } else {
-        // TODO: propaganda?
     }
 
     draw_lado(1.5*W, JOGS[ZER]);
@@ -459,8 +470,8 @@ void draw_tudo (boolean is_end) {
         rect(4*W, 5*H, 3*W, 3*H);
 
         // juiz
-        String nome = NOMES[2];
-        if (DIGITANDO != 2) {
+        String nome = CONF_NOMES[2];
+        if (ESTADO_DIGITANDO != 2) {
             fill(150,150,150);
         } else {
             fill(255,0,0);
@@ -473,15 +484,15 @@ void draw_tudo (boolean is_end) {
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // recorde
-        if (PONTOS_TOTAL > J_RECORDE) {
+        if (PONTOS_TOTAL > CONF_RECORDE) {
             fill(150,150,150);
         } else {
             fill(200,100,100);
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(J_RECORDE, width/2, 6*H-5*dy);
-        float w2 = textWidth(str(J_RECORDE));
+        text(CONF_RECORDE, width/2, 6*H-5*dy);
+        float w2 = textWidth(str(CONF_RECORDE));
         image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H);
 
         // TOTAL
@@ -509,7 +520,7 @@ void draw_logo (float x, PImage img) {
 }
 
 void draw_nome (float x, int idx, boolean ok) {
-    String nome = NOMES[idx];
+    String nome = CONF_NOMES[idx];
     stroke(0);
     fill(255);
     rect(x, 2*H, 4*W, H);
@@ -572,7 +583,7 @@ void draw_lado (float x, int[] dados) {
     text(dados[2]/100, x+W, 6.5*H);         // media1
     text(dados[0], x+W, 7.5*H);             // pontos
 
-    if (dados[1] >= J_LIMITE) {             // golpes vs limite
+    if (dados[1] >= CONF_LIMITE) {             // golpes vs limite
         fill(255,0,0);
     }
     text(dados[1], x+W, 5.5*H);             // golpes
@@ -580,7 +591,7 @@ void draw_lado (float x, int[] dados) {
     textSize(20*dy);
     float w1 = textWidth(str(dados[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+J_LIMITE, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
+    text("/"+CONF_LIMITE, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
