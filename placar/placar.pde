@@ -6,8 +6,8 @@ Serial   SERIAL;
 
 JSONObject CONF;
 
+int      CONF_DISTANCIA;
 int      CONF_TEMPO;
-int      CONF_LIMITE;
 int      CONF_RECORDE;
 String[] CONF_NOMES = new String[3];
 
@@ -30,7 +30,6 @@ String   ESTADO_JOGANDO;            // sacando, jogando
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 
-
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
 
@@ -42,10 +41,8 @@ int      ONE          = 1;
 
 boolean  IS_FIM;
 boolean  EQUILIBRIO;
-int      TEMPO_JOGADO;
 int      TEMPO_DESC;
 int      PONTOS_TOTAL;
-int      QUEDAS;
 int      GOLPES_TOT;
 int      IS_DESEQ;
 
@@ -61,14 +58,37 @@ float dx; // 0.001 width
 float W;
 float H;
 
+int conf_limite () {
+    return CONF_TEMPO / 60 * 20;
+}
+
+int tempo_jogado () {
+    int ret = 0;
+    for (int i=0; i<JOGO.size(); i++) {
+        ArrayList<int[]> seq = JOGO.get(i);
+        if (seq.size() >= 2) {
+            ret += (seq.get(seq.size()-1)[0] - seq.get(0)[0]);
+        }
+    }
+    if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
+        ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+        ret += millis() - seq.get(seq.size()-1)[0];
+    }
+    return ret / 1000;
+}
+
+int quedas () {
+    return JOGO.size() + (ESTADO.equals("ocioso") ? 0 : -1);
+}
+
 void setup () {
     CONF = loadJSONObject("conf.json");
-    CONF_TEMPO    = CONF.getInt("tempo");
-    CONF_LIMITE   = CONF.getInt("limite");
-    CONF_RECORDE  = CONF.getInt("recorde");
-    CONF_NOMES[0] = CONF.getString("atleta1");
-    CONF_NOMES[1] = CONF.getString("atleta2");
-    CONF_NOMES[2] = CONF.getString("arbitro");
+    CONF_DISTANCIA = CONF.getInt("distancia");
+    CONF_TEMPO     = CONF.getInt("tempo");
+    CONF_RECORDE   = CONF.getInt("recorde");
+    CONF_NOMES[0]  = CONF.getString("atleta1");
+    CONF_NOMES[1]  = CONF.getString("atleta2");
+    CONF_NOMES[2]  = CONF.getString("arbitro");
 
     try {
         SERIAL = new Serial(this, Serial.list()[0], 9600);
@@ -88,8 +108,8 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    IMG1         = loadImage(CONF.getString("img1"));
-    IMG2         = loadImage(CONF.getString("img2"));
+    IMG1         = loadImage(CONF.getString("imagem1"));
+    IMG2         = loadImage(CONF.getString("imagem2"));
     IMG_SPEED    = loadImage("speed-03.png");
     IMG_RAQUETE  = loadImage("raq-03.png");
     IMG_BAND     = loadImage("flag.png");
@@ -116,10 +136,8 @@ void setup () {
 
 void zera () {
     IS_FIM       = false;
-    TEMPO_JOGADO = 0;
     TEMPO_DESC   = 0;
     PONTOS_TOTAL = 0;
-    QUEDAS       = 0;
     GOLPES_TOT   = 0;
     IS_DESEQ     = 255;
 
@@ -150,7 +168,7 @@ void trata_nome (int idx, String json) {
 
 void keyPressed (KeyEvent e) {
     if (ESTADO.equals("ocioso")) {
-        if (e.isControlDown()) {
+        if (e.isControlDown() && !e.isAltDown()) {
             //println(keyCode);
             if (keyCode == '1') {                   // CTRL-1
                 ESTADO = "digitando";
@@ -171,28 +189,17 @@ void keyPressed (KeyEvent e) {
             } else if (keyCode == ' ') {            // CTRL-SPACE
                 ESTADO = "jogando";
                 ESTADO_JOGANDO = "sacando";
+                JOGO.add(new ArrayList<int[]>());
             }
         }
     } else if (ESTADO.equals("jogando")) {
-        if (e.isControlDown()) {
-            if (keyCode==37 || keyCode==39) {       // CTRL-<>
-                int idx = (keyCode == 37) ? ZER : ONE;
-                int[] golpe = { millis(), idx, 50 };
-                //ULTIMAS[idx] = golpe[1];
-                //GOLPE_IDX = idx;
-                //GOLPE_TMR = millis();
-                if (ESTADO_JOGANDO.equals("sacando")) {
-                    ESTADO_JOGANDO = "jogando";
-                    JOGO.add(new ArrayList<int[]>());
-                }
-                JOGO.get(JOGO.size()-1).add(golpe);
-                for (int i=0; i<JOGO.size(); i++) {
-                    ArrayList<int[]> golpes = JOGO.get(i);
-                    for (int j=0; j<golpes.size(); j++) {
-                        //println(golpes.get(j));
-                    }
-                }
-            }
+        if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
+            ESTADO = "ocioso";
+        } else if (keyCode==37 || keyCode==39) {       // CTRL-<>
+            int idx = (keyCode == 37) ? ZER : ONE;
+            int[] golpe = { millis(), idx, 0 };
+            JOGO.get(JOGO.size()-1).add(golpe);
+            ESTADO_JOGANDO = "jogando";
         }
     } else if (ESTADO.equals("digitando")) {
         switch (ESTADO_DIGITANDO) {
@@ -264,27 +271,21 @@ void draw () {
         // SEQ
         case 1: {
             IS_FIM       = false; // por causa do UNDO
-            TEMPO_JOGADO = int(campos[1]);
             TEMPO_DESC   = int(campos[2]);
-            QUEDAS       = int(campos[3]);
-            TEMPO_JOGADO = TEMPO_JOGADO - TEMPO_JOGADO%5;
             break;
         }
 
         // TICK
         case 3: {
-            TEMPO_JOGADO = int(campos[1]);
             PONTOS_TOTAL = int(campos[2]);
             GOLPES_TOT   = int(campos[3]);
             player(campos, 0, 4);
             player(campos, 1, 4+4);
-            TEMPO_JOGADO = TEMPO_JOGADO - TEMPO_JOGADO%5;
             break;
         }
 
         // FALL
         case 4: {
-            QUEDAS = int(campos[1]);
             player(campos, 0, 2);
             player(campos, 1, 2+4);
             GOLPE_IDX     = 255;
@@ -315,7 +316,7 @@ void draw () {
 }
 
 void player (String[] campos, int p, int i) {
-    boolean is_beh = (int(campos[i++]) == 1) && (TEMPO_JOGADO >= 30);
+    boolean is_beh = (int(campos[i++]) == 1) && (tempo_jogado() >= 30);
     JOGS[p][0] = int(campos[i++]);  // pontos
     JOGS[p][1] = int(campos[i++]);  // golpes
     JOGS[p][2] = int(campos[i++]);  // media1
@@ -341,7 +342,7 @@ void draw_tudo (boolean is_end) {
 
     // TEMPO
     {
-        int tempo = CONF_TEMPO-TEMPO_JOGADO;
+        int tempo = CONF_TEMPO-tempo_jogado();
         if (tempo < 0) {
             tempo = 0;
         }
@@ -400,7 +401,7 @@ void draw_tudo (boolean is_end) {
         fill(255);
         textAlign(CENTER, CENTER);
         textSize(90*dy);
-        text(QUEDAS, width/2, height/2-15*dy);
+        text(quedas(), width/2, height/2-15*dy);
     }
 
     if (JOGO.size() > 0) {
@@ -417,10 +418,25 @@ void draw_tudo (boolean is_end) {
             } else {
                 idx = golpe[1];
                 if (millis() <= golpe[0]+1000) {
-                    if (idx == ZER) {
-                        draw_ultima(1.5*W, golpe[2]);
+                    int kmh = golpe[2];
+                    if (kmh == 0) {
+                        if (seq.size() < i+1) {
+                            kmh = 0;
+                        } else {
+                            int[] prev = seq.get(seq.size()-i-1);
+                            kmh = 36 * CONF_DISTANCIA / (golpe[0] - prev[0]);
+                        }
+                        if (idx == ONE) {
+                            draw_ultima(1.5*W, kmh);
+                        } else {
+                            draw_ultima(9.5*W, kmh);
+                        }
                     } else {
-                        draw_ultima(9.5*W, golpe[2]);
+                        if (idx == ZER) {
+                            draw_ultima(1.5*W, kmh);
+                        } else {
+                            draw_ultima(9.5*W, kmh);
+                        }
                     }
                 }
                 if (millis() <= golpe[0]+500) {
@@ -583,7 +599,7 @@ void draw_lado (float x, int[] dados) {
     text(dados[2]/100, x+W, 6.5*H);         // media1
     text(dados[0], x+W, 7.5*H);             // pontos
 
-    if (dados[1] >= CONF_LIMITE) {             // golpes vs limite
+    if (dados[1] >= conf_limite()) {             // golpes vs limite
         fill(255,0,0);
     }
     text(dados[1], x+W, 5.5*H);             // golpes
@@ -591,7 +607,7 @@ void draw_lado (float x, int[] dados) {
     textSize(20*dy);
     float w1 = textWidth(str(dados[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+CONF_LIMITE, x+W+w1+10*dx, 5.5*H+30*dy);  // limite
+    text("/"+conf_limite(), x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
