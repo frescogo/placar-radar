@@ -1,6 +1,5 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
-// - is_deseq
 // - descanso
 // - voltar
 // - is_end / gravacao
@@ -30,7 +29,7 @@ PImage   IMG_DESCANSO;
 
 String   VERSAO = "FrescoGO! r3.1.0";
 
-String   ESTADO = "ocioso";
+String   ESTADO = "ocioso";         // ocioso, jogando, terminado
 int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
 String   ESTADO_JOGANDO;            // sacando, jogando
 
@@ -39,13 +38,11 @@ ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
 
-boolean  IS_INVERTIDO = false;
-int      ZER          = 0;
-int      ONE          = 1;
+boolean  INV = false;
+int      ZER = 0;
+int      ONE = 1;
 
-boolean  IS_FIM = false;
 int      TEMPO_DESC = 0;
-int      EQU_BEHIND = 255;
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -73,11 +70,11 @@ int tempo_jogado () {
             ret += (seq.get(seq.size()-1)[0] - seq.get(0)[0]);
         }
     }
-    if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
-        ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-        ret += millis() - seq.get(seq.size()-1)[0];
-    }
-    return ret / 1000;
+    //if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
+    //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+    //    ret += millis() - seq.get(seq.size()-1)[0];
+    //}
+    return ret / 1000 / 5 * 5;
 }
 
 int quedas () {
@@ -103,7 +100,7 @@ int[] jogador (int idx) {
     IntList kmhs = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
-        for (int j=0; j<seq.size(); j++) {
+        for (int j=0; j<seq.size()-1; j++) {    // -1: ignora ultimo golpe
             int[] golpe = seq.get(j);
             if (golpe[1] == idx) {
                 int kmh = KMH(seq,j);
@@ -234,13 +231,20 @@ void keyPressed (KeyEvent e) {
                 ESTADO_DIGITANDO = 2;
                 CONF_NOMES[2] = "";
             } else if (keyCode == 'i') {            // CTRL-I
-                IS_INVERTIDO = !IS_INVERTIDO;
+                INV = !INV;
                 ZER = 1 - ZER;
                 ONE = 1 - ONE;
             } else if (keyCode == ' ') {            // CTRL-SPACE
                 ESTADO = "jogando";
                 ESTADO_JOGANDO = "sacando";
                 JOGO.add(new ArrayList<int[]>());
+            }
+        }
+    } else if (ESTADO.equals("terminado")) {
+        if (e.isControlDown() && !e.isAltDown()) {
+            if (keyCode == ' ') {                   // CTRL-SPACE
+                ESTADO = "ocioso";
+                JOGO = new ArrayList<ArrayList>();
             }
         }
     } else if (ESTADO.equals("jogando")) {
@@ -311,7 +315,6 @@ void draw () {
     {
         // SEQ
         case 1: {
-            IS_FIM       = false; // por causa do UNDO
             TEMPO_DESC   = int(campos[2]);
             break;
         }
@@ -324,7 +327,6 @@ void draw () {
         // END
         case 5: {
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
-            IS_FIM    = true;
             break;
         }
 
@@ -361,13 +363,14 @@ void draw_tudo (boolean is_end) {
     // TEMPO
     {
         int tempo = CONF_TEMPO-t;
-        if (tempo < 0) {
+        if (tempo <= 0) {
+            ESTADO = "terminado";
             tempo = 0;
         }
         String mins = nf(tempo / 60, 2);
         String segs = nf(tempo % 60, 2);
 
-        if (IS_FIM) {
+        if (tempo == 0) {
             fill(255,0,0);
         } else {
             fill(0);
@@ -401,7 +404,7 @@ void draw_tudo (boolean is_end) {
     text(VERSAO, width/2, 0);
 
     // INVERTIDO?
-    if (IS_INVERTIDO) {
+    if (INV) {
         text("inv", width/2, 30*dy);
     }
 
