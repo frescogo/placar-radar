@@ -1,5 +1,13 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
+// - total: equ/quedas
+// - is_deseq
+// - descanso
+// - voltar
+// - is_end / gravacao
+// - params
+// - RADAR
+
 import processing.serial.*;
 
 Serial   SERIAL;
@@ -8,6 +16,7 @@ JSONObject CONF;
 
 int      CONF_DISTANCIA;
 int      CONF_TEMPO;
+boolean  CONF_EQUILIBRIO;
 int      CONF_RECORDE;
 String[] CONF_NOMES = new String[3];
 
@@ -20,9 +29,7 @@ PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
 
-String   VERSAO       = "FrescoGO! r3.1.0";
-String   PARS         = "(?)";
-String   PARSS[]      = {};
+String   VERSAO = "FrescoGO! r3.1.0";
 
 String   ESTADO = "ocioso";
 int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
@@ -33,24 +40,13 @@ ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
 String   GRAVANDO_TS;
 
-String   DIST         = "?";
-
 boolean  IS_INVERTIDO = false;
 int      ZER          = 0;
 int      ONE          = 1;
 
-boolean  IS_FIM;
-boolean  EQUILIBRIO;
-int      TEMPO_DESC;
-int      PONTOS_TOTAL;
-int      GOLPES_TOT;
-int      IS_DESEQ;
-
-int      GOLPE_IDX;
-int      GOLPE_TMR = 0;
-
-int[]     ULTIMAS = new int[2];
-int[][]   JOGS    = new int[2][3];
+boolean  IS_FIM = false;
+int      TEMPO_DESC = 0;
+int      IS_DESEQ = 255;
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -60,6 +56,14 @@ float H;
 
 int conf_limite () {
     return CONF_TEMPO / 60 * 20;
+}
+
+String conf_pars () {
+    return "(?)";
+}
+
+int conf_quedas () {
+    return 800 * 60 / CONF_TEMPO;   // 8% / 60s
 }
 
 int tempo_jogado () {
@@ -81,14 +85,64 @@ int quedas () {
     return JOGO.size() + (ESTADO.equals("ocioso") ? 0 : -1);
 }
 
+int KMH (ArrayList<int[]> seq, int i) {
+    int[] cur = seq.get(i);
+    int kmh = cur[2];
+    if (kmh != 0) {
+        return kmh;
+    } else {
+        if (seq.size() < i+2) {
+            return 0;
+        } else {
+            int[] nxt = seq.get(i+1);
+            return 36 * CONF_DISTANCIA / (nxt[0] - cur[0]);
+        }
+    }
+}
+
+int[] jogador (int idx) {
+    IntList kmhs = new IntList();
+    for (int i=0; i<JOGO.size(); i++) {
+        ArrayList<int[]> seq = JOGO.get(i);
+        for (int j=0; j<seq.size(); j++) {
+            int[] golpe = seq.get(j);
+            if (golpe[1] == idx) {
+                int kmh = KMH(seq,j);
+                if (kmh >= 50) {
+                    kmhs.append(KMH(seq,j));
+                }
+            }
+        }
+    }
+    kmhs.sortReverse();
+    int N = min(conf_limite(),kmhs.size());
+    int sum = 0;
+    for (int i=0; i<N; i++) {
+        sum += kmhs.get(i);
+    }
+    int[] ret = { sum, kmhs.size(), sum*100/max(1,N) };
+    return ret;
+}
+
+int TOTAL (int[] jog0, int[] jog1) {
+    int p0   = jog0[0];
+    int p1   = jog1[0];
+    int avg  = (p0 + p1) / 2;
+    int min_ = min(avg, min(p0,p1)*110/100);
+    int pct  = quedas() * conf_quedas();
+    int pts  = (CONF_EQUILIBRIO ? min_ : avg);
+    return pts * (10000-pct) / 10000;
+}
+
 void setup () {
     CONF = loadJSONObject("conf.json");
-    CONF_DISTANCIA = CONF.getInt("distancia");
-    CONF_TEMPO     = CONF.getInt("tempo");
-    CONF_RECORDE   = CONF.getInt("recorde");
-    CONF_NOMES[0]  = CONF.getString("atleta1");
-    CONF_NOMES[1]  = CONF.getString("atleta2");
-    CONF_NOMES[2]  = CONF.getString("arbitro");
+    CONF_DISTANCIA  = CONF.getInt("distancia");
+    CONF_TEMPO      = CONF.getInt("tempo");
+    CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
+    CONF_RECORDE    = CONF.getInt("recorde");
+    CONF_NOMES[0]   = CONF.getString("atleta1");
+    CONF_NOMES[1]   = CONF.getString("atleta2");
+    CONF_NOMES[2]   = CONF.getString("arbitro");
 
     try {
         SERIAL = new Serial(this, Serial.list()[0], 9600);
@@ -129,19 +183,7 @@ void setup () {
     imageMode(CENTER);
     tint(255, 128);
 
-    zera();
-
     textFont(createFont("LiberationSans-Bold.ttf", 18));
-}
-
-void zera () {
-    IS_FIM       = false;
-    TEMPO_DESC   = 0;
-    PONTOS_TOTAL = 0;
-    GOLPES_TOT   = 0;
-    IS_DESEQ     = 255;
-
-    GOLPE_IDX    = 255;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -258,16 +300,6 @@ void draw () {
 
     switch (codigo)
     {
-        // RESTART
-        case 0: {
-            zera();
-            EQUILIBRIO   = int(campos[2]) == 1;
-            PARS         = campos[6];
-            PARSS        = match(PARS, "r(\\d+)/(\\d+)s/ata(\\d+)/equ\\d/cont\\d+/fim\\d+");
-
-            break;
-        }
-
         // SEQ
         case 1: {
             IS_FIM       = false; // por causa do UNDO
@@ -277,33 +309,13 @@ void draw () {
 
         // TICK
         case 3: {
-            PONTOS_TOTAL = int(campos[2]);
-            GOLPES_TOT   = int(campos[3]);
-            player(campos, 0, 4);
-            player(campos, 1, 4+4);
-            break;
-        }
-
-        // FALL
-        case 4: {
-            player(campos, 0, 2);
-            player(campos, 1, 2+4);
-            GOLPE_IDX     = 255;
-            ULTIMAS[0]    = 0;
-            ULTIMAS[1]    = 0;
             break;
         }
 
         // END
         case 5: {
-            player(campos, 0, 1);
-            player(campos, 1, 1+4);
             GRAVANDO  = 1;    // salva o jogo no frame seguinte
             IS_FIM    = true;
-            GOLPE_IDX = 255;
-            if (PONTOS_TOTAL > CONF_RECORDE) {
-                CONF_RECORDE = PONTOS_TOTAL;
-            }
             break;
         }
 
@@ -315,24 +327,18 @@ void draw () {
     }
 }
 
-void player (String[] campos, int p, int i) {
-    boolean is_beh = (int(campos[i++]) == 1) && (tempo_jogado() >= 30);
-    JOGS[p][0] = int(campos[i++]);  // pontos
-    JOGS[p][1] = int(campos[i++]);  // golpes
-    JOGS[p][2] = int(campos[i++]);  // media1
-
-    if (is_beh) {
-        IS_DESEQ = p;
-    } else if (IS_DESEQ == p) {
-        IS_DESEQ = 255;
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // DRAW
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw_tudo (boolean is_end) {
+    int[] jog0 = jogador(ZER);
+    int[] jog1 = jogador(ONE);
+    int total = TOTAL(jog0,jog1);
+    if (total > CONF_RECORDE) {
+        CONF_RECORDE = total;
+    }
+
     background(255,255,255);
 
     draw_logo(0*W, IMG1);
@@ -372,7 +378,7 @@ void draw_tudo (boolean is_end) {
         fill(150,150,150);
         textSize(12*dy);
         textAlign(CENTER, BOTTOM);
-        text(PARS, width/2, 3*H+10*dy);
+        text(conf_pars(), width/2, 3*H+10*dy);
     }
 
     // VERSAO
@@ -420,16 +426,14 @@ void draw_tudo (boolean is_end) {
                 if (millis() <= golpe[0]+1000) {
                     int kmh = golpe[2];
                     if (kmh == 0) {
-                        if (seq.size() < i+1) {
-                            kmh = 0;
-                        } else {
-                            int[] prev = seq.get(seq.size()-i-1);
-                            kmh = 36 * CONF_DISTANCIA / (golpe[0] - prev[0]);
-                        }
-                        if (idx == ONE) {
-                            draw_ultima(1.5*W, kmh);
-                        } else {
-                            draw_ultima(9.5*W, kmh);
+                        int xxx = seq.size() - i - 1;
+                        if (xxx >= 0) {
+                            kmh = KMH(seq, seq.size()-i-1);
+                            if (idx == ONE) {
+                                draw_ultima(1.5*W, kmh);
+                            } else {
+                                draw_ultima(9.5*W, kmh);
+                            }
                         }
                     } else {
                         if (idx == ZER) {
@@ -459,8 +463,8 @@ void draw_tudo (boolean is_end) {
         }
     }
 
-    draw_lado(1.5*W, JOGS[ZER]);
-    draw_lado(7.5*W, JOGS[ONE]);
+    draw_lado(1.5*W, jog0);
+    draw_lado(7.5*W, jog1);
 
     textSize(15*dy);
     fill(150,150,150);
@@ -500,7 +504,7 @@ void draw_tudo (boolean is_end) {
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // recorde
-        if (PONTOS_TOTAL > CONF_RECORDE) {
+        if (total > CONF_RECORDE) {
             fill(150,150,150);
         } else {
             fill(200,100,100);
@@ -515,10 +519,9 @@ void draw_tudo (boolean is_end) {
         fill(255);
         textSize(120*dy);
         textAlign(CENTER, CENTER);
-        text(PONTOS_TOTAL, width/2, 7*H);
+        text(total, width/2, 7*H);
     }
 
-    //draw_dist(4.5*W, DIST);
 
     if (is_end) {
         fill(255);
@@ -543,7 +546,7 @@ void draw_nome (float x, int idx, boolean ok) {
     //image(IMG1, x+1.5*W, 1*H);
     if (ok) {
         noStroke();
-        if (IS_DESEQ==idx && EQUILIBRIO) {
+        if (IS_DESEQ==idx && CONF_EQUILIBRIO) {
             fill(255, 0, 0);
             rect(x+3*dx, 2*H+2*dy, 4*W-6*dx, H-4*dy);
             fill(255);
@@ -558,15 +561,6 @@ void draw_nome (float x, int idx, boolean ok) {
     textAlign(CENTER, CENTER);
     text(nome, x+2*W, 2.5*H-10*dy);
 }
-
-/*
-void draw_dist (float x, String dist) {
-    fill(100,100,100);
-    textSize(25*dy);
-    textAlign(CENTER, BOTTOM);
-    text(dist, x, height);
-}
-*/
 
 void draw_ultima (float x, int kmh) {
     if (kmh == 0) {
