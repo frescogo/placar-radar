@@ -9,6 +9,7 @@
     - <https://freesound.org/people/pyzaist/sounds/118655/>
 - `undo.wav`
     - <https://freesound.org/people/FartBiscuit1700/sounds/368691/>
+    - <https://freesound.org/people/unadamlar/sounds/341985/>
 - `start.wav`
     - <https://freesound.org/people/passAirmangrace/sounds/340917/>
     - <https://freesound.org/people/austin1234575/sounds/213795/>
@@ -17,3 +18,9 @@
     - <https://freesound.org/people/lluiset7/sounds/141334/>
 - `restart.wav`
     - <https://freesound.org/people/unadamlar/sounds/476176/>
+- `laser.wav`
+    - <https://freesound.org/people/jobro/sounds/35686/>
+- `shot.mp3`
+    - <https://freesound.org/people/TROLlox_78/sounds/274119/>
+- `hit-01`
+    - <https://freesound.org/people/KeyKrusher/sounds/154953/>

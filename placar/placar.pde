@@ -1,6 +1,5 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
-// - som
 // - descanso
 // - params
 // - RADAR
@@ -8,7 +7,8 @@
 import processing.serial.*;
 import processing.sound.*;
 
-SoundFile[] SOUNDS = new SoundFile[8];
+SoundFile[] SNDS = new SoundFile[7];
+SoundFile[] HITS = new SoundFile[4];
 
 Serial   SERIAL;
 
@@ -37,14 +37,11 @@ String   ESTADO_JOGANDO;                // sacando, jogando
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 
-int      GRAVANDO     = 0;    // 0=nao, 1=screenshot, 2=serial
-String   GRAVANDO_TS;
-
 boolean  INV = false;
 int      ZER = 0;
 int      ONE = 1;
 
-int      TEMPO_DESC = 0;
+int      TEMPO_DESC = 0;    // TODO
 int      OLD_TEMPO = 0;
 
 float dy; // 0.001 height
@@ -161,14 +158,18 @@ void setup () {
     CONF_NOMES[1]   = CONF.getString("atleta2");
     CONF_NOMES[2]   = CONF.getString("arbitro");
 
-    SOUNDS[0] = new SoundFile(this,"fall.wav");
-    SOUNDS[1] = new SoundFile(this,"hit-00.mp3");
-    SOUNDS[2] = new SoundFile(this,"30s.wav");
-    SOUNDS[3] = new SoundFile(this,"finish.wav");
-    SOUNDS[4] = new SoundFile(this,"undo.wav");
-    SOUNDS[5] = new SoundFile(this,"start.wav");
-    SOUNDS[6] = new SoundFile(this,"behind.wav");
-    SOUNDS[7] = new SoundFile(this,"restart.wav");
+    SNDS[0] = new SoundFile(this,"fall.wav");
+    SNDS[1] = new SoundFile(this,"restart.wav");
+    SNDS[2] = new SoundFile(this,"30s.wav");
+    SNDS[3] = new SoundFile(this,"finish.wav");
+    SNDS[4] = new SoundFile(this,"undo.wav");
+    SNDS[5] = new SoundFile(this,"start.wav");
+    SNDS[6] = new SoundFile(this,"behind.wav");
+
+    HITS[0] = new SoundFile(this,"hit-00.mp3");
+    HITS[1] = new SoundFile(this,"hit-01.wav");
+    HITS[2] = new SoundFile(this,"hit-02.mp3");
+    HITS[3] = new SoundFile(this,"hit-03.wav");
 
     try {
         SERIAL = new Serial(this, Serial.list()[0], 9600);
@@ -212,6 +213,18 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 }
 
+void sound (int kmh) {
+    if (kmh < 50) {
+        HITS[0].play();
+    } else if (kmh < 65) {
+        HITS[1].play();
+    } else if (kmh < 80) {
+        HITS[2].play();
+    } else {
+        HITS[3].play();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // KEYBOARD
 ///////////////////////////////////////////////////////////////////////////////
@@ -245,7 +258,7 @@ void keyPressed (KeyEvent e) {
                 if (keyCode == 8) {                     // CTRL-ALT-BACKSPACE
                     if (JOGO.size() > 0) {
                         JOGO.remove(JOGO.size()-1);
-                        SOUNDS[4].play();
+                        SNDS[4].play();
                     }
                 }
             } else {
@@ -270,11 +283,11 @@ void keyPressed (KeyEvent e) {
                     ESTADO = "jogando";
                     ESTADO_JOGANDO = "sacando";
                     JOGO.add(new ArrayList<int[]>());
-                    SOUNDS[5].play();
+                    SNDS[5].play();
                 } else if (keyCode == 'R') {            // CTRL-R
                     ESTADO = "ocioso";
                     JOGO = new ArrayList<ArrayList>();
-                    SOUNDS[7].play();
+                    SNDS[1].play();
                 }
             }
         }
@@ -294,19 +307,24 @@ void keyPressed (KeyEvent e) {
             if (keyCode == 'R') {                       // CTRL-R
                 ESTADO = "ocioso";
                 JOGO = new ArrayList<ArrayList>();
-                SOUNDS[7].play();
+                SNDS[1].play();
             }
         }
     } else if (ESTADO.equals("jogando")) {
         if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
             ESTADO = "ocioso";                          // CTRL-ALT-SPACE
-            SOUNDS[0].play();
+            SNDS[0].play();
         } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
+            ESTADO_JOGANDO = "jogando";
             int idx = (keyCode == 37) ? ZER : ONE;
             int[] golpe = { millis(), idx, 0 };
-            JOGO.get(JOGO.size()-1).add(golpe);
-            ESTADO_JOGANDO = "jogando";
-            SOUNDS[1].play();
+            ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+            seq.add(golpe);
+            int kmh = 0;
+            if (seq.size() >= 2) {
+                kmh = KMH(seq, seq.size()-2);
+            }
+            sound(kmh);
         }
     }
 }
@@ -333,32 +351,7 @@ void draw () {
 
     String[] campos = split(linha, ";");
     int      codigo = int(campos[0]);
-
-    switch (codigo)
-    {
-        // SEQ
-        case 1: {
-            TEMPO_DESC   = int(campos[2]);
-            break;
-        }
-
-        // TICK
-        case 3: {
-            break;
-        }
-
-        // END
-        case 5: {
-            GRAVANDO  = 1;    // salva o jogo no frame seguinte
-            break;
-        }
-
-        // DESC
-        case 6: {
-            TEMPO_DESC = int(campos[1]);
-            break;
-        }
-    }
+    // TODO
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -425,13 +418,13 @@ void draw_tudo (boolean is_end) {
     {
         int tempo = CONF_TEMPO-t;
         if (OLD_TEMPO>5 && tempo<=5) {
-            SOUNDS[2].play();
+            SNDS[2].play();
         }
         OLD_TEMPO = tempo;
         if (tempo<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
             tempo = 0;
-            SOUNDS[3].play();
+            SNDS[3].play();
         }
         String mins = nf(tempo / 60, 2);
         String segs = nf(tempo % 60, 2);
