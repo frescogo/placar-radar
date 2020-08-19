@@ -15,6 +15,7 @@ JSONObject CONF;
 
 int      CONF_DISTANCIA;
 int      CONF_TEMPO;
+int      CONF_ATAQUES;
 boolean  CONF_EQUILIBRIO;
 int      CONF_RECORDE;
 String[] CONF_NOMES = new String[3];
@@ -57,8 +58,8 @@ String ns (String str, int n) {
     return str;
 }
 
-int conf_limite () {
-    return max(1, CONF_TEMPO * 20 / 60);
+int conf_ataques () {
+    return max(1, CONF_TEMPO * CONF_ATAQUES / 60 / 2);
 }
 
 String conf_pars () {
@@ -67,6 +68,10 @@ String conf_pars () {
 
 int conf_quedas () {
     return 800 * 60 / CONF_TEMPO;   // 8% / 60s
+}
+
+int conf_abort () {
+    return CONF_TEMPO / 15;         // 1 queda / 15s
 }
 
 int tempo_jogado () {
@@ -85,7 +90,11 @@ int tempo_jogado () {
 }
 
 int quedas () {
-    return JOGO.size() + (ESTADO.equals("jogando") ? -1 : 0);
+    if (ESTADO.equals("jogando")) {
+        return JOGO.size() - 1;
+    } else {
+        return JOGO.size();
+    }
 }
 
 int KMH (ArrayList<int[]> seq, int i) {
@@ -118,7 +127,7 @@ int[] jogador (int idx) {
         }
     }
     kmhs.sortReverse();
-    int N = min(conf_limite(),kmhs.size());
+    int N = min(conf_ataques(),kmhs.size());
     int sum = 0;
     for (int i=0; i<N; i++) {
         sum += kmhs.get(i);
@@ -149,8 +158,8 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 
 void setup () {
     surface.setTitle(VERSAO);
-    size(600, 300);
-    //size(1024, 768);
+    //size(600, 300);
+    size(1024, 768);
     //fullScreen();
 
     dy = 0.001 * height;
@@ -162,6 +171,7 @@ void setup () {
     CONF = loadJSONObject("conf.json");
     CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_TEMPO      = CONF.getInt("tempo");
+    CONF_ATAQUES    = CONF.getInt("ataques");
     CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = CONF.getString("atleta1");
@@ -316,8 +326,12 @@ void keyPressed (KeyEvent e) {
     } else if (ESTADO.equals("jogando")) {
         int now = millis();
 //println(keyCode);
-        if (e.isControlDown() && keyCode==40) {
+        if (e.isControlDown() && keyCode==40) { // CTRL-DOWN
             ESTADO = "ocioso";
+            if (quedas() >= conf_abort()) {
+                ESTADO = "terminando";
+                //JOGO.add(new ArrayList<int[]>());
+            }
             SNDS[0].play();
         } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
@@ -342,7 +356,7 @@ void keyPressed (KeyEvent e) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-    draw_tudo(false);
+    draw_tudo();
 
     if (SERIAL==null || SERIAL.available()==0) {
         return;
@@ -366,28 +380,32 @@ void draw () {
 // DRAW
 ///////////////////////////////////////////////////////////////////////////////
 
-void draw_tudo (boolean is_end) {
+void draw_tudo () {
     int[] jog0  = jogador(ZER);
     int[] jog1  = jogador(ONE);
     int[] total = TOTAL(jog0,jog1);
 
     if (ESTADO == "terminando") {
         ESTADO = "terminado";
+        SNDS[3].play();
+        if (total[0] > CONF_RECORDE) {
+            CONF_RECORDE = total[0];
+        }
         String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
                        + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
+        draw_tudo();
         saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
-        draw_tudo(true);
 
         String out = ns("Data:",    15) + ts + "\n"
                    //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
                    + "\n"
                    + ns(CONF_NOMES[0]+":",15) +
                      jog0[0] + " pontos = " +
-                     min(conf_limite(),jog0[1]) + " atas X " +
+                     min(conf_ataques(),jog0[1]) + " atas X " +
                      nf(jog0[2]/100,2) + "." + nf(jog0[2]%100,2) + " km/h" + "\n"
                    + ns(CONF_NOMES[1]+":",15) +
                      jog1[0] + " pontos = " +
-                     min(conf_limite(),jog1[1]) + " atas X " +
+                     min(conf_ataques(),jog1[1]) + " atas X " +
                      nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
                    + "\n"
                    + ns("Descanso:", 15) + (TEMPO_DESCANSO/1000) + "\n"
@@ -415,10 +433,8 @@ void draw_tudo (boolean is_end) {
     draw_logo(0*W, IMG1);
     draw_logo(7*W, IMG2);
 
-    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER),
-              ESTADO_DIGITANDO==ZER);
-    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE),
-              ESTADO_DIGITANDO==ONE);
+    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER), ESTADO_DIGITANDO==ZER);
+    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE), ESTADO_DIGITANDO==ONE);
 
     // TEMPO
     {
@@ -429,15 +445,11 @@ void draw_tudo (boolean is_end) {
         OLD_TEMPO_RESTANTE = tempo_restante;
         if (tempo_restante<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
-            SNDS[3].play();
-            if (total[0] > CONF_RECORDE) {
-                CONF_RECORDE = total[0];
-            }
         }
         String mins = nf(tempo_restante / 60, 2);
         String segs = nf(tempo_restante % 60, 2);
 
-        if (tempo_restante == 0) {
+        if (ESTADO.equals("terminado")) {
             fill(255,0,0);
         } else {
             fill(0);
@@ -609,14 +621,6 @@ void draw_tudo (boolean is_end) {
         textAlign(CENTER, CENTER);
         text(total[0], width/2, 7*H);
     }
-
-
-    if (is_end) {
-        fill(255);
-        textSize(50*dy);
-        textAlign(CENTER, CENTER);
-        text("Aguarde...", width/2, 0.35*H);
-    }
 }
 
 void draw_logo (float x, PImage img) {
@@ -681,7 +685,7 @@ void draw_lado (float x, int[] jog) {
     text(jog[2]/100, x+W, 6.5*H);         // media1
     text(jog[0], x+W, 7.5*H);             // pontos
 
-    if (jog[1] >= conf_limite()) {        // golpes vs limite
+    if (jog[1] >= conf_ataques()) {        // golpes vs limite
         fill(255,0,0);
     }
     text(jog[1], x+W, 5.5*H);             // golpes
@@ -689,7 +693,7 @@ void draw_lado (float x, int[] jog) {
     textSize(20*dy);
     float w1 = textWidth(str(jog[1]));    // golpes
     textAlign(TOP, LEFT);
-    text("/"+conf_limite(), x+W+w1+10*dx, 5.5*H+30*dy);  // limite
+    text("/"+conf_ataques(), x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);

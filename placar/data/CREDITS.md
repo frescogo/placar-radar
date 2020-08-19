@@ -3,9 +3,9 @@
 - `hit-00.mp3`
     - <https://freesound.org/people/zgump/sounds/83539/>
 - `30s.wav`
+    - <https://freesound.org/people/gurie/sounds/368780/>
     - <https://freesound.org/people/Leszek_Szary/sounds/146731/>
     - <https://freesound.org/people/andersmmg/sounds/511492/>
-    - <https://freesound.org/people/gurie/sounds/368780/>
 - `finish.wav`
     - <https://freesound.org/people/pyzaist/sounds/118655/>
 - `undo.wav`
