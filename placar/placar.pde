@@ -30,9 +30,9 @@ PImage   IMG_DESCANSO;
 
 String   VERSAO = "FrescoGO! 3.1.0";
 
-String   ESTADO = "ocioso";             // ocioso, jogando, terminando, terminado
-int      ESTADO_OCIOSO_DIGITANDO = 255; // 0=esq, 1=dir, 2=arbitro
-String   ESTADO_JOGANDO;                // sacando, jogando
+String   ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
+int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
+String   ESTADO_JOGANDO;            // sacando, jogando
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 
@@ -85,7 +85,7 @@ int tempo_jogado () {
 }
 
 int quedas () {
-    return JOGO.size() + (ESTADO.equals("ocioso") ? 0 : -1);
+    return JOGO.size() + (ESTADO.equals("jogando") ? -1 : 0);
 }
 
 int KMH (ArrayList<int[]> seq, int i) {
@@ -244,7 +244,8 @@ int ctrl (char key) {
 void trata_nome (int idx, String json) {
     if (key==ENTER || key==RETURN) {
         CONF.setString(json, CONF_NOMES[idx]);
-        ESTADO_OCIOSO_DIGITANDO = 255;
+        ESTADO_DIGITANDO = 255;
+        ESTADO = "ocioso";
     } else if (key==BACKSPACE) {
         if (CONF_NOMES[idx].length() > 0) {
             CONF_NOMES[idx] = CONF_NOMES[idx].substring(0, CONF_NOMES[idx].length()-1);
@@ -262,43 +263,40 @@ void keyPressed (KeyEvent e) {
 
     if (ESTADO.equals("ocioso")) {
         if (e.isControlDown()) {
-            if (e.isAltDown()) {
-                if (keyCode == 8) {                     // CTRL-ALT-BACKSPACE
-                    if (JOGO.size() > 0) {
-                        JOGO.remove(JOGO.size()-1);
-                        SNDS[4].play();
-                    }
+            if (keyCode == '0') {               // CTRL-0
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 2;
+                CONF_NOMES[2] = "";
+            } else if (keyCode == '1') {        // CTRL-1
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 0;
+                CONF_NOMES[0] = "";
+            } else if (keyCode == '2') {        // CTRL-2
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 1;
+                CONF_NOMES[1] = "";
+            } else if (keyCode == 'I') {        // CTRL-I
+                INV = !INV;
+                ZER = 1 - ZER;
+                ONE = 1 - ONE;
+
+            } else if (keyCode == 38) {         // CTRL-UP
+                ESTADO = "jogando";
+                ESTADO_JOGANDO = "sacando";
+                TEMPO_DESCANSO_INICIO = millis();
+                JOGO.add(new ArrayList<int[]>());
+                SNDS[5].play();
+            } else if (keyCode == 8) {          // CTRL-BACKSPACE
+                if (JOGO.size() > 0) {
+                    JOGO.remove(JOGO.size()-1);
+                    SNDS[4].play();
                 }
-            } else {
-//println(keyCode);
-                if (ESTADO_OCIOSO_DIGITANDO == 255) {
-                    if (keyCode == '1') {               // CTRL-1
-                        ESTADO_OCIOSO_DIGITANDO = 0;
-                        CONF_NOMES[0] = "";
-                    } else if (keyCode == '2') {        // CTRL-2
-                        ESTADO_OCIOSO_DIGITANDO = 1;
-                        CONF_NOMES[1] = "";
-                    } else if (keyCode == '0') {        // CTRL-0
-                        ESTADO_OCIOSO_DIGITANDO = 2;
-                        CONF_NOMES[2] = "";
-                    }
-                }
-                if (keyCode == 'I') {                   // CTRL-I
-                    INV = !INV;
-                    ZER = 1 - ZER;
-                    ONE = 1 - ONE;
-                } else if (keyCode == ' ') {            // CTRL-SPACE
-                    ESTADO = "jogando";
-                    ESTADO_JOGANDO = "sacando";
-                    TEMPO_DESCANSO_INICIO = millis();
-                    JOGO.add(new ArrayList<int[]>());
-                    SNDS[5].play();
-                } else if (keyCode == 'R') {            // CTRL-R
-                    reinicio();
-                }
+            } else if (keyCode == 'R') {        // CTRL-R
+                reinicio();
             }
         }
-        switch (ESTADO_OCIOSO_DIGITANDO) {
+    } else if (ESTADO.equals("digitando")) {
+        switch (ESTADO_DIGITANDO) {
             case 0: // DIGITANDO ESQ
                 trata_nome(0, "atleta1");
                 break;
@@ -311,16 +309,17 @@ void keyPressed (KeyEvent e) {
         }
     } else if (ESTADO.equals("terminado")) {
         if (e.isControlDown() && !e.isAltDown()) {
-            if (keyCode == 'R') {                       // CTRL-R
+            if (keyCode == 'R') {               // CTRL-R
                 reinicio();
             }
         }
     } else if (ESTADO.equals("jogando")) {
         int now = millis();
-        if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
-            ESTADO = "ocioso";                          // CTRL-ALT-SPACE
+//println(keyCode);
+        if (e.isControlDown() && keyCode==40) {
+            ESTADO = "ocioso";
             SNDS[0].play();
-        } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
+        } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
                 TEMPO_DESCANSO += max(0, now-TEMPO_DESCANSO_INICIO-5000);
@@ -417,9 +416,9 @@ void draw_tudo (boolean is_end) {
     draw_logo(7*W, IMG2);
 
     draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER),
-              ESTADO_OCIOSO_DIGITANDO==ZER);
+              ESTADO_DIGITANDO==ZER);
     draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE),
-              ESTADO_OCIOSO_DIGITANDO==ONE);
+              ESTADO_DIGITANDO==ONE);
 
     // TEMPO
     {
@@ -580,7 +579,7 @@ void draw_tudo (boolean is_end) {
 
         // juiz
         String nome = CONF_NOMES[2];
-        if (ESTADO_OCIOSO_DIGITANDO != 2) {
+        if (ESTADO_DIGITANDO != 2) {
             fill(150,150,150);
         } else {
             fill(255,0,0);
