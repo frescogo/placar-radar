@@ -149,8 +149,8 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 
 void setup () {
     surface.setTitle(VERSAO);
-    //size(640, 480);
-    size(1024, 768);
+    size(640, 480);
+    //size(1024, 768);
     //fullScreen();
 
     dy = 0.001 * height;
@@ -391,8 +391,9 @@ void draw_tudo (boolean is_end) {
                      min(conf_limite(),jog1[1]) + " atas X " +
                      nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
                    + "\n"
-                   + ns("Quedas:",  15) + quedas() + "\n"
-                   + ns("Total:",   15) + total[0] + " pontos\n"
+                   + ns("Descanso:", 15) + (TEMPO_DESCANSO/1000) + "\n"
+                   + ns("Quedas:",   15) + quedas() + "\n"
+                   + ns("Total:",    15) + total[0] + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
@@ -408,9 +409,6 @@ void draw_tudo (boolean is_end) {
         saveStrings(name, outs);
     }
 
-    if (total[0] > CONF_RECORDE) {
-        CONF_RECORDE = total[0];
-    }
     int t = tempo_jogado();
 
     background(255,255,255);
@@ -426,7 +424,7 @@ void draw_tudo (boolean is_end) {
     // TEMPO
     {
         int tempo_restante = CONF_TEMPO-t;
-        if (OLD_TEMPO_RESTANTE>5 && tempo_restante<=5) {
+        if (OLD_TEMPO_RESTANTE>30 && tempo_restante<=30) {
             SNDS[2].play();
         }
         OLD_TEMPO_RESTANTE = tempo_restante;
@@ -434,6 +432,9 @@ void draw_tudo (boolean is_end) {
             ESTADO = "terminando";
             tempo_restante = 0;
             SNDS[3].play();
+            if (total[0] > CONF_RECORDE) {
+                CONF_RECORDE = total[0];
+            }
         }
         String mins = nf(tempo_restante / 60, 2);
         String segs = nf(tempo_restante % 60, 2);
