@@ -149,7 +149,7 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 
 void setup () {
     surface.setTitle(VERSAO);
-    size(640, 480);
+    size(600, 300);
     //size(1024, 768);
     //fullScreen();
 
@@ -423,14 +423,13 @@ void draw_tudo (boolean is_end) {
 
     // TEMPO
     {
-        int tempo_restante = CONF_TEMPO-t;
+        int tempo_restante = max(0, CONF_TEMPO-t);
         if (OLD_TEMPO_RESTANTE>30 && tempo_restante<=30) {
             SNDS[2].play();
         }
         OLD_TEMPO_RESTANTE = tempo_restante;
         if (tempo_restante<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
-            tempo_restante = 0;
             SNDS[3].play();
             if (total[0] > CONF_RECORDE) {
                 CONF_RECORDE = total[0];
