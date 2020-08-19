@@ -6,6 +6,9 @@
 // - RADAR
 
 import processing.serial.*;
+import processing.sound.*;
+
+SoundFile[] SOUNDS = new SoundFile[8];
 
 Serial   SERIAL;
 
@@ -28,9 +31,9 @@ PImage   IMG_DESCANSO;
 
 String   VERSAO = "FrescoGO! r3.1.0";
 
-String   ESTADO = "ocioso";         // ocioso, jogando, terminado
-int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
-String   ESTADO_JOGANDO;            // sacando, jogando
+String   ESTADO = "ocioso";             // ocioso, jogando, terminando, terminado
+int      ESTADO_OCIOSO_DIGITANDO = 255; // 0=esq, 1=dir, 2=arbitro
+String   ESTADO_JOGANDO;                // sacando, jogando
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
 
@@ -42,6 +45,7 @@ int      ZER = 0;
 int      ONE = 1;
 
 int      TEMPO_DESC = 0;
+int      OLD_TEMPO = 0;
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -157,6 +161,15 @@ void setup () {
     CONF_NOMES[1]   = CONF.getString("atleta2");
     CONF_NOMES[2]   = CONF.getString("arbitro");
 
+    SOUNDS[0] = new SoundFile(this,"fall.wav");
+    SOUNDS[1] = new SoundFile(this,"hit-00.mp3");
+    SOUNDS[2] = new SoundFile(this,"30s.wav");
+    SOUNDS[3] = new SoundFile(this,"finish.wav");
+    SOUNDS[4] = new SoundFile(this,"undo.wav");
+    SOUNDS[5] = new SoundFile(this,"start.wav");
+    SOUNDS[6] = new SoundFile(this,"behind.wav");
+    SOUNDS[7] = new SoundFile(this,"restart.wav");
+
     try {
         SERIAL = new Serial(this, Serial.list()[0], 9600);
     } catch (RuntimeException e) {
@@ -210,7 +223,7 @@ int ctrl (char key) {
 void trata_nome (int idx, String json) {
     if (key==ENTER || key==RETURN) {
         CONF.setString(json, CONF_NOMES[idx]);
-        ESTADO = "ocioso";
+        ESTADO_OCIOSO_DIGITANDO = 255;
     } else if (key==BACKSPACE) {
         if (CONF_NOMES[idx].length() > 0) {
             CONF_NOMES[idx] = CONF_NOMES[idx].substring(0, CONF_NOMES[idx].length()-1);
@@ -222,29 +235,34 @@ void trata_nome (int idx, String json) {
 }
 
 void keyPressed (KeyEvent e) {
+    if (key==ESC && !e.isControlDown()) {
+        key = 0;
+    }
+
     if (ESTADO.equals("ocioso")) {
         if (e.isControlDown()) {
             if (e.isAltDown()) {
-                //println(keyCode);
                 if (keyCode == 8) {                     // CTRL-ALT-BACKSPACE
                     if (JOGO.size() > 0) {
                         JOGO.remove(JOGO.size()-1);
+                        SOUNDS[4].play();
                     }
                 }
             } else {
-                if (keyCode == '1') {                   // CTRL-1
-                    ESTADO = "digitando";
-                    ESTADO_DIGITANDO = 0;
-                    CONF_NOMES[0] = "";
-                } else if (keyCode == '2') {            // CTRL-2
-                    ESTADO = "digitando";
-                    ESTADO_DIGITANDO = 1;
-                    CONF_NOMES[1] = "";
-                } else if (keyCode == '0') {            // CTRL-0
-                    ESTADO = "digitando";
-                    ESTADO_DIGITANDO = 2;
-                    CONF_NOMES[2] = "";
-                } else if (keyCode == 'i') {            // CTRL-I
+//println(keyCode);
+                if (ESTADO_OCIOSO_DIGITANDO == 255) {
+                    if (keyCode == '1') {               // CTRL-1
+                        ESTADO_OCIOSO_DIGITANDO = 0;
+                        CONF_NOMES[0] = "";
+                    } else if (keyCode == '2') {        // CTRL-2
+                        ESTADO_OCIOSO_DIGITANDO = 1;
+                        CONF_NOMES[1] = "";
+                    } else if (keyCode == '0') {        // CTRL-0
+                        ESTADO_OCIOSO_DIGITANDO = 2;
+                        CONF_NOMES[2] = "";
+                    }
+                }
+                if (keyCode == 'I') {                   // CTRL-I
                     INV = !INV;
                     ZER = 1 - ZER;
                     ONE = 1 - ONE;
@@ -252,27 +270,15 @@ void keyPressed (KeyEvent e) {
                     ESTADO = "jogando";
                     ESTADO_JOGANDO = "sacando";
                     JOGO.add(new ArrayList<int[]>());
+                    SOUNDS[5].play();
+                } else if (keyCode == 'R') {            // CTRL-R
+                    ESTADO = "ocioso";
+                    JOGO = new ArrayList<ArrayList>();
+                    SOUNDS[7].play();
                 }
             }
         }
-    } else if (ESTADO.equals("terminado")) {
-        if (e.isControlDown() && !e.isAltDown()) {
-            if (keyCode == ' ') {                   // CTRL-SPACE
-                ESTADO = "ocioso";
-                JOGO = new ArrayList<ArrayList>();
-            }
-        }
-    } else if (ESTADO.equals("jogando")) {
-        if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
-            ESTADO = "ocioso";                          // CTRL-ALT-SPACE
-        } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
-            int idx = (keyCode == 37) ? ZER : ONE;
-            int[] golpe = { millis(), idx, 0 };
-            JOGO.get(JOGO.size()-1).add(golpe);
-            ESTADO_JOGANDO = "jogando";
-        }
-    } else if (ESTADO.equals("digitando")) {
-        switch (ESTADO_DIGITANDO) {
+        switch (ESTADO_OCIOSO_DIGITANDO) {
             case 0: // DIGITANDO ESQ
                 trata_nome(0, "atleta1");
                 break;
@@ -282,6 +288,25 @@ void keyPressed (KeyEvent e) {
             case 2: // DIGITANDO ARBITRO
                 trata_nome(2, "arbitro");
                 break;
+        }
+    } else if (ESTADO.equals("terminado")) {
+        if (e.isControlDown() && !e.isAltDown()) {
+            if (keyCode == 'R') {                       // CTRL-R
+                ESTADO = "ocioso";
+                JOGO = new ArrayList<ArrayList>();
+                SOUNDS[7].play();
+            }
+        }
+    } else if (ESTADO.equals("jogando")) {
+        if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
+            ESTADO = "ocioso";                          // CTRL-ALT-SPACE
+            SOUNDS[0].play();
+        } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
+            int idx = (keyCode == 37) ? ZER : ONE;
+            int[] golpe = { millis(), idx, 0 };
+            JOGO.get(JOGO.size()-1).add(golpe);
+            ESTADO_JOGANDO = "jogando";
+            SOUNDS[1].play();
         }
     }
 }
@@ -391,15 +416,22 @@ void draw_tudo (boolean is_end) {
     draw_logo(0*W, IMG1);
     draw_logo(7*W, IMG2);
 
-    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER), ESTADO_DIGITANDO!=ZER);
-    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE), ESTADO_DIGITANDO!=ONE);
+    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER),
+              ESTADO_OCIOSO_DIGITANDO==ZER);
+    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE),
+              ESTADO_OCIOSO_DIGITANDO==ONE);
 
     // TEMPO
     {
         int tempo = CONF_TEMPO-t;
+        if (OLD_TEMPO>5 && tempo<=5) {
+            SOUNDS[2].play();
+        }
+        OLD_TEMPO = tempo;
         if (tempo<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
             tempo = 0;
+            SOUNDS[3].play();
         }
         String mins = nf(tempo / 60, 2);
         String segs = nf(tempo % 60, 2);
@@ -540,7 +572,7 @@ void draw_tudo (boolean is_end) {
 
         // juiz
         String nome = CONF_NOMES[2];
-        if (ESTADO_DIGITANDO != 2) {
+        if (ESTADO_OCIOSO_DIGITANDO != 2) {
             fill(150,150,150);
         } else {
             fill(255,0,0);
@@ -587,13 +619,16 @@ void draw_logo (float x, PImage img) {
     image(img, x+2*W, H);
 }
 
-void draw_nome (float x, int idx, boolean beh, boolean ok) {
+void draw_nome (float x, int idx, boolean beh, boolean digitando) {
     String nome = CONF_NOMES[idx];
     stroke(0);
     fill(255);
     rect(x, 2*H, 4*W, H);
     //image(IMG1, x+1.5*W, 1*H);
-    if (ok) {
+    if (digitando) {
+        nome = nome + "_";
+        fill(255, 0, 0);
+    } else {
         noStroke();
         if (beh) {
             fill(255, 0, 0);
@@ -602,9 +637,6 @@ void draw_nome (float x, int idx, boolean beh, boolean ok) {
         } else {
             fill(00);
         }
-    } else {
-        nome = nome + "_";
-        fill(255, 0, 0);
     }
     textSize(60*dy);
     textAlign(CENTER, CENTER);
