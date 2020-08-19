@@ -28,7 +28,7 @@ PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
 
-String   VERSAO = "FrescoGO! r3.1.0";
+String   VERSAO = "FrescoGO! 3.1.0";
 
 String   ESTADO = "ocioso";             // ocioso, jogando, terminando, terminado
 int      ESTADO_OCIOSO_DIGITANDO = 255; // 0=esq, 1=dir, 2=arbitro
