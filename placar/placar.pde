@@ -1,6 +1,5 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
-// - descanso
 // - params
 // - RADAR
 
@@ -41,8 +40,8 @@ boolean  INV = false;
 int      ZER = 0;
 int      ONE = 1;
 
-int      TEMPO_DESC = 0;    // TODO
-int      OLD_TEMPO = 0;
+int TEMPO_DESCANSO, TEMPO_DESCANSO_INICIO;
+int OLD_TEMPO_RESTANTE;
 
 float dy; // 0.001 height
 float dx; // 0.001 width
@@ -149,6 +148,17 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 }
 
 void setup () {
+    surface.setTitle(VERSAO);
+    //size(640, 480);
+    size(1024, 768);
+    //fullScreen();
+
+    dy = 0.001 * height;
+    dx = 0.001 * width;
+
+    W = width  / 11.0;
+    H = height /  8.0;
+
     CONF = loadJSONObject("conf.json");
     CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_TEMPO      = CONF.getInt("tempo");
@@ -171,24 +181,6 @@ void setup () {
     HITS[2] = new SoundFile(this,"hit-02.mp3");
     HITS[3] = new SoundFile(this,"hit-03.wav");
 
-    try {
-        SERIAL = new Serial(this, Serial.list()[0], 9600);
-    } catch (RuntimeException e) {
-        println("Erro na comunicação com o radar...");
-        //exit();
-    }
-
-    surface.setTitle(VERSAO);
-    //size(640, 480);
-    size(1024, 768);
-    //fullScreen();
-
-    dy = 0.001 * height;
-    dx = 0.001 * width;
-
-    W = width  / 11.0;
-    H = height /  8.0;
-
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
     IMG_SPEED    = loadImage("speed-03.png");
@@ -209,8 +201,16 @@ void setup () {
 
     imageMode(CENTER);
     tint(255, 128);
-
     textFont(createFont("LiberationSans-Bold.ttf", 18));
+
+    try {
+        SERIAL = new Serial(this, Serial.list()[0], 9600);
+    } catch (RuntimeException e) {
+        println("Erro na comunicação com o radar...");
+        //exit();
+    }
+
+    reinicio();
 }
 
 void sound (int kmh) {
@@ -223,6 +223,14 @@ void sound (int kmh) {
     } else {
         HITS[3].play();
     }
+}
+
+void reinicio () {
+    ESTADO = "ocioso";
+    JOGO = new ArrayList<ArrayList>();
+    TEMPO_DESCANSO = 0;
+    OLD_TEMPO_RESTANTE = CONF_TEMPO;
+    SNDS[1].play();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -282,12 +290,11 @@ void keyPressed (KeyEvent e) {
                 } else if (keyCode == ' ') {            // CTRL-SPACE
                     ESTADO = "jogando";
                     ESTADO_JOGANDO = "sacando";
+                    TEMPO_DESCANSO_INICIO = millis();
                     JOGO.add(new ArrayList<int[]>());
                     SNDS[5].play();
                 } else if (keyCode == 'R') {            // CTRL-R
-                    ESTADO = "ocioso";
-                    JOGO = new ArrayList<ArrayList>();
-                    SNDS[1].play();
+                    reinicio();
                 }
             }
         }
@@ -305,19 +312,21 @@ void keyPressed (KeyEvent e) {
     } else if (ESTADO.equals("terminado")) {
         if (e.isControlDown() && !e.isAltDown()) {
             if (keyCode == 'R') {                       // CTRL-R
-                ESTADO = "ocioso";
-                JOGO = new ArrayList<ArrayList>();
-                SNDS[1].play();
+                reinicio();
             }
         }
     } else if (ESTADO.equals("jogando")) {
+        int now = millis();
         if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
             ESTADO = "ocioso";                          // CTRL-ALT-SPACE
             SNDS[0].play();
         } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
-            ESTADO_JOGANDO = "jogando";
+            if (ESTADO_JOGANDO.equals("sacando")) {
+                ESTADO_JOGANDO = "jogando";
+                TEMPO_DESCANSO += max(0, now-TEMPO_DESCANSO_INICIO-5000);
+            }
             int idx = (keyCode == 37) ? ZER : ONE;
-            int[] golpe = { millis(), idx, 0 };
+            int[] golpe = { now, idx, 0 };
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
             seq.add(golpe);
             int kmh = 0;
@@ -416,20 +425,20 @@ void draw_tudo (boolean is_end) {
 
     // TEMPO
     {
-        int tempo = CONF_TEMPO-t;
-        if (OLD_TEMPO>5 && tempo<=5) {
+        int tempo_restante = CONF_TEMPO-t;
+        if (OLD_TEMPO_RESTANTE>5 && tempo_restante<=5) {
             SNDS[2].play();
         }
-        OLD_TEMPO = tempo;
-        if (tempo<=0 && ESTADO=="jogando") {
+        OLD_TEMPO_RESTANTE = tempo_restante;
+        if (tempo_restante<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
-            tempo = 0;
+            tempo_restante = 0;
             SNDS[3].play();
         }
-        String mins = nf(tempo / 60, 2);
-        String segs = nf(tempo % 60, 2);
+        String mins = nf(tempo_restante / 60, 2);
+        String segs = nf(tempo_restante % 60, 2);
 
-        if (tempo == 0) {
+        if (tempo_restante == 0) {
             fill(255,0,0);
         } else {
             fill(0);
@@ -441,11 +450,17 @@ void draw_tudo (boolean is_end) {
         textAlign(CENTER, CENTER);
         text(mins+":"+segs, width/2, 1.25*H-10*dy);
 
+        int descanso = TEMPO_DESCANSO;
+        if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
+            descanso += max(0, millis()-TEMPO_DESCANSO_INICIO-5000);
+        }
+        descanso /= 1000;
+
         fill(150,150,150);
         textSize(25*dy);
         textAlign(CENTER, CENTER);
-        text(TEMPO_DESC+" s", width/2, 2.25*H);
-        float w = textWidth(TEMPO_DESC+" s");
+        text(descanso+" s", width/2, 2.25*H);
+        float w = textWidth(descanso+" s");
         image(IMG_DESCANSO, width/2-w-15*dx, 2.25*H);
 
         // params

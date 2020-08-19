@@ -5,6 +5,7 @@
 - `30s.wav`
     - <https://freesound.org/people/Leszek_Szary/sounds/146731/>
     - <https://freesound.org/people/andersmmg/sounds/511492/>
+    - <https://freesound.org/people/gurie/sounds/368780/>
 - `finish.wav`
     - <https://freesound.org/people/pyzaist/sounds/118655/>
 - `undo.wav`
@@ -16,6 +17,7 @@
 - `behind.wav`
     - <https://freesound.org/people/rakkarage/sounds/516905/>
     - <https://freesound.org/people/lluiset7/sounds/141334/>
+    - <https://freesound.org/people/Raclure/sounds/483598/>
 - `restart.wav`
     - <https://freesound.org/people/unadamlar/sounds/476176/>
 - `laser.wav`
