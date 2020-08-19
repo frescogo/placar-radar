@@ -1,5 +1,6 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
+// - som
 // - descanso
 // - params
 // - RADAR
