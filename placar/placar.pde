@@ -1,8 +1,6 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
 // - descanso
-// - voltar
-// - is_end / gravacao
 // - params
 // - RADAR
 
@@ -50,8 +48,16 @@ float dx; // 0.001 width
 float W;
 float H;
 
+String ns (String str, int n) {
+    int len = str.length();
+    for (int i=0; i<n-len; i++) {
+        str += " ";
+    }
+    return str;
+}
+
 int conf_limite () {
-    return CONF_TEMPO / 60 * 20;
+    return max(1, CONF_TEMPO * 20 / 60);
 }
 
 String conf_pars () {
@@ -216,28 +222,36 @@ void trata_nome (int idx, String json) {
 
 void keyPressed (KeyEvent e) {
     if (ESTADO.equals("ocioso")) {
-        if (e.isControlDown() && !e.isAltDown()) {
-            //println(keyCode);
-            if (keyCode == '1') {                   // CTRL-1
-                ESTADO = "digitando";
-                ESTADO_DIGITANDO = 0;
-                CONF_NOMES[0] = "";
-            } else if (keyCode == '2') {            // CTRL-2
-                ESTADO = "digitando";
-                ESTADO_DIGITANDO = 1;
-                CONF_NOMES[1] = "";
-            } else if (keyCode == '0') {            // CTRL-0
-                ESTADO = "digitando";
-                ESTADO_DIGITANDO = 2;
-                CONF_NOMES[2] = "";
-            } else if (keyCode == 'i') {            // CTRL-I
-                INV = !INV;
-                ZER = 1 - ZER;
-                ONE = 1 - ONE;
-            } else if (keyCode == ' ') {            // CTRL-SPACE
-                ESTADO = "jogando";
-                ESTADO_JOGANDO = "sacando";
-                JOGO.add(new ArrayList<int[]>());
+        if (e.isControlDown()) {
+            if (e.isAltDown()) {
+                //println(keyCode);
+                if (keyCode == 8) {                     // CTRL-ALT-BACKSPACE
+                    if (JOGO.size() > 0) {
+                        JOGO.remove(JOGO.size()-1);
+                    }
+                }
+            } else {
+                if (keyCode == '1') {                   // CTRL-1
+                    ESTADO = "digitando";
+                    ESTADO_DIGITANDO = 0;
+                    CONF_NOMES[0] = "";
+                } else if (keyCode == '2') {            // CTRL-2
+                    ESTADO = "digitando";
+                    ESTADO_DIGITANDO = 1;
+                    CONF_NOMES[1] = "";
+                } else if (keyCode == '0') {            // CTRL-0
+                    ESTADO = "digitando";
+                    ESTADO_DIGITANDO = 2;
+                    CONF_NOMES[2] = "";
+                } else if (keyCode == 'i') {            // CTRL-I
+                    INV = !INV;
+                    ZER = 1 - ZER;
+                    ONE = 1 - ONE;
+                } else if (keyCode == ' ') {            // CTRL-SPACE
+                    ESTADO = "jogando";
+                    ESTADO_JOGANDO = "sacando";
+                    JOGO.add(new ArrayList<int[]>());
+                }
             }
         }
     } else if (ESTADO.equals("terminado")) {
@@ -249,8 +263,8 @@ void keyPressed (KeyEvent e) {
         }
     } else if (ESTADO.equals("jogando")) {
         if (e.isControlDown() && e.isAltDown() && keyCode==' ') {
-            ESTADO = "ocioso";
-        } else if (keyCode==37 || keyCode==39) {       // CTRL-<>
+            ESTADO = "ocioso";                          // CTRL-ALT-SPACE
+        } else if (keyCode==37 || keyCode==39) {        // CTRL-<>
             int idx = (keyCode == 37) ? ZER : ONE;
             int[] golpe = { millis(), idx, 0 };
             JOGO.get(JOGO.size()-1).add(golpe);
@@ -277,23 +291,6 @@ void keyPressed (KeyEvent e) {
 
 void draw () {
     draw_tudo(false);
-
-    // grava em 2 passos: primeiro tira foto e redesenha "Aguarde...", depois grava o relatorio
-    if (GRAVANDO == 1) {
-        GRAVANDO_TS = "" + year() + nf(month(),2) + nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
-        saveFrame("relatorios/frescogo-"+GRAVANDO_TS+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
-        draw_tudo(true);
-        GRAVANDO = 2;
-        return;
-    } else if (GRAVANDO == 2) {
-        delay(1000);
-        SERIAL.write("relatorio\n");
-        delay(35000);
-        byte[] LOG = new byte[32768];
-        LOG = SERIAL.readBytes();
-        saveBytes("relatorios/frescogo-"+GRAVANDO_TS+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt", LOG);
-        GRAVANDO = 0;
-    }
 
     if (SERIAL==null || SERIAL.available()==0) {
         return;
@@ -347,6 +344,42 @@ void draw_tudo (boolean is_end) {
     int[] jog1  = jogador(ONE);
     int[] total = TOTAL(jog0,jog1);
 
+    if (ESTADO == "terminando") {
+        ESTADO = "terminado";
+        String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
+                       + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
+        saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
+        draw_tudo(true);
+
+        String out = ns("Data:",    15) + ts + "\n"
+                   //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
+                   + "\n"
+                   + ns(CONF_NOMES[0]+":",15) +
+                     jog0[0] + " pontos = " +
+                     min(conf_limite(),jog0[1]) + " atas X " +
+                     nf(jog0[2]/100,2) + "." + nf(jog0[2]%100,2) + " km/h" + "\n"
+                   + ns(CONF_NOMES[1]+":",15) +
+                     jog1[0] + " pontos = " +
+                     min(conf_limite(),jog1[1]) + " atas X " +
+                     nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
+                   + "\n"
+                   + ns("Quedas:",  15) + quedas() + "\n"
+                   + ns("Total:",   15) + total[0] + " pontos\n"
+                   + "\n";
+        for (int i=0; i<JOGO.size(); i++) {
+            ArrayList<int[]> seq = JOGO.get(i);
+            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
+            for (int j=0; j<seq.size(); j++) {
+                int[] golpe = seq.get(j);
+                out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(KMH(seq,j),3) + "\n";
+            }
+            out += "\n\n";
+        }
+        String[] outs = { out };
+        String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
+        saveStrings(name, outs);
+    }
+
     if (total[0] > CONF_RECORDE) {
         CONF_RECORDE = total[0];
     }
@@ -363,8 +396,8 @@ void draw_tudo (boolean is_end) {
     // TEMPO
     {
         int tempo = CONF_TEMPO-t;
-        if (tempo <= 0) {
-            ESTADO = "terminado";
+        if (tempo<=0 && ESTADO=="jogando") {
+            ESTADO = "terminando";
             tempo = 0;
         }
         String mins = nf(tempo / 60, 2);
@@ -425,7 +458,7 @@ void draw_tudo (boolean is_end) {
         text(quedas(), width/2, height/2-15*dy);
     }
 
-    if (JOGO.size() > 0) {
+    if (ESTADO == "jogando") {
         ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
         int idx = 255;
         for (int i=1; i<=2; i++) {
@@ -594,7 +627,7 @@ void draw_ultima (float x, int kmh) {
     text("km/h", x, 4*H+20*dy);
 }
 
-void draw_lado (float x, int[] dados) {
+void draw_lado (float x, int[] jog) {
     noStroke();
     fill(color(255,255,255));
     rect(x, 5*H, 2*W, 3*H);
@@ -602,19 +635,19 @@ void draw_lado (float x, int[] dados) {
     textAlign(CENTER, CENTER);
 
     textSize(15*dy);
-    text("." + nf(dados[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
+    text("." + nf(jog[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
 
     textSize(50*dy);
-    text(dados[2]/100, x+W, 6.5*H);         // media1
-    text(dados[0], x+W, 7.5*H);             // pontos
+    text(jog[2]/100, x+W, 6.5*H);         // media1
+    text(jog[0], x+W, 7.5*H);             // pontos
 
-    if (dados[1] >= conf_limite()) {             // golpes vs limite
+    if (jog[1] >= conf_limite()) {        // golpes vs limite
         fill(255,0,0);
     }
-    text(dados[1], x+W, 5.5*H);             // golpes
+    text(jog[1], x+W, 5.5*H);             // golpes
     fill(150,150,150);
     textSize(20*dy);
-    float w1 = textWidth(str(dados[1]));    // golpes
+    float w1 = textWidth(str(jog[1]));    // golpes
     textAlign(TOP, LEFT);
     text("/"+conf_limite(), x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
