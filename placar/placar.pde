@@ -13,12 +13,13 @@ Serial   SERIAL;
 
 JSONObject CONF;
 
-int      CONF_DISTANCIA;
 int      CONF_TEMPO;
+int      CONF_DISTANCIA;
 int      CONF_ATAQUES;
 boolean  CONF_EQUILIBRIO;
 int      CONF_RECORDE;
 String[] CONF_NOMES = new String[3];
+String   CONF_PARS;
 
 PImage   IMG1;
 PImage   IMG2;
@@ -29,7 +30,10 @@ PImage   IMG_APITO;
 PImage   IMG_TROFEU;
 PImage   IMG_DESCANSO;
 
-String   VERSAO = "FrescoGO! 3.1.0";
+int      MAJOR    = 3;
+int      MINOR    = 1;
+int      REVISION = 0;
+String   VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 String   ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
 int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
@@ -60,10 +64,6 @@ String ns (String str, int n) {
 
 int conf_ataques () {
     return max(1, CONF_TEMPO * CONF_ATAQUES / 60 / 2);
-}
-
-String conf_pars () {
-    return "(?)";
 }
 
 int conf_quedas () {
@@ -157,7 +157,7 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 }
 
 void setup () {
-    surface.setTitle(VERSAO);
+    surface.setTitle("FrescoGO! " + VERSAO);
     //size(600, 300);
     size(1024, 768);
     //fullScreen();
@@ -169,14 +169,20 @@ void setup () {
     H = height /  8.0;
 
     CONF = loadJSONObject("conf.json");
-    CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_TEMPO      = CONF.getInt("tempo");
+    CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_ATAQUES    = CONF.getInt("ataques");
     CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = CONF.getString("atleta1");
     CONF_NOMES[1]   = CONF.getString("atleta2");
     CONF_NOMES[2]   = CONF.getString("arbitro");
+    CONF_PARS       = "(v" + VERSAO + " / " +
+                        CONF_TEMPO     + "s / " +
+                        CONF_DISTANCIA + "cm / " +
+                        CONF_ATAQUES   + "ata / " +
+                        "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
+                      ")";
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -470,23 +476,16 @@ void draw_tudo () {
         fill(150,150,150);
         textSize(25*dy);
         textAlign(CENTER, CENTER);
-        text(descanso+" s", width/2, 2.25*H);
+        text(descanso+" s", width/2, 2.50*H);
         float w = textWidth(descanso+" s");
-        image(IMG_DESCANSO, width/2-w-15*dx, 2.25*H);
-
-        // params
-        fill(150,150,150);
-        textSize(12*dy);
-        textAlign(CENTER, BOTTOM);
-        text(conf_pars(), width/2, 3*H+10*dy);
+        image(IMG_DESCANSO, width/2-w-15*dx, 2.50*H);
     }
 
-    // VERSAO
+    // PARS
     fill(150,150,150);
     textSize(15*dy);
     textAlign(CENTER, TOP);
-    textAlign(CENTER, TOP);
-    text(VERSAO, width/2, 0);
+    text(CONF_PARS, width/2, 0);
 
     // INVERTIDO?
     if (INV) {
