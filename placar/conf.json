@@ -1,7 +1,8 @@
 {
-    "distancia":  750,
     "tempo":      240,
+    "distancia":  750,
     "ataques":    40,
+    "maxima":     85,
     "equilibrio": true,
 
     "recorde": 0,

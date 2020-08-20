@@ -16,6 +16,7 @@ JSONObject CONF;
 int      CONF_TEMPO;
 int      CONF_DISTANCIA;
 int      CONF_ATAQUES;
+int      CONF_MAXIMA;
 boolean  CONF_EQUILIBRIO;
 int      CONF_RECORDE;
 String[] CONF_NOMES = new String[3];
@@ -107,7 +108,7 @@ int KMH (ArrayList<int[]> seq, int i) {
             return 0;
         } else {
             int[] nxt = seq.get(i+1);
-            return 36 * CONF_DISTANCIA / (nxt[0] - cur[0]);
+            return min(CONF_MAXIMA, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
         }
     }
 }
@@ -172,6 +173,7 @@ void setup () {
     CONF_TEMPO      = CONF.getInt("tempo");
     CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_ATAQUES    = CONF.getInt("ataques");
+    CONF_MAXIMA     = CONF.getInt("maxima");
     CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = CONF.getString("atleta1");
@@ -181,6 +183,7 @@ void setup () {
                         CONF_TEMPO     + "s / " +
                         CONF_DISTANCIA + "cm / " +
                         CONF_ATAQUES   + "ata / " +
+                        CONF_MAXIMA    + "kmh / " +
                         "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
                       ")";
 
