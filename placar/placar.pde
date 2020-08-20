@@ -1,17 +1,16 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 
-// - params
 // - RADAR
 
 import processing.serial.*;
 import processing.sound.*;
 
+boolean    MOCK = true;
+Serial     RADAR;
+JSONObject CONF;
+
 SoundFile[] SNDS = new SoundFile[7];
 SoundFile[] HITS = new SoundFile[4];
-
-Serial   SERIAL;
-
-JSONObject CONF;
 
 int      CONF_TEMPO;
 int      CONF_DISTANCIA;
@@ -223,7 +222,7 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
     try {
-        SERIAL = new Serial(this, Serial.list()[0], 9600);
+        RADAR = new Serial(this, Serial.list()[0], 9600);
     } catch (RuntimeException e) {
         println("Erro na comunicação com o radar...");
         //exit();
@@ -250,6 +249,27 @@ void reinicio () {
     TEMPO_DESCANSO = 0;
     OLD_TEMPO_RESTANTE = CONF_TEMPO;
     SNDS[1].play();
+}
+
+int old = millis();
+int radar_mock () {
+    int now = millis();
+    int dt  = now - old;
+    if (dt > 500) {
+        old = now;
+        if (random(0,5) <= 2) {
+            int vel = int(random(30,100));
+            return (int(random(0,2))==0) ? vel : -vel;
+        }
+    }
+    return 0;
+}
+int radar () {
+    if (MOCK) {
+        return radar_mock();
+    } else {
+        return 0;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -361,40 +381,31 @@ void keyPressed (KeyEvent e) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// LOOP
-///////////////////////////////////////////////////////////////////////////////
-
-void draw () {
-    draw_tudo();
-
-    if (SERIAL==null || SERIAL.available()==0) {
-        return;
-    }
-
-    String linha = SERIAL.readStringUntil('\n');
-    if (linha == null) {
-        return;
-    }
-    print(">>>", linha);
-    if (linha.equals("ok\r\n")) {
-        return;
-    }
-
-    String[] campos = split(linha, ";");
-    int      codigo = int(campos[0]);
-    // TODO
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // DRAW
 ///////////////////////////////////////////////////////////////////////////////
 
-void draw_tudo () {
+void draw () {
     int[] jog0  = jogador(ZER);
     int[] jog1  = jogador(ONE);
     int[] total = TOTAL(jog0,jog1);
+    int now = millis();
 
-    if (ESTADO == "terminando") {
+    if (ESTADO.equals("jogando")) {
+        if (MOCK || RADAR!=null) {
+            int kmh = radar();
+            int kmh_ = abs(kmh);
+            if (kmh != 0) {
+                if (ESTADO_JOGANDO.equals("sacando")) {
+                    ESTADO_JOGANDO = "jogando";
+                    TEMPO_DESCANSO += max(0, now-TEMPO_DESCANSO_INICIO-5000);
+                }
+                int[] golpe = { now, (kmh>0 ? 0 : 1), kmh_ };
+                ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+                seq.add(golpe);
+                sound(kmh_);
+            }
+        }
+    } else if (ESTADO.equals("terminando")) {
         ESTADO = "terminado";
         SNDS[3].play();
         if (total[0] > CONF_RECORDE) {
@@ -402,7 +413,7 @@ void draw_tudo () {
         }
         String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
                        + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
-        draw_tudo();
+        draw();
         saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
 
         String out = ns("Data:",    15) + ts + "\n"
@@ -472,7 +483,7 @@ void draw_tudo () {
 
         int descanso = TEMPO_DESCANSO;
         if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
-            descanso += max(0, millis()-TEMPO_DESCANSO_INICIO-5000);
+            descanso += max(0, now-TEMPO_DESCANSO_INICIO-5000);
         }
         descanso /= 1000;
 
@@ -512,7 +523,7 @@ void draw_tudo () {
         text(quedas(), width/2, height/2-15*dy);
     }
 
-    if (ESTADO == "jogando") {
+    if (ESTADO.equals("jogando")) {
         ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
         int idx = 255;
         for (int i=1; i<=2; i++) {
@@ -525,7 +536,7 @@ void draw_tudo () {
                 // mesmo jogador deu os ultimos dois golpes
             } else {
                 idx = golpe[1];
-                if (millis() <= golpe[0]+1000) {
+                if (now <= golpe[0]+1000) {
                     int kmh = golpe[2];
                     if (kmh == 0) {
                         int xxx = seq.size() - i - 1;
@@ -545,7 +556,7 @@ void draw_tudo () {
                         }
                     }
                 }
-                if (millis() <= golpe[0]+500) {
+                if (now <= golpe[0]+500) {
                     stroke(color(0,0,255));
                     strokeWeight(10*dy);
                     if (idx == ZER) {
