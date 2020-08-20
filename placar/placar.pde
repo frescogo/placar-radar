@@ -4,10 +4,12 @@
 
 import processing.serial.*;
 import processing.sound.*;
+import java.io.*;
 
-boolean    MOCK = true;
-Serial     RADAR;
-JSONObject CONF;
+JSONObject  CONF;
+boolean     MOCK = false;
+Serial      RADAR;
+PrintWriter RADAR_OUT;
 
 SoundFile[] SNDS = new SoundFile[7];
 SoundFile[] HITS = new SoundFile[4];
@@ -15,6 +17,7 @@ SoundFile[] HITS = new SoundFile[4];
 int      CONF_TEMPO;
 int      CONF_DISTANCIA;
 int      CONF_ATAQUES;
+int      CONF_MINIMA;
 int      CONF_MAXIMA;
 boolean  CONF_EQUILIBRIO;
 int      CONF_RECORDE;
@@ -120,7 +123,7 @@ int[] jogador (int idx) {
             int[] golpe = seq.get(j);
             if (golpe[1] == idx) {
                 int kmh = KMH(seq,j);
-                if (kmh >= 50) {
+                if (kmh >= CONF_MINIMA) {
                     kmhs.append(KMH(seq,j));
                 }
             }
@@ -156,6 +159,11 @@ int[] TOTAL (int[] jog0, int[] jog1) {
     return ret;
 }
 
+void exit () {
+    RADAR_OUT.close();
+    super.exit();
+}
+
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
     //size(600, 300);
@@ -172,6 +180,7 @@ void setup () {
     CONF_TEMPO      = CONF.getInt("tempo");
     CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_ATAQUES    = CONF.getInt("ataques");
+    CONF_MINIMA     = CONF.getInt("minima");
     CONF_MAXIMA     = CONF.getInt("maxima");
     CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
     CONF_RECORDE    = CONF.getInt("recorde");
@@ -182,6 +191,7 @@ void setup () {
                         CONF_TEMPO     + "s / " +
                         CONF_DISTANCIA + "cm / " +
                         CONF_ATAQUES   + "ata / " +
+                        CONF_MINIMA    + "-" +
                         CONF_MAXIMA    + "kmh / " +
                         "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
                       ")";
@@ -228,6 +238,14 @@ void setup () {
         //exit();
     }
 
+    try {
+        RADAR_OUT = new PrintWriter(new BufferedWriter(new FileWriter("radar.txt",true)));
+        RADAR_OUT.println("=== RADAR ===");
+    } catch (IOException e) {
+        println("Erro ao criar 'radar.txt'.");
+        exit();
+    }
+
     reinicio();
 }
 
@@ -264,11 +282,117 @@ int radar_mock () {
     }
     return 0;
 }
+
+boolean BREAK = true;
+int     BUF_I = 0;
+int[][] BUF   = { {0,0},{0,0},{0,0},{0,0},{0,0},
+                  {0,0},{0,0},{0,0},{0,0},{0,0} };
+
+int _SIZE     = 18;
+int _peak_dir = 0;
+int _peak_val = 1;
+int _live_dir = 5;
+int _live_val = 6;
+int _size     = 10;
+int _ratio    = 13;
+int _status   = 16;
+int _cr       = 17;
+
+int _VEL = 0;
+int _DIR = 1;
+
+int REP_10 = 10;
+
+int four (byte[] s, int idx) {
+    return
+        (s[idx+0] - '0') * 1000 +
+        (s[idx+1] - '0') *  100 +
+        (s[idx+2] - '0') *   10 +
+        (s[idx+3] - '0') *    1;
+}
+
+boolean check_num (byte c) {
+    return (c>='0' && c<='9');
+}
+
+boolean radar_check (byte[] s) {
+    return
+        (s[_peak_dir]=='A' || s[_peak_dir]=='C') &&
+        check_num(s[_peak_val+0]) &&
+        check_num(s[_peak_val+1]) &&
+        check_num(s[_peak_val+2]) &&
+        check_num(s[_peak_val+3]) &&
+        (s[_live_dir]=='A' || s[_live_dir]=='C') &&
+        check_num(s[_live_val+0]) &&
+        check_num(s[_live_val+1]) &&
+        check_num(s[_live_val+2]) &&
+        check_num(s[_live_val+3]) &&
+        check_num(s[_size+0]) &&
+        check_num(s[_size+1]) &&
+        check_num(s[_size+2]) &&
+        check_num(s[_ratio+0]) &&
+        check_num(s[_ratio+1]) &&
+        check_num(s[_ratio+2]) &&
+        s[_status] == 0x40 &&
+        s[_cr] == '\r';
+}
+
+int radar_radar () {
+    // aproximadamente 40/50 reads/sec (20/25 ms/read)
+    while (true) {
+        int n = RADAR.read();
+        if (n == 0x83) {
+            break;              // espera o primeiro byte do pacote
+        }
+    }
+    while (true) {
+        int n = RADAR.available();
+        if (n >= _SIZE) {
+            break;              // espera ter o tamanho do pacote
+        }
+    }
+
+    byte[] s = RADAR.readBytes(18);
+    if (!radar_check(s)) {
+        return 0;               // erro no pacote
+    }
+
+    String out = "A=";
+    for (int i=0; i<s.length-1; i++) {
+        out += char(s[i]);
+    }
+    RADAR_OUT.println(s[_peak_dir] + "=" + four(s,_peak_val) + " | " +
+                      s[_live_dir] + "=" + four(s,_live_val) + " | ");
+
+    byte dir = s[_peak_dir];
+    int  vel = four(s,_peak_val);
+
+    BUF[BUF_I][_VEL] = vel;
+    BUF[BUF_I][_DIR] = dir;
+    BUF_I = (BUF_I + 1) % REP_10;
+
+    // aceito somente 10 picos de velocidades iguais e na mesma direcao
+    for (int i=1; i<REP_10; i++) {
+        if (BUF[i][_VEL]!=BUF[0][_VEL] || BUF[i][_DIR]!=BUF[0][_DIR]) {
+            BREAK = true;   // quebra nos ultimos 10, passo a aceitar o proximo
+            return 0;       // falhou na velocidade ou direcao
+        }
+    }
+
+    if (BREAK) {
+        BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
+        RADAR_OUT.println(">>> " + vel);
+        return (dir == 'A') ? vel : -vel;
+    } else {
+        return 0;
+    }
+}
+
 int radar () {
     if (MOCK) {
         return radar_mock();
     } else {
-        return 0;
+        return radar_radar();
     }
 }
 
@@ -671,7 +795,7 @@ void draw_ultima (float x, int kmh) {
     if (kmh == 0) {
         return;
     }
-    if (kmh >= 50) {
+    if (kmh >= CONF_MINIMA) {
         fill(0);
     } else {
         fill(200,200,200);
