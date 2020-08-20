@@ -4,7 +4,6 @@
 
 import processing.serial.*;
 import processing.sound.*;
-import java.io.*;
 
 JSONObject  CONF;
 boolean     MOCK = false;
@@ -160,7 +159,9 @@ int[] TOTAL (int[] jog0, int[] jog1) {
 }
 
 void exit () {
-    RADAR_OUT.close();
+    if (RADAR_OUT != null) {
+        RADAR_OUT.close();
+    }
     super.exit();
 }
 
@@ -232,18 +233,13 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
     try {
+        //println(Serial.list());
+        //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
         RADAR = new Serial(this, Serial.list()[0], 9600);
+        RADAR_OUT = createWriter("radar.txt");
     } catch (RuntimeException e) {
         println("Erro na comunicação com o radar...");
         //exit();
-    }
-
-    try {
-        RADAR_OUT = new PrintWriter(new BufferedWriter(new FileWriter("radar.txt",true)));
-        RADAR_OUT.println("=== RADAR ===");
-    } catch (IOException e) {
-        println("Erro ao criar 'radar.txt'.");
-        exit();
     }
 
     reinicio();
@@ -346,6 +342,7 @@ int radar_radar () {
         }
     }
     while (true) {
+        delay(0);               // sem isso, o programa trava
         int n = RADAR.available();
         if (n >= _SIZE) {
             break;              // espera ter o tamanho do pacote
@@ -361,8 +358,9 @@ int radar_radar () {
     for (int i=0; i<s.length-1; i++) {
         out += char(s[i]);
     }
-    RADAR_OUT.println(s[_peak_dir] + "=" + four(s,_peak_val) + " | " +
-                      s[_live_dir] + "=" + four(s,_live_val) + " | ");
+    RADAR_OUT.println(char(s[_peak_dir]) + "=" + four(s,_peak_val) + " | " +
+                      char(s[_live_dir]) + "=" + four(s,_live_val));
+    RADAR_OUT.flush();
 
     byte dir = s[_peak_dir];
     int  vel = four(s,_peak_val);
@@ -382,6 +380,7 @@ int radar_radar () {
     if (BREAK) {
         BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
         RADAR_OUT.println(">>> " + vel);
+        RADAR_OUT.flush();
         return (dir == 'A') ? vel : -vel;
     } else {
         return 0;
@@ -621,7 +620,7 @@ void draw () {
 
     // PARS
     fill(150,150,150);
-    textSize(15*dy);
+    textSize(12*dy);
     textAlign(CENTER, TOP);
     text(CONF_PARS, width/2, 0);
 
