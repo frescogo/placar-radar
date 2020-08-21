@@ -358,8 +358,8 @@ int radar_radar () {
     for (int i=0; i<s.length-1; i++) {
         out += char(s[i]);
     }
-    RADAR_OUT.println(char(s[_peak_dir]) + "=" + four(s,_peak_val) + " | " +
-                      char(s[_live_dir]) + "=" + four(s,_live_val));
+    RADAR_OUT.println(char(s[_peak_dir]) + "=" + nf(four(s,_peak_val),3) + " | " +
+                      char(s[_live_dir]) + "=" + nf(four(s,_live_val),3));
     RADAR_OUT.flush();
 
     byte dir = s[_peak_dir];
@@ -381,6 +381,7 @@ int radar_radar () {
         BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
         RADAR_OUT.println(">>> " + vel);
         RADAR_OUT.flush();
+        vel /= 10;
         return (dir == 'A') ? vel : -vel;
     } else {
         return 0;
