@@ -15,8 +15,8 @@ JSONObject  CONF;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TEMPO = 3750;
-int         RADAR_AUTO_MILLIS;
+int         RADAR_AUTO_TIMEOUT = 3750;
+int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
 SoundFile[] SNDS = new SoundFile[7];
@@ -48,8 +48,9 @@ boolean     INV = false;
 int         ZER = 0;
 int         ONE = 1;
 
-int         TEMPO_DESCANSO, TEMPO_DESCANSO_INICIO;
-int         OLD_TEMPO_RESTANTE;
+int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
+int         JOGO_RESTANTE_OLD;
+int         JOGO_QUEDAS_MANUAL;
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -82,6 +83,38 @@ int conf_abort () {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void go_reinicio () {
+    ESTADO = "ocioso";
+    JOGO = new ArrayList<ArrayList>();
+    JOGO_DESCANSO_TOTAL = 0;
+    JOGO_RESTANTE_OLD   = CONF_TEMPO;
+    JOGO_QUEDAS_MANUAL  = 0;
+    SNDS[1].play();
+}
+
+void go_saque () {
+    ESTADO = "jogando";
+    ESTADO_JOGANDO = "sacando";
+    JOGO_DESCANSO_INICIO = millis();
+    JOGO.add(new ArrayList<int[]>());
+    SNDS[5].play();
+}
+
+void go_queda () {
+    ESTADO = "ocioso";
+    if (jogo_quedas() >= conf_abort()) {
+        ESTADO = "terminando";
+        //JOGO.add(new ArrayList<int[]>());
+    } else {
+        SNDS[0].play();
+        if (RADAR_AUTO) {
+            go_saque();
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int jogo_tempo () {
     int ret = 0;
     for (int i=0; i<JOGO.size(); i++) {
@@ -98,11 +131,11 @@ int jogo_tempo () {
 }
 
 int jogo_quedas () {
+    int ret = JOGO.size() + JOGO_QUEDAS_MANUAL;
     if (ESTADO.equals("jogando")) {
-        return JOGO.size() - 1;
-    } else {
-        return JOGO.size();
+        ret--;
     }
+    return ret;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -165,113 +198,6 @@ int[] jogo_total (int[] jog0, int[] jog1) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-void exit () {
-    if (RADAR_OUT != null) {
-        RADAR_OUT.close();
-    }
-    super.exit();
-}
-
-void setup () {
-    surface.setTitle("FrescoGO! " + VERSAO);
-    //size(600, 300);
-    size(1024, 768);
-    //fullScreen();
-
-    dy = 0.001 * height;
-    dx = 0.001 * width;
-
-    W = width  / 11.0;
-    H = height /  8.0;
-
-    CONF = loadJSONObject("conf.json");
-    CONF_TEMPO      = CONF.getInt("tempo");
-    CONF_DISTANCIA  = CONF.getInt("distancia");
-    CONF_ATAQUES    = CONF.getInt("ataques");
-    CONF_MINIMA     = CONF.getInt("minima");
-    CONF_MAXIMA     = CONF.getInt("maxima");
-    CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
-    CONF_RECORDE    = CONF.getInt("recorde");
-    CONF_NOMES[0]   = CONF.getString("atleta1");
-    CONF_NOMES[1]   = CONF.getString("atleta2");
-    CONF_NOMES[2]   = CONF.getString("arbitro");
-    CONF_PARS       = "(v" + VERSAO + " / " +
-                        CONF_TEMPO     + "s / " +
-                        CONF_DISTANCIA + "cm / " +
-                        CONF_ATAQUES   + "ata / " +
-                        CONF_MINIMA    + "-" +
-                        CONF_MAXIMA    + "kmh / " +
-                        "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
-                      ")";
-
-    SNDS[0] = new SoundFile(this,"fall.wav");
-    SNDS[1] = new SoundFile(this,"restart.wav");
-    SNDS[2] = new SoundFile(this,"30s.wav");
-    SNDS[3] = new SoundFile(this,"finish.wav");
-    SNDS[4] = new SoundFile(this,"undo.wav");
-    SNDS[5] = new SoundFile(this,"start.wav");
-    SNDS[6] = new SoundFile(this,"behind.wav");
-
-    HITS[0] = new SoundFile(this,"hit-00.mp3");
-    HITS[1] = new SoundFile(this,"hit-01.wav");
-    HITS[2] = new SoundFile(this,"hit-02.mp3");
-    HITS[3] = new SoundFile(this,"hit-03.wav");
-
-    IMG1         = loadImage(CONF.getString("imagem1"));
-    IMG2         = loadImage(CONF.getString("imagem2"));
-    IMG_SPEED    = loadImage("speed-03.png");
-    IMG_RAQUETE  = loadImage("raq-03.png");
-    IMG_BAND     = loadImage("flag.png");
-    IMG_APITO    = loadImage("apito-04.png");
-    IMG_TROFEU   = loadImage("trophy-02.png");
-    IMG_DESCANSO = loadImage("timeout-03.png");
-
-    IMG1.resize(0,height/8);
-    IMG2.resize(0,height/8);
-    IMG_SPEED.resize(0,(int)(45*dy));
-    IMG_RAQUETE.resize(0,(int)(50*dy));
-    IMG_BAND.resize(0,(int)(40*dy));
-    IMG_APITO.resize(0,(int)(30*dy));
-    IMG_TROFEU.resize(0,(int)(30*dy));
-    IMG_DESCANSO.resize(0,(int)(25*dy));
-
-    imageMode(CENTER);
-    tint(255, 128);
-    textFont(createFont("LiberationSans-Bold.ttf", 18));
-
-    try {
-        //println(Serial.list());
-        //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
-        RADAR = new Serial(this, Serial.list()[0], 9600);
-        RADAR_OUT = createWriter("radar.txt");
-    } catch (RuntimeException e) {
-        println("Erro na comunicação com o radar...");
-        //exit();
-    }
-
-    reinicio();
-}
-
-void sound (int kmh) {
-    if (kmh < 50) {
-        HITS[0].play();
-    } else if (kmh < 65) {
-        HITS[1].play();
-    } else if (kmh < 80) {
-        HITS[2].play();
-    } else {
-        HITS[3].play();
-    }
-}
-
-void reinicio () {
-    ESTADO = "ocioso";
-    JOGO = new ArrayList<ArrayList>();
-    TEMPO_DESCANSO = 0;
-    OLD_TEMPO_RESTANTE = CONF_TEMPO;
-    SNDS[1].play();
-}
 
 int old = millis();
 int radar_mock () {
@@ -404,24 +330,104 @@ int radar () {
     }
 }
 
-void go_inicio () {
-    ESTADO = "jogando";
-    ESTADO_JOGANDO = "sacando";
-    TEMPO_DESCANSO_INICIO = millis();
-    JOGO.add(new ArrayList<int[]>());
-    SNDS[5].play();
+///////////////////////////////////////////////////////////////////////////////
+
+void exit () {
+    if (RADAR_OUT != null) {
+        RADAR_OUT.close();
+    }
+    super.exit();
 }
 
-void go_queda () {
-    ESTADO = "ocioso";
-    if (jogo_quedas() >= conf_abort()) {
-        ESTADO = "terminando";
-        //JOGO.add(new ArrayList<int[]>());
+void setup () {
+    surface.setTitle("FrescoGO! " + VERSAO);
+    //size(600, 300);
+    size(1024, 768);
+    //fullScreen();
+
+    dy = 0.001 * height;
+    dx = 0.001 * width;
+
+    W = width  / 11.0;
+    H = height /  8.0;
+
+    CONF            = loadJSONObject("conf.json");
+    CONF_TEMPO      = CONF.getInt("tempo");
+    CONF_DISTANCIA  = CONF.getInt("distancia");
+    CONF_ATAQUES    = CONF.getInt("ataques");
+    CONF_MINIMA     = CONF.getInt("minima");
+    CONF_MAXIMA     = CONF.getInt("maxima");
+    CONF_EQUILIBRIO = CONF.getBoolean("equilibrio");
+    CONF_RECORDE    = CONF.getInt("recorde");
+    CONF_NOMES[0]   = CONF.getString("atleta1");
+    CONF_NOMES[1]   = CONF.getString("atleta2");
+    CONF_NOMES[2]   = CONF.getString("arbitro");
+    CONF_PARS       = "(v" + VERSAO + " / " +
+                        CONF_TEMPO     + "s / " +
+                        CONF_DISTANCIA + "cm / " +
+                        CONF_ATAQUES   + "ata / " +
+                        CONF_MINIMA    + "-" +
+                        CONF_MAXIMA    + "kmh / " +
+                        "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
+                      ")";
+
+    SNDS[0] = new SoundFile(this,"fall.wav");
+    SNDS[1] = new SoundFile(this,"restart.wav");
+    SNDS[2] = new SoundFile(this,"30s.wav");
+    SNDS[3] = new SoundFile(this,"finish.wav");
+    SNDS[4] = new SoundFile(this,"undo.wav");
+    SNDS[5] = new SoundFile(this,"start.wav");
+    SNDS[6] = new SoundFile(this,"behind.wav");
+
+    HITS[0] = new SoundFile(this,"hit-00.mp3");
+    HITS[1] = new SoundFile(this,"hit-01.wav");
+    HITS[2] = new SoundFile(this,"hit-02.mp3");
+    HITS[3] = new SoundFile(this,"hit-03.wav");
+
+    IMG1         = loadImage(CONF.getString("imagem1"));
+    IMG2         = loadImage(CONF.getString("imagem2"));
+    IMG_SPEED    = loadImage("speed-03.png");
+    IMG_RAQUETE  = loadImage("raq-03.png");
+    IMG_BAND     = loadImage("flag.png");
+    IMG_APITO    = loadImage("apito-04.png");
+    IMG_TROFEU   = loadImage("trophy-02.png");
+    IMG_DESCANSO = loadImage("timeout-03.png");
+
+    IMG1.resize(0,height/8);
+    IMG2.resize(0,height/8);
+    IMG_SPEED.resize(0,(int)(45*dy));
+    IMG_RAQUETE.resize(0,(int)(50*dy));
+    IMG_BAND.resize(0,(int)(40*dy));
+    IMG_APITO.resize(0,(int)(30*dy));
+    IMG_TROFEU.resize(0,(int)(30*dy));
+    IMG_DESCANSO.resize(0,(int)(25*dy));
+
+    imageMode(CENTER);
+    tint(255, 128);
+    textFont(createFont("LiberationSans-Bold.ttf", 18));
+
+    try {
+        //println(Serial.list());
+        //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
+        RADAR = new Serial(this, Serial.list()[0], 9600);
+        RADAR_OUT = createWriter("radar.txt");
+    } catch (RuntimeException e) {
+        println("Erro na comunicação com o radar...");
+        //exit();
+    }
+
+    go_reinicio();
+}
+
+void sound (int kmh) {
+    if (kmh < 50) {
+        HITS[0].play();
+    } else if (kmh < 65) {
+        HITS[1].play();
+    } else if (kmh < 80) {
+        HITS[2].play();
     } else {
-        SNDS[0].play();
-        if (RADAR_AUTO) {
-            go_inicio();
-        }
+        HITS[3].play();
     }
 }
 
@@ -453,9 +459,15 @@ void keyPressed (KeyEvent e) {
         key = 0;
     }
 
-    if (e.isControlDown() && keyCode=='A') {    // CTRL-A
-        RADAR_AUTO = !RADAR_AUTO;
-        RADAR_AUTO_MILLIS = millis();
+    if (e.isControlDown()) {
+        if (keyCode == 'A') {    // CTRL-A
+            RADAR_AUTO = !RADAR_AUTO;
+            RADAR_AUTO_INICIO = millis();
+        } else if (keyCode == '-') {
+            JOGO_QUEDAS_MANUAL--;
+        } else if (keyCode == '=') {
+            JOGO_QUEDAS_MANUAL++;
+        }
     }
 
     if (ESTADO.equals("ocioso")) {
@@ -478,14 +490,14 @@ void keyPressed (KeyEvent e) {
                 ONE = 1 - ONE;
 
             } else if (keyCode == 38) {         // CTRL-UP
-                go_inicio();
+                go_saque();
             } else if (keyCode == 8) {          // CTRL-BACKSPACE
                 if (JOGO.size() > 0) {
                     JOGO.remove(JOGO.size()-1);
                     SNDS[4].play();
                 }
             } else if (keyCode == 'R') {        // CTRL-R
-                reinicio();
+                go_reinicio();
             }
         }
     } else if (ESTADO.equals("digitando")) {
@@ -503,7 +515,7 @@ void keyPressed (KeyEvent e) {
     } else if (ESTADO.equals("terminado")) {
         if (e.isControlDown() && !e.isAltDown()) {
             if (keyCode == 'R') {               // CTRL-R
-                reinicio();
+                go_reinicio();
             }
         }
     } else if (ESTADO.equals("jogando")) {
@@ -514,7 +526,7 @@ void keyPressed (KeyEvent e) {
         } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
-                TEMPO_DESCANSO += max(0, now-TEMPO_DESCANSO_INICIO-5000);
+                JOGO_DESCANSO_TOTAL += max(0, now-JOGO_DESCANSO_INICIO-5000);
             }
             int idx = (keyCode == 37) ? ZER : ONE;
             int[] golpe = { now, idx, 0 };
@@ -546,19 +558,19 @@ void draw () {
             if (kmh != 0) {
                 if (ESTADO_JOGANDO.equals("sacando")) {
                     ESTADO_JOGANDO = "jogando";
-                    TEMPO_DESCANSO += max(0, now-TEMPO_DESCANSO_INICIO-5000);
+                    JOGO_DESCANSO_TOTAL += max(0, now-JOGO_DESCANSO_INICIO-5000);
                 }
                 int[] golpe = { now, (kmh>0 ? 0 : 1), kmh_ };
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
                 sound(kmh_);
                 if (RADAR_AUTO) {
-                    RADAR_AUTO_MILLIS = now;
+                    RADAR_AUTO_INICIO = now;
                 }
             }
         }
         if (ESTADO_JOGANDO.equals("jogando") &&
-            RADAR_AUTO && now>=RADAR_AUTO_MILLIS+RADAR_AUTO_TEMPO) {
+            RADAR_AUTO && now>=RADAR_AUTO_INICIO+RADAR_AUTO_TIMEOUT) {
             go_queda();
         }
     } else if (ESTADO.equals("terminando")) {
@@ -572,6 +584,12 @@ void draw () {
         draw();
         saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
 
+        String manual = "";
+        if (JOGO_QUEDAS_MANUAL != 0) {
+            String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
+            manual = " (" + plus + JOGO_QUEDAS_MANUAL + ")";
+        }
+
         String out = ns("Data:",    15) + ts + "\n"
                    //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
                    + "\n"
@@ -584,8 +602,8 @@ void draw () {
                      min(conf_ataques(),jog1[1]) + " atas X " +
                      nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
                    + "\n"
-                   + ns("Descanso:", 15) + (TEMPO_DESCANSO/1000) + "\n"
-                   + ns("Quedas:",   15) + jogo_quedas() + "\n"
+                   + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
+                   + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
                    + ns("Total:",    15) + total[0] + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
@@ -615,10 +633,10 @@ void draw () {
     // TEMPO
     {
         int tempo_restante = max(0, CONF_TEMPO-t);
-        if (OLD_TEMPO_RESTANTE>30 && tempo_restante<=30) {
+        if (JOGO_RESTANTE_OLD>30 && tempo_restante<=30) {
             SNDS[2].play();
         }
-        OLD_TEMPO_RESTANTE = tempo_restante;
+        JOGO_RESTANTE_OLD = tempo_restante;
         if (tempo_restante<=0 && ESTADO=="jogando") {
             ESTADO = "terminando";
         }
@@ -637,9 +655,9 @@ void draw () {
         textAlign(CENTER, CENTER);
         text(mins+":"+segs, width/2, 1.25*H-10*dy);
 
-        int descanso = TEMPO_DESCANSO;
+        int descanso = JOGO_DESCANSO_TOTAL;
         if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
-            descanso += max(0, now-TEMPO_DESCANSO_INICIO-5000);
+            descanso += max(0, now-JOGO_DESCANSO_INICIO-5000);
         }
         descanso /= 1000;
 
