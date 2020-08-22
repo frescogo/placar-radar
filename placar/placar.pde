@@ -15,7 +15,7 @@ JSONObject  CONF;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 3600;
+int         RADAR_AUTO_TIMEOUT = 3250;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
@@ -104,7 +104,7 @@ void go_queda () {
     ESTADO = "ocioso";
     if (jogo_quedas() >= conf_abort()) {
         ESTADO = "terminando";
-        //JOGO.add(new ArrayList<int[]>());
+        JOGO.add(new ArrayList<int[]>());   // adiciona saque dummy p/ contar essa ultima queda
     } else {
         SNDS[0].play();
         if (RADAR_AUTO) {
@@ -132,7 +132,7 @@ int jogo_tempo () {
 
 int jogo_quedas () {
     int ret = JOGO.size() + JOGO_QUEDAS_MANUAL;
-    if (ESTADO.equals("jogando")) {
+    if (!ESTADO.equals("ocioso")) {
         ret--;
     }
     return ret;
@@ -587,7 +587,7 @@ void draw () {
         String manual = "";
         if (JOGO_QUEDAS_MANUAL != 0) {
             String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
-            manual = " (" + plus + JOGO_QUEDAS_MANUAL + " manual)";
+            manual = " (" + (jogo_quedas()-JOGO_QUEDAS_MANUAL) + plus + JOGO_QUEDAS_MANUAL + ")";
         }
 
         String out = ns("Data:",    15) + ts + "\n"
