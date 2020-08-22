@@ -14,9 +14,9 @@ JSONObject  CONF;
 int         NOW;
 
 Serial      RADAR;
-boolean     RADAR_MOCK = false;
+boolean     RADAR_MOCK = true;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 3250;
+int         RADAR_AUTO_TIMEOUT = 2750;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
@@ -515,6 +515,10 @@ void keyPressed (KeyEvent e) {
             go_reinicio();
         } else if (keyCode == 'S') {            // CTRL-S
             go_termino();
+        } else if (keyCode == 'I') {            // CTRL-I
+            INV = !INV;
+            ZER = 1 - ZER;
+            ONE = 1 - ONE;
         }
     }
 
@@ -532,10 +536,6 @@ void keyPressed (KeyEvent e) {
                 ESTADO = "digitando";
                 ESTADO_DIGITANDO = 1;
                 CONF_NOMES[1] = "";
-            } else if (keyCode == 'I') {        // CTRL-I
-                INV = !INV;
-                ZER = 1 - ZER;
-                ONE = 1 - ONE;
 
             } else if (keyCode == 38) {         // CTRL-UP
                 go_saque();
@@ -655,7 +655,11 @@ void draw_draw () {
         }
         descanso /= 1000;
 
-        fill(150,150,150);
+        if (ESTADO.equals("terminado")) {
+            fill(255);
+        } else {
+            fill(150,150,150);
+        }
         textSize(25*dy);
         textAlign(CENTER, CENTER);
         text(descanso+" s", width/2, 2.50*H);
@@ -663,13 +667,15 @@ void draw_draw () {
         image(IMG_DESCANSO, width/2-w-15*dx, 2.50*H);
     }
 
-    // PARS
-    fill(150,150,150);
+    // PARS / INVERTIDO?
+    if (ESTADO.equals("terminado")) {
+        fill(255);
+    } else {
+        fill(150,150,150);
+    }
     textSize(12*dy);
     textAlign(CENTER, TOP);
     text(CONF_PARS, width/2, 0);
-
-    // INVERTIDO?
     if (INV) {
         text("inv", width/2, 30*dy);
     }
