@@ -14,9 +14,9 @@ JSONObject  CONF;
 int         NOW;
 
 Serial      RADAR;
-boolean     RADAR_MOCK = true;
+boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 2750;
+int         RADAR_AUTO_TIMEOUT = 3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
@@ -253,8 +253,8 @@ int radar_mock () {
     int dt  = NOW - old;
     if (dt > 500) {
         old = NOW;
-        if (random(0,5) <= 2) {
-            int vel = int(random(30,100));
+        if (random(0,4) <= 2) {
+            int vel = int(random(30,CONF_MAXIMA));
             return (int(random(0,2))==0) ? vel : -vel;
         }
     }
