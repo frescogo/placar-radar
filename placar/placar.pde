@@ -11,6 +11,7 @@ int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
+int         NOW;
 
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
@@ -40,7 +41,7 @@ PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
 
-String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
+String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
 String      ESTADO_JOGANDO;            // sacando, jogando
 
@@ -49,8 +50,9 @@ int         ZER = 0;
 int         ONE = 1;
 
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
-int         JOGO_RESTANTE_OLD;
-int         JOGO_QUEDAS_MANUAL;
+int         JOGO_BEHIND, JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
+int         JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_OLD;
+int[][]     JOGO_JOGS = new int[2][3];
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -86,9 +88,10 @@ int conf_abort () {
 void go_reinicio () {
     ESTADO = "ocioso";
     JOGO = new ArrayList<ArrayList>();
-    JOGO_DESCANSO_TOTAL = 0;
-    JOGO_RESTANTE_OLD   = CONF_TEMPO;
-    JOGO_QUEDAS_MANUAL  = 0;
+    JOGO_DESCANSO_TOTAL     = 0;
+    JOGO_TEMPO_RESTANTE_OLD = CONF_TEMPO;
+    JOGO_QUEDAS             = 0;
+    JOGO_QUEDAS_MANUAL      = 0;
     SNDS[1].play();
 }
 
@@ -102,9 +105,9 @@ void go_saque () {
 
 void go_queda () {
     ESTADO = "ocioso";
+    JOGO_QUEDAS++;
     if (jogo_quedas() >= conf_abort()) {
-        ESTADO = "terminando";
-        JOGO.add(new ArrayList<int[]>());   // adiciona saque dummy p/ contar essa ultima queda
+        go_termino();
     } else {
         SNDS[0].play();
         if (RADAR_AUTO) {
@@ -113,9 +116,56 @@ void go_queda () {
     }
 }
 
+void go_termino () {
+    ESTADO = "terminado";
+    SNDS[3].play();
+    if (JOGO_TOTAL > CONF_RECORDE) {
+        CONF_RECORDE = JOGO_TOTAL;
+    }
+
+    draw();
+
+    String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
+                   + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
+    saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
+
+    String manual = "";
+    if (JOGO_QUEDAS_MANUAL != 0) {
+        String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
+        manual = " (" + JOGO_QUEDAS + plus + JOGO_QUEDAS_MANUAL + ")";
+    }
+
+    String[] jogs = new String[2];
+    for (int i=0; i<2; i++) {
+        jogs[i] = ns(CONF_NOMES[i]+":",15) + JOGO_JOGS[i][0] + " pontos = " +
+                  min(conf_ataques(),JOGO_JOGS[i][1]) + " atas X " +
+                  nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
+    }
+
+    String out = ns("Data:",    15) + ts + "\n"
+               //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
+               + "\n" + jogs[0] + jogs[1] + "\n"
+               + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
+               + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
+               + ns("Total:",    15) + JOGO_TOTAL + " pontos\n"
+               + "\n";
+    for (int i=0; i<JOGO.size(); i++) {
+        ArrayList<int[]> seq = JOGO.get(i);
+        out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
+        for (int j=0; j<seq.size(); j++) {
+            int[] golpe = seq.get(j);
+            out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
+        }
+        out += "\n\n";
+    }
+    String[] outs = { out };
+    String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
+    saveStrings(name, outs);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-int jogo_tempo () {
+void _jogo_tempo () {
     int ret = 0;
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
@@ -127,33 +177,11 @@ int jogo_tempo () {
     //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
     //    ret += millis() - seq.get(seq.size()-1)[0];
     //}
-    return ret / 1000 / 5 * 5;
+    JOGO_TEMPO_PASSADO = ret / 1000 / 5 * 5;
+    JOGO_TEMPO_RESTANTE = max(0, CONF_TEMPO-JOGO_TEMPO_PASSADO);
 }
 
-int jogo_quedas () {
-    int ret = JOGO.size() + JOGO_QUEDAS_MANUAL;
-    if (!ESTADO.equals("ocioso")) {
-        ret--;
-    }
-    return ret;
-}
-
-int jogo_kmh (ArrayList<int[]> seq, int i) {
-    int[] cur = seq.get(i);
-    int kmh = cur[2];
-    if (kmh != 0) {
-        return kmh;
-    } else {
-        if (seq.size() < i+2) {
-            return 0;
-        } else {
-            int[] nxt = seq.get(i+1);
-            return min(CONF_MAXIMA, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
-        }
-    }
-}
-
-int[] jogo_lado (int idx) {
+void _jogo_lado (int idx) {
     IntList kmhs = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
@@ -173,38 +201,58 @@ int[] jogo_lado (int idx) {
     for (int i=0; i<N; i++) {
         sum += kmhs.get(i);
     }
-    int[] ret = { sum, kmhs.size(), sum*100/max(1,N) };
-    return ret;
+    JOGO_JOGS[idx][0] = sum;
+    JOGO_JOGS[idx][1] = kmhs.size();
+    JOGO_JOGS[idx][2] = sum * 100 / max(1,N);
 }
 
-int[] jogo_total (int[] jog0, int[] jog1) {
-    int p0   = jog0[0];
-    int p1   = jog1[0];
+int jogo_kmh (ArrayList<int[]> seq, int i) {
+    int[] cur = seq.get(i);
+    int kmh = cur[2];
+    if (kmh != 0) {
+        return kmh;
+    } else {
+        if (seq.size() < i+2) {
+            return 0;
+        } else {
+            int[] nxt = seq.get(i+1);
+            return min(CONF_MAXIMA, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
+        }
+    }
+}
+
+int jogo_quedas () {
+    return JOGO_QUEDAS + JOGO_QUEDAS_MANUAL;
+}
+
+void jogo_calc () {
+    _jogo_tempo();
+    _jogo_lado(0);
+    _jogo_lado(1);
+
+    int p0 = JOGO_JOGS[0][0];
+    int p1 = JOGO_JOGS[1][0];
 
     int avg  = (p0 + p1) / 2;
     int min_ = min(avg, min(p0,p1)*110/100);
 
-    int beh = 255;
+    JOGO_BEHIND = 255;
     if (avg != min_) {
-        beh = (p0 > p1) ? 1 : 0;
+        JOGO_BEHIND = (p0 > p1) ? 1 : 0;
     }
 
-    int pct  = jogo_quedas() * conf_quedas();
-    int pts  = (CONF_EQUILIBRIO ? min_ : avg);
-    int tot  = pts * (10000-pct) / 10000;
-
-    int[] ret = { tot, beh };
-    return ret;
+    int pct = jogo_quedas() * conf_quedas();
+    int pts = (CONF_EQUILIBRIO ? min_ : avg);
+    JOGO_TOTAL = pts * (10000-pct) / 10000;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int old = millis();
 int radar_mock () {
-    int now = millis();
-    int dt  = now - old;
+    int dt  = NOW - old;
     if (dt > 500) {
-        old = now;
+        old = NOW;
         if (random(0,5) <= 2) {
             int vel = int(random(30,100));
             return (int(random(0,2))==0) ? vel : -vel;
@@ -435,10 +483,6 @@ void sound (int kmh) {
 // KEYBOARD
 ///////////////////////////////////////////////////////////////////////////////
 
-int ctrl (char key) {
-    return char(int(key) - int('a') + 1);
-}
-
 void trata_nome (int idx, String json) {
     if (key==ENTER || key==RETURN) {
         CONF.setString(json, CONF_NOMES[idx]);
@@ -460,13 +504,17 @@ void keyPressed (KeyEvent e) {
     }
 
     if (e.isControlDown()) {
-        if (keyCode == 'A') {    // CTRL-A
+        if (keyCode == 'A') {                   // CTRL-A
             RADAR_AUTO = !RADAR_AUTO;
             RADAR_AUTO_INICIO = millis();
         } else if (keyCode == '-') {
             JOGO_QUEDAS_MANUAL--;
         } else if (keyCode == '=') {
             JOGO_QUEDAS_MANUAL++;
+        } else if (keyCode == 'R') {            // CTRL-R
+            go_reinicio();
+        } else if (keyCode == 'S') {            // CTRL-S
+            go_termino();
         }
     }
 
@@ -496,8 +544,6 @@ void keyPressed (KeyEvent e) {
                     JOGO.remove(JOGO.size()-1);
                     SNDS[4].play();
                 }
-            } else if (keyCode == 'R') {        // CTRL-R
-                go_reinicio();
             }
         }
     } else if (ESTADO.equals("digitando")) {
@@ -512,24 +558,17 @@ void keyPressed (KeyEvent e) {
                 trata_nome(2, "arbitro");
                 break;
         }
-    } else if (ESTADO.equals("terminado")) {
-        if (e.isControlDown() && !e.isAltDown()) {
-            if (keyCode == 'R') {               // CTRL-R
-                go_reinicio();
-            }
-        }
     } else if (ESTADO.equals("jogando")) {
-        int now = millis();
 //println(keyCode);
         if (e.isControlDown() && keyCode==40) { // CTRL-DOWN
             go_queda();
         } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
-                JOGO_DESCANSO_TOTAL += max(0, now-JOGO_DESCANSO_INICIO-5000);
+                JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
             }
             int idx = (keyCode == 37) ? ZER : ONE;
-            int[] golpe = { now, idx, 0 };
+            int[] golpe = { NOW, idx, 0 };
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
             seq.add(golpe);
             int kmh = 0;
@@ -539,6 +578,7 @@ void keyPressed (KeyEvent e) {
             sound(kmh);
         }
     }
+    jogo_calc();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -546,10 +586,7 @@ void keyPressed (KeyEvent e) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-    int[] jog0  = jogo_lado(ZER);
-    int[] jog1  = jogo_lado(ONE);
-    int[] total = jogo_total(jog0,jog1);
-    int now = millis();
+    NOW = millis();
 
     if (ESTADO.equals("jogando")) {
         if (RADAR_MOCK || RADAR!=null) {
@@ -558,90 +595,47 @@ void draw () {
             if (kmh != 0) {
                 if (ESTADO_JOGANDO.equals("sacando")) {
                     ESTADO_JOGANDO = "jogando";
-                    JOGO_DESCANSO_TOTAL += max(0, now-JOGO_DESCANSO_INICIO-5000);
+                    JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
-                int[] golpe = { now, (kmh>0 ? 0 : 1), kmh_ };
+                int[] golpe = { NOW, (kmh>0 ? 0 : 1), kmh_ };
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
                 sound(kmh_);
                 if (RADAR_AUTO) {
-                    RADAR_AUTO_INICIO = now;
+                    RADAR_AUTO_INICIO = NOW;
                 }
             }
         }
         if (ESTADO_JOGANDO.equals("jogando") &&
-            RADAR_AUTO && now>=RADAR_AUTO_INICIO+RADAR_AUTO_TIMEOUT) {
+            RADAR_AUTO && NOW>=RADAR_AUTO_INICIO+RADAR_AUTO_TIMEOUT) {
             go_queda();
         }
-    } else if (ESTADO.equals("terminando")) {
-        ESTADO = "terminado";
-        SNDS[3].play();
-        if (total[0] > CONF_RECORDE) {
-            CONF_RECORDE = total[0];
+        if (JOGO_TEMPO_RESTANTE_OLD>30 && JOGO_TEMPO_RESTANTE<=30) {
+            SNDS[2].play();
         }
-        String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
-                       + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
-        draw();
-        saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
-
-        String manual = "";
-        if (JOGO_QUEDAS_MANUAL != 0) {
-            String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
-            manual = " (" + (jogo_quedas()-JOGO_QUEDAS_MANUAL) + plus + JOGO_QUEDAS_MANUAL + ")";
+        JOGO_TEMPO_RESTANTE_OLD = JOGO_TEMPO_RESTANTE;
+        if (JOGO_TEMPO_RESTANTE <= 0) {
+            go_termino();
         }
-
-        String out = ns("Data:",    15) + ts + "\n"
-                   //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
-                   + "\n"
-                   + ns(CONF_NOMES[0]+":",15) +
-                     jog0[0] + " pontos = " +
-                     min(conf_ataques(),jog0[1]) + " atas X " +
-                     nf(jog0[2]/100,2) + "." + nf(jog0[2]%100,2) + " km/h" + "\n"
-                   + ns(CONF_NOMES[1]+":",15) +
-                     jog1[0] + " pontos = " +
-                     min(conf_ataques(),jog1[1]) + " atas X " +
-                     nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
-                   + "\n"
-                   + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
-                   + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
-                   + ns("Total:",    15) + total[0] + " pontos\n"
-                   + "\n";
-        for (int i=0; i<JOGO.size(); i++) {
-            ArrayList<int[]> seq = JOGO.get(i);
-            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
-            for (int j=0; j<seq.size(); j++) {
-                int[] golpe = seq.get(j);
-                out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
-            }
-            out += "\n\n";
-        }
-        String[] outs = { out };
-        String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
-        saveStrings(name, outs);
     }
 
-    int t = jogo_tempo();
+    jogo_calc();
+    draw_draw();
+}
 
+void draw_draw () {
     background(255,255,255);
 
     draw_logo(0*W, IMG1);
     draw_logo(7*W, IMG2);
 
-    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && t>=30 && total[1]==ZER), ESTADO_DIGITANDO==ZER);
-    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && t>=30 && total[1]==ONE), ESTADO_DIGITANDO==ONE);
+    draw_nome(0*W, ZER, (CONF_EQUILIBRIO && JOGO_TEMPO_PASSADO>=30 && JOGO_BEHIND==ZER), ESTADO_DIGITANDO==ZER);
+    draw_nome(7*W, ONE, (CONF_EQUILIBRIO && JOGO_TEMPO_PASSADO>=30 && JOGO_BEHIND==ONE), ESTADO_DIGITANDO==ONE);
 
     // TEMPO
     {
-        int tempo_restante = max(0, CONF_TEMPO-t);
-        if (JOGO_RESTANTE_OLD>30 && tempo_restante<=30) {
-            SNDS[2].play();
-        }
-        JOGO_RESTANTE_OLD = tempo_restante;
-        if (tempo_restante<=0 && ESTADO=="jogando") {
-            ESTADO = "terminando";
-        }
-        String mins = nf(tempo_restante / 60, 2);
-        String segs = nf(tempo_restante % 60, 2);
+        String mins = nf(JOGO_TEMPO_RESTANTE / 60, 2);
+        String segs = nf(JOGO_TEMPO_RESTANTE % 60, 2);
 
         if (ESTADO.equals("terminado")) {
             fill(255,0,0);
@@ -657,7 +651,7 @@ void draw () {
 
         int descanso = JOGO_DESCANSO_TOTAL;
         if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
-            descanso += max(0, now-JOGO_DESCANSO_INICIO-5000);
+            descanso += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
         }
         descanso /= 1000;
 
@@ -710,7 +704,7 @@ void draw () {
                 // mesmo jogador deu os ultimos dois golpes
             } else {
                 idx = golpe[1];
-                if (now <= golpe[0]+1000) {
+                if (NOW <= golpe[0]+1000) {
                     int kmh = golpe[2];
                     if (kmh == 0) {
                         int xxx = seq.size() - i - 1;
@@ -730,7 +724,7 @@ void draw () {
                         }
                     }
                 }
-                if (now <= golpe[0]+500) {
+                if (NOW <= golpe[0]+500) {
                     stroke(color(0,0,255));
                     strokeWeight(10*dy);
                     if (idx == ZER) {
@@ -750,8 +744,8 @@ void draw () {
         }
     }
 
-    draw_lado(1.5*W, jog0);
-    draw_lado(7.5*W, jog1);
+    draw_lado(1.5*W, JOGO_JOGS[ZER]);
+    draw_lado(7.5*W, JOGO_JOGS[ONE]);
 
     textSize(15*dy);
     fill(150,150,150);
@@ -798,7 +792,7 @@ void draw () {
         }
 
         // recorde
-        if (total[0] >= CONF_RECORDE) {
+        if (JOGO_TOTAL >= CONF_RECORDE) {
             fill(150,150,150);
         } else {
             fill(200,100,100);
@@ -813,7 +807,7 @@ void draw () {
         fill(255);
         textSize(120*dy);
         textAlign(CENTER, CENTER);
-        text(total[0], width/2, 7*H);
+        text(JOGO_TOTAL, width/2, 7*H);
     }
 }
 
