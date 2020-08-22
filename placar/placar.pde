@@ -5,60 +5,58 @@
 import processing.serial.*;
 import processing.sound.*;
 
+int         MAJOR    = 3;
+int         MINOR    = 1;
+int         REVISION = 0;
+String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
+
 JSONObject  CONF;
 
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TEMPO = 4000;
+int         RADAR_AUTO_TEMPO = 3750;
 int         RADAR_AUTO_MILLIS;
 PrintWriter RADAR_OUT;
 
 SoundFile[] SNDS = new SoundFile[7];
 SoundFile[] HITS = new SoundFile[4];
 
-int      CONF_TEMPO;
-int      CONF_DISTANCIA;
-int      CONF_ATAQUES;
-int      CONF_MINIMA;
-int      CONF_MAXIMA;
-boolean  CONF_EQUILIBRIO;
-int      CONF_RECORDE;
-String[] CONF_NOMES = new String[3];
-String   CONF_PARS;
+int         CONF_TEMPO;
+int         CONF_DISTANCIA;
+int         CONF_ATAQUES;
+int         CONF_MINIMA;
+int         CONF_MAXIMA;
+boolean     CONF_EQUILIBRIO;
+int         CONF_RECORDE;
+String[]    CONF_NOMES = new String[3];
+String      CONF_PARS;
 
-PImage   IMG1;
-PImage   IMG2;
-PImage   IMG_SPEED;
-PImage   IMG_RAQUETE;
-PImage   IMG_BAND;
-PImage   IMG_APITO;
-PImage   IMG_TROFEU;
-PImage   IMG_DESCANSO;
+PImage      IMG1, IMG2;
+PImage      IMG_SPEED;
+PImage      IMG_RAQUETE;
+PImage      IMG_BAND;
+PImage      IMG_APITO;
+PImage      IMG_TROFEU;
+PImage      IMG_DESCANSO;
 
-int      MAJOR    = 3;
-int      MINOR    = 1;
-int      REVISION = 0;
-String   VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
+String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
+int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
+String      ESTADO_JOGANDO;            // sacando, jogando
 
-String   ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
-int      ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
-String   ESTADO_JOGANDO;            // sacando, jogando
+boolean     INV = false;
+int         ZER = 0;
+int         ONE = 1;
+
+int         TEMPO_DESCANSO, TEMPO_DESCANSO_INICIO;
+int         OLD_TEMPO_RESTANTE;
+
+float       dy; // 0.001 height
+float       dx; // 0.001 width
+float       W;
+float       H;
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
-
-boolean  INV = false;
-int      ZER = 0;
-int      ONE = 1;
-
-int TEMPO_DESCANSO, TEMPO_DESCANSO_INICIO;
-int OLD_TEMPO_RESTANTE;
-
-float dy; // 0.001 height
-float dx; // 0.001 width
-
-float W;
-float H;
 
 String ns (String str, int n) {
     int len = str.length();
@@ -67,6 +65,8 @@ String ns (String str, int n) {
     }
     return str;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 int conf_ataques () {
     return max(1, CONF_TEMPO * CONF_ATAQUES / 60 / 2);
@@ -80,7 +80,9 @@ int conf_abort () {
     return CONF_TEMPO / 15;         // 1 queda / 15s
 }
 
-int tempo_jogado () {
+///////////////////////////////////////////////////////////////////////////////
+
+int jogo_tempo () {
     int ret = 0;
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
@@ -95,7 +97,7 @@ int tempo_jogado () {
     return ret / 1000 / 5 * 5;
 }
 
-int quedas () {
+int jogo_quedas () {
     if (ESTADO.equals("jogando")) {
         return JOGO.size() - 1;
     } else {
@@ -103,7 +105,7 @@ int quedas () {
     }
 }
 
-int KMH (ArrayList<int[]> seq, int i) {
+int jogo_kmh (ArrayList<int[]> seq, int i) {
     int[] cur = seq.get(i);
     int kmh = cur[2];
     if (kmh != 0) {
@@ -118,16 +120,16 @@ int KMH (ArrayList<int[]> seq, int i) {
     }
 }
 
-int[] jogador (int idx) {
+int[] jogo_lado (int idx) {
     IntList kmhs = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
         for (int j=0; j<seq.size()-1; j++) {    // -1: ignora ultimo golpe
             int[] golpe = seq.get(j);
             if (golpe[1] == idx) {
-                int kmh = KMH(seq,j);
+                int kmh = jogo_kmh(seq,j);
                 if (kmh >= CONF_MINIMA) {
-                    kmhs.append(KMH(seq,j));
+                    kmhs.append(jogo_kmh(seq,j));
                 }
             }
         }
@@ -142,7 +144,7 @@ int[] jogador (int idx) {
     return ret;
 }
 
-int[] TOTAL (int[] jog0, int[] jog1) {
+int[] jogo_total (int[] jog0, int[] jog1) {
     int p0   = jog0[0];
     int p1   = jog1[0];
 
@@ -154,13 +156,15 @@ int[] TOTAL (int[] jog0, int[] jog1) {
         beh = (p0 > p1) ? 1 : 0;
     }
 
-    int pct  = quedas() * conf_quedas();
+    int pct  = jogo_quedas() * conf_quedas();
     int pts  = (CONF_EQUILIBRIO ? min_ : avg);
     int tot  = pts * (10000-pct) / 10000;
 
     int[] ret = { tot, beh };
     return ret;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void exit () {
     if (RADAR_OUT != null) {
@@ -410,7 +414,7 @@ void go_inicio () {
 
 void go_queda () {
     ESTADO = "ocioso";
-    if (quedas() >= conf_abort()) {
+    if (jogo_quedas() >= conf_abort()) {
         ESTADO = "terminando";
         //JOGO.add(new ArrayList<int[]>());
     } else {
@@ -518,7 +522,7 @@ void keyPressed (KeyEvent e) {
             seq.add(golpe);
             int kmh = 0;
             if (seq.size() >= 2) {
-                kmh = KMH(seq, seq.size()-2);
+                kmh = jogo_kmh(seq, seq.size()-2);
             }
             sound(kmh);
         }
@@ -530,9 +534,9 @@ void keyPressed (KeyEvent e) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void draw () {
-    int[] jog0  = jogador(ZER);
-    int[] jog1  = jogador(ONE);
-    int[] total = TOTAL(jog0,jog1);
+    int[] jog0  = jogo_lado(ZER);
+    int[] jog1  = jogo_lado(ONE);
+    int[] total = jogo_total(jog0,jog1);
     int now = millis();
 
     if (ESTADO.equals("jogando")) {
@@ -581,7 +585,7 @@ void draw () {
                      nf(jog1[2]/100,2) + "." + nf(jog1[2]%100,2) + " km/h" + "\n"
                    + "\n"
                    + ns("Descanso:", 15) + (TEMPO_DESCANSO/1000) + "\n"
-                   + ns("Quedas:",   15) + quedas() + "\n"
+                   + ns("Quedas:",   15) + jogo_quedas() + "\n"
                    + ns("Total:",    15) + total[0] + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
@@ -589,7 +593,7 @@ void draw () {
             out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
             for (int j=0; j<seq.size(); j++) {
                 int[] golpe = seq.get(j);
-                out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(KMH(seq,j),3) + "\n";
+                out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
             }
             out += "\n\n";
         }
@@ -598,7 +602,7 @@ void draw () {
         saveStrings(name, outs);
     }
 
-    int t = tempo_jogado();
+    int t = jogo_tempo();
 
     background(255,255,255);
 
@@ -672,7 +676,7 @@ void draw () {
         fill(255);
         textAlign(CENTER, CENTER);
         textSize(90*dy);
-        text(quedas(), width/2, height/2-15*dy);
+        text(jogo_quedas(), width/2, height/2-15*dy);
     }
 
     if (ESTADO.equals("jogando")) {
@@ -693,7 +697,7 @@ void draw () {
                     if (kmh == 0) {
                         int xxx = seq.size() - i - 1;
                         if (xxx >= 0) {
-                            kmh = KMH(seq, seq.size()-i-1);
+                            kmh = jogo_kmh(seq, seq.size()-i-1);
                             if (idx == ONE) {
                                 draw_ultima(1.5*W, kmh);
                             } else {
