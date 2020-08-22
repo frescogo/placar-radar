@@ -15,7 +15,7 @@ JSONObject  CONF;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 3750;
+int         RADAR_AUTO_TIMEOUT = 3600;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
@@ -587,7 +587,7 @@ void draw () {
         String manual = "";
         if (JOGO_QUEDAS_MANUAL != 0) {
             String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
-            manual = " (" + plus + JOGO_QUEDAS_MANUAL + ")";
+            manual = " (" + plus + JOGO_QUEDAS_MANUAL + " manual)";
         }
 
         String out = ns("Data:",    15) + ts + "\n"
