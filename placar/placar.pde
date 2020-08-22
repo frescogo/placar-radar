@@ -10,6 +10,7 @@ JSONObject  CONF;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
+int         RADAR_AUTO_TEMPO = 4000;
 int         RADAR_AUTO_MILLIS;
 PrintWriter RADAR_OUT;
 
@@ -553,7 +554,7 @@ void draw () {
             }
         }
         if (ESTADO_JOGANDO.equals("jogando") &&
-            RADAR_AUTO && now>=RADAR_AUTO_MILLIS+3500) {
+            RADAR_AUTO && now>=RADAR_AUTO_MILLIS+RADAR_AUTO_TEMPO) {
             go_queda();
         }
     } else if (ESTADO.equals("terminando")) {
