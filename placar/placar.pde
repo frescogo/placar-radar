@@ -6,8 +6,11 @@ import processing.serial.*;
 import processing.sound.*;
 
 JSONObject  CONF;
-boolean     MOCK = false;
+
 Serial      RADAR;
+boolean     RADAR_MOCK = false;
+boolean     RADAR_AUTO = false;
+int         RADAR_AUTO_MILLIS;
 PrintWriter RADAR_OUT;
 
 SoundFile[] SNDS = new SoundFile[7];
@@ -389,10 +392,31 @@ int radar_radar () {
 }
 
 int radar () {
-    if (MOCK) {
+    if (RADAR_MOCK) {
         return radar_mock();
     } else {
         return radar_radar();
+    }
+}
+
+void go_inicio () {
+    ESTADO = "jogando";
+    ESTADO_JOGANDO = "sacando";
+    TEMPO_DESCANSO_INICIO = millis();
+    JOGO.add(new ArrayList<int[]>());
+    SNDS[5].play();
+}
+
+void go_queda () {
+    ESTADO = "ocioso";
+    if (quedas() >= conf_abort()) {
+        ESTADO = "terminando";
+        //JOGO.add(new ArrayList<int[]>());
+    } else {
+        SNDS[0].play();
+        if (RADAR_AUTO) {
+            go_inicio();
+        }
     }
 }
 
@@ -424,6 +448,11 @@ void keyPressed (KeyEvent e) {
         key = 0;
     }
 
+    if (e.isControlDown() && keyCode=='A') {    // CTRL-A
+        RADAR_AUTO = !RADAR_AUTO;
+        RADAR_AUTO_MILLIS = millis();
+    }
+
     if (ESTADO.equals("ocioso")) {
         if (e.isControlDown()) {
             if (keyCode == '0') {               // CTRL-0
@@ -444,11 +473,7 @@ void keyPressed (KeyEvent e) {
                 ONE = 1 - ONE;
 
             } else if (keyCode == 38) {         // CTRL-UP
-                ESTADO = "jogando";
-                ESTADO_JOGANDO = "sacando";
-                TEMPO_DESCANSO_INICIO = millis();
-                JOGO.add(new ArrayList<int[]>());
-                SNDS[5].play();
+                go_inicio();
             } else if (keyCode == 8) {          // CTRL-BACKSPACE
                 if (JOGO.size() > 0) {
                     JOGO.remove(JOGO.size()-1);
@@ -480,12 +505,7 @@ void keyPressed (KeyEvent e) {
         int now = millis();
 //println(keyCode);
         if (e.isControlDown() && keyCode==40) { // CTRL-DOWN
-            ESTADO = "ocioso";
-            if (quedas() >= conf_abort()) {
-                ESTADO = "terminando";
-                //JOGO.add(new ArrayList<int[]>());
-            }
-            SNDS[0].play();
+            go_queda();
         } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
@@ -515,7 +535,7 @@ void draw () {
     int now = millis();
 
     if (ESTADO.equals("jogando")) {
-        if (MOCK || RADAR!=null) {
+        if (RADAR_MOCK || RADAR!=null) {
             int kmh = radar();
             int kmh_ = abs(kmh);
             if (kmh != 0) {
@@ -527,7 +547,14 @@ void draw () {
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
                 sound(kmh_);
+                if (RADAR_AUTO) {
+                    RADAR_AUTO_MILLIS = now;
+                }
             }
+        }
+        if (ESTADO_JOGANDO.equals("jogando") &&
+            RADAR_AUTO && now>=RADAR_AUTO_MILLIS+3500) {
+            go_queda();
         }
     } else if (ESTADO.equals("terminando")) {
         ESTADO = "terminado";
@@ -739,6 +766,13 @@ void draw () {
         text(nome, width/2, 5*H+12*dy);
         float w1 = textWidth(nome);
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
+
+        // auto
+        if (RADAR_AUTO) {
+            fill(0, 150, 0);
+            ellipseMode(CENTER);
+            ellipse(6.5*W, 5.2*H, 20*dy, 20*dy);
+        }
 
         // recorde
         if (total[0] >= CONF_RECORDE) {
