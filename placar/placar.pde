@@ -16,11 +16,11 @@ int         NOW;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 5000;
+int         RADAR_AUTO_TIMEOUT = 5000; //3500; //5000;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
-SoundFile[] SNDS = new SoundFile[7];
+SoundFile[] SNDS = new SoundFile[6];
 SoundFile[] HITS = new SoundFile[4];
 
 int         CONF_TEMPO;
@@ -53,7 +53,7 @@ int         ONE = 1;
 
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 int         JOGO_BEHIND, JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
-int         JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_OLD;
+int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_OLD;
 int[][]     JOGO_JOGS = new int[2][3];
 
 float       dy; // 0.001 height
@@ -94,6 +94,7 @@ void go_reinicio () {
     JOGO_TEMPO_RESTANTE_OLD = CONF_TEMPO;
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
+    JOGO_TEMPO_INICIO       = millis();
     SNDS[1].play();
 }
 
@@ -147,7 +148,8 @@ void go_termino () {
                   nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
     }
 
-    String out = ns("Data:",    15) + ts + "\n"
+    String out = ns("Data:",     15) + ts + "\n"
+               + ns("Versão:",   15) + CONF_PARS + "\n"
                //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
                + "\n" + jogs[0] + jogs[1] + "\n"
                + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
@@ -159,7 +161,8 @@ void go_termino () {
         out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
         for (int j=0; j<seq.size(); j++) {
             int[] golpe = seq.get(j);
-            out += nf(golpe[0],6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
+            int ms = golpe[0] - JOGO_TEMPO_INICIO;
+            out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
         }
         out += "\n\n";
     }
@@ -418,14 +421,13 @@ void setup () {
     CONF_NOMES[0]   = CONF.getString("atleta1");
     CONF_NOMES[1]   = CONF.getString("atleta2");
     CONF_NOMES[2]   = CONF.getString("arbitro");
-    CONF_PARS       = "(v" + VERSAO + " / " +
+    CONF_PARS       = "v" + VERSAO + " / " +
                         CONF_TEMPO     + "s / " +
                         CONF_DISTANCIA + "cm / " +
                         CONF_ATAQUES   + "ata / " +
                         CONF_MINIMA    + "-" +
                         CONF_MAXIMA    + "kmh / " +
-                        "equ=" + (CONF_EQUILIBRIO ? "s" : "n") +
-                      ")";
+                        "equ=" + (CONF_EQUILIBRIO ? "s" : "n");
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -433,7 +435,7 @@ void setup () {
     SNDS[3] = new SoundFile(this,"finish.wav");
     SNDS[4] = new SoundFile(this,"undo.wav");
     SNDS[5] = new SoundFile(this,"start.wav");
-    SNDS[6] = new SoundFile(this,"behind.wav");
+    //SNDS[6] = new SoundFile(this,"behind.wav");
 
     HITS[0] = new SoundFile(this,"hit-00.mp3");
     HITS[1] = new SoundFile(this,"hit-01.wav");
@@ -512,7 +514,9 @@ void keyPressed (KeyEvent e) {
     }
 
     if (e.isControlDown()) {
-        if (keyCode == 'A') {                   // CTRL-A
+        if (keyCode == 'Q') {                   // CTRL-Q
+            key = ESC;
+        } else if (keyCode == 'A') {            // CTRL-A
             RADAR_AUTO = !RADAR_AUTO;
             RADAR_AUTO_INICIO = millis();
         } else if (keyCode == '-') {
@@ -683,7 +687,7 @@ void draw_draw () {
     }
     textSize(12*dy);
     textAlign(CENTER, TOP);
-    text(CONF_PARS, width/2, 0);
+    text("("+CONF_PARS+")", width/2, 0);
     if (INV) {
         text("inv", width/2, 30*dy);
     }

@@ -1,11 +1,169 @@
 # FrescoGO!
 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+<!--
+$ pandoc README.md -H deeplists.tex -o frescogo.pdf
+$ pandoc README.md -H deeplists.tex -o frescogo.html
+-->
+
+# FrescoGO! (versão 3.1)
+
+O *FrescoGO!* é um software para a avaliação objetiva de apresentações de
+Frescobol.
+A avaliação é baseada na velocidade que a bolinha atinge a cada golpe dos
+atletas.
+O *FrescoGO!* oferece dois modos de aferição das velocidades:
+- Automático com um radar Doppler que mede as velocidades de pico da bolinha
+  continuamente.
+- Manual com botões que medem o intervalo de tempo entre dois golpes
+  consecutivos e infere as velocidades considerando uma distância
+  predeterminada entre os atletas.
+
+- Links do projeto:
+    - Site: <https://github.com/frescogo/frescogo>
+    - E-mail: <go.frescobol@gmail.com>
+    <!--- Vídeos: <https://www.youtube.com/channel/UCrc_Ds56Bh77CFKXldIU-9g>-->
+    - Licença: <https://creativecommons.org/publicdomain/mark/1.0/deed.pt_BR>
+
+**O software e a regra do FrescoGO! são de domínio público, podendo ser usados,
+  copiados e modificados livremente.**
+
+-------------------------------------------------------------------------------
+
+## Regra - 4 minutos
+
+- **Golpes:**
+    - Somente golpes acima de `50` km/h são contabilizados.
+    - Somente os `80` golpes mais potentes de cada atleta são contabilizados.
+    - Cada atleta é avaliado em separado com uma pontuação:
+        - `A = N x V`
+            - `A` é a pontuação do atleta a ser calculada.
+            - `N` é a quantidade de golpes.
+            - `V` é a média de velocidade dos golpes.
+
+- **Equilíbrio:**
+    - A pontuação de equilíbrio da dupla é a média de pontuação dos atletas:
+        - `(A1 + A2) / 2`
+    - Se um atleta estiver muito abaixo dessa média (com uma margem de 10%),
+      então a pontuação de equilíbrio será o menor total:
+        - `EQU = MENOR((A1+A2)/2, MENOR(A1,A2)x1.10)`
+
+- **Quedas:**
+    - A apresentação é encerrada sumariamente ao atingir `16` quedas.
+    - Cada queda desconta `2%` da pontuação de equilíbrio:
+        - `FIM = EQU - (2% por queda)`
+
+- **Fórmula:**
+
 ```
+    A1  = N x V
+    A2  = N x V
+    EQU = MENOR((A1+A2)/2, MENOR(A1,A2)+10%)`
+    FIM = EQU - (2% por queda)
+```
+
+Em caso de empate entre duplas, os seguintes quesitos serão usados para
+desempate: (1) maior quantidade de golpes, (2) menor quantidade de quedas, (3)
+sorteio.
+
+<!--
+- Revés
+    - Somente os golpes mais potentes de cada atleta são contabilizados:
+        - até `108` golpes do lado     preferencial do atleta ("golpes normais")
+        - até  `12` golpes do lado não preferencial do atleta ("golpes revés")
+        - Opcionalmente, os golpes revés podem ser desabilitados e então serão
+          contabilizados até `120` golpes normais.
+-->
+
+-------------------------------------------------------------------------------
+
+## Fluxo da Apresentação
+
+- Um sino com 5 sons curtos indica que a uma nova apresentação irá começar.
+- Um som agudo longo indica que o atleta pode sacar. Após 5 segundos, o tempo
+  de descanso começa a acumular até que o atleta saque.
+- Após o saque, dependendo do modo de aferição escolhido, o radar (automático)
+  ou árbitro (manual) aferem as velocidades até a queda da bolinha.
+- Um som identifica a faixa de velocidade do golpe anterior:
+    - `até 50 kmh`: som grave
+    - `até 65 kmh`: som agudo
+    - `até 80 kmh`: som de explosão
+    - `acima de 80 kmh`: som de laser
+<!--
+- Quando a apresentação está desequilibrada, os ataques do atleta que mais
+  pontuou acompanham um som grave.
+-->
+- Quando a bolinha cai, o árbitro marca a queda e um som característico é
+  emitido.
+    - No modo autônomo, a queda é sinalizada após 5 segundos sem nenhuma
+      aferição detectada.
+    - O último golpe detectado é ignorado e o tempo volta até o momento em que
+      ele ocorreu.
+- O árbitro então pressiona o botão que habilita o saque e o fluxo reinicia.
+  No modo autônomo, o reinício é instantâneo.
+- Um som agudo triplo é emitido quando faltam 30 segundos para a apresentação
+  terminar.
+- A apresentação termina após o tempo total cronometrado ou após o limite de
+  quedas.
+  Um som característico indica que a apresentação terminou.
+- Ao fim da apresentação, é gerado um relatório com o placar e todas as
+  aferições de golpes.
+
+### Formatação do Resultado
+
+A seguir são explicados os formatos de exibição do resultado da apresentação.
+
+- Placar (a cada sequência)
+
+```
+Data:          2020-08-26_19_43_52                  <-- data/hora da apresentação
+Versão:        v3.1.0 / 240s / 750cm / 40ata / 50-85kmh / equ=s
+                  \-- versão do software
+                          \-- tempo máximo de apresentação
+                                 \-- distância entre os ateltas
+                                         \-- máximo de ataques por minuto
+                                                  \-- mínima considerada / máxima manual
+                                                            \-- equilíbrio s/n
+
+
+Maria:         5689 pontos = 80 atas X 71.11 km/h   <-- atleta à esquerda
+Joao:          4189 pontos = 62 atas X 67.56 km/h   <-- atleta à direita
+
+Descanso:      12                                   <-- tempo total de descanso em segundos
+Quedas:        3                                    <-- total de quedas
+Total:         4330 pontos                          <-- PONTUAÇÃO FINAL
+
+SEQUÊNCIA 01                                        <-- sequências 01, 02, ...
+============
+
+TEMPO   DIR   KMH
+-----   ---   ---
+008308   ->   078       <-- golpes aferidos
+009338   ->   034       -- TEMPO = momento do golpe desde o início da
+011389   ->   069       --         apresentação em milésimos de segundo
+012415   ->   077       -- DIR   = direção do golpe
+012926   ->   043       -- KMH   = velocidade do golpe
+...
+
+
+SEQUÊNCIA 02
+============
+
+...
+```
+
+-------------------------------------------------------------------------------
+
+## Instruções para o Árbitro
+
+```
+CTRL-R              reinicia a apresentação
 CTRL-↑              inicia uma sequência
 CTRL-↓              marca uma queda de bola
 ← | →               marca um golpe do atleta à esquerda ou à direita
 
-CTRL_- | CTRL_+     remove ou adiciona uma queda
+CTRL_- | CTRL_+     remove ou adiciona uma queda manualmente
 CTRL-BACKSPACE      volta atrás e descarta inteiramente a última sequência
 
 CTRL-0              edita o nome do árbitro
@@ -14,6 +172,138 @@ CTRL-2              edita o nome do atleta à direita
 CTRL-I              inverte a posição dos atletas
 
 CTRL-S              grava (salva) novamente o placar e relatório
-CTRL-R              reinicia a apresentação
-CTRL-ESCAPE         fecha o programa
+CTRL-A              liga ou desliga o modo autônomo de detecção de quedas
+CTRL-Q              fecha o programa
 ```
+
+<!--
+-------------------------------------------------------------------------------
+
+## Perguntas e Respostas
+
+- Qual é o objetivo desse projeto?
+    - Oferecer uma maneira objetiva, simples e barata de avaliar apresentações
+      de frescobol.
+    - Estar disponível no maior número de arenas de frescobol que for possível.
+    - Auxiliar no desenvolvimento técnico de atletas, estimular a formação de
+      novos atletas e contribuir para o crescimento do Frescobol de competição.
+
+- Como eu consigo um aparelho desses?
+    - Entre em contato conosco por e-mail:
+        - <go.frescobol@gmail.com>
+
+- Esse aparelho é um radar? Como o aparelho mede a velocidade da bolinha?
+    - O aparelho não é um radar e mede a velocidade de maneira aproximada:
+        - Os atletas devem estar a uma distância fixa predeterminada.
+        - O juiz deve pressionar o botão no momento exato dos golpes (ou o mais
+          próximo possível).
+        - O aparelho divide a distância pelo tempo entre dois golpes
+          consecutivos para calcular a velocidade.
+        - Exemplo: se os atletas estão a 8 metros de distância e em um momento
+          a bolinha leva 1 segundo para se deslocar entre os dois, então a
+          velocidade foi de 8m/s (29 kmh).
+
+- Quais as desvantagens em relação ao radar?
+    - A principal desvantagem é que a medição não é tão precisa pois os atletas
+      se movimentam e o juiz inevitavelmente irá atrasar ou adiantar as
+      medições.
+    - OBS.:
+      O radar também não é perfeito, tendo erro estimado entre +1/-2 kmh.
+      Além disso, qualquer angulação entre a trajetória da bolinha e a posição do
+      radar afeta negativamente as medições (ex., um ângulo de 25 graus diminui
+      as medições em 10%).
+        - Fonte: <https://www.stalkerradar.com/stalker-speed-sensor/faq/stalker-speed-sensor-FAQ.shtml>
+
+- Tem alguma vantagem em relação ao radar?
+    - **Custo**:
+        Os componentes do aparelho somados custam menos de R$50.
+        O radar custa em torno de US$1000 e não inclui o software para
+        frescobol.
+    - **Licença de uso**:
+        Além do custo ser menor, não há nenhuma restrição legal sobre o uso
+        do aparelho, software ou regra por terceiros.
+    - **Infraestrutura**:
+        Além do aparelho, é necessário apenas um celular com um software
+        gratuito (para obter o placar das apresentações) e uma caixa de som
+        potente (de preferência com bateria interna).
+        Não é necessário computador, ponto de luz elétrica, área protegida ou
+        outros ajustes finos para a medição da apresentação.
+        Essa simplicidade permite que múltiplas arenas funcionem ao mesmo
+        tempo.
+    - **Transparência das medições**:
+        Apesar de serem menos precisas, as medições são audíveis e qualquer
+        erro grosseiro pode ser notado imediatamente.
+        O radar só mede bolas acima de 40 kmh e não é possível identificar se
+        as medições estão sempre corretas (o posicionamento dos atletas, vento
+        e outros fatores externos podem afetar as medições).
+    - **Verificabilidade das medições**:
+        Os atletas podem verificar/auditar se a pontuação final foi justa.
+        As apresentações podem ser medidas por um aparelho igual durante as
+        apresentaçõs ou podem ser gravados para medição posterior pelo vídeo.
+
+- Eu posso usar o marcador em competições? Quanto custa? A quem devo pedir
+  permissão?
+    - Não há nenhuma restrição de uso.
+    - Não há custos.
+    - Não é necessário pedir autorização.
+      Não é nem mesmo necessário mencionar o nome do sistema ou autores.
+
+- Como eu posso contribuir?
+    - Adotando o sistema no dia a dia da sua arena.
+        - Principalmente com atletas iniciantes.
+    - Promovendo competições.
+    - Produzindo vídeos.
+    - **Enviando os relatórios das apresentações para nós.**
+
+- Como eu posso contribuir financeiramente?
+    -
+- Por quê as velocidades são elevadas ao quadrado no quesito de *Volume*?
+    - Para incentivar os golpes mais potentes.
+      Quanto maior a velocidade, maior ainda será o quadrado dela.
+      Um golpe a 100 km/h é 2 vezes mais rápido que um a 50 km/h, mas o
+      quadrado de 100 km/h é 4 vezes maior que o de 50 km/h (10000 vs 2500).
+
+- Qual é o objetivo do quesito de *Máximas*?
+    - Bonificando os 36 golpes mais velozes pelos dois lados do atleta (12 de
+      revés e 24 normais), a regra incentiva que o atleta ataque acima do seu
+      limite.
+      Os 36 golpes correspondem a mais ou menos 15% dos ataques de um atleta em
+      uma apresentação de 5 minutos.
+
+    - E por quê a regra não considera todos os 7 golpes mais velozes (no lugar
+      de considerar apenas o 7o)?
+        - Para minimizar a imprecisão da marcação do juiz.
+          É possível que o juiz acelere a marcação de alguns golpes, mas é
+          pouco provável que isso afete sensivelmente a 7a bola mais veloz.
+
+- Por quê algumas apresentações já iniciam com uma pontuação que eu não consigo
+  zerar?
+    - Quando a pontuação de Máximas está desligada (`potencia nao`), a regra
+      assume um valor fixo de 50 kmh para todos os 7 golpes mais velozes de
+      esquerda e de direita **que já são contabilizados no início da
+      apresentação**.
+    - Isso é feito para evitar os dois modos (ligado e desligado) fiquem com
+      pontuações próximas.
+
+- Tem como o juiz "roubar"?
+    - Ao atrasar a marcação de um golpe "A", consequentemente o golpe "B"
+      seguinte será adiantado.
+      O golpe "A" terá a velocidade reduzida e o golpe "B" terá a velocidade
+      aumentada.
+      Se muitos atrasos acontecerem no ataque, a pontuação da dupla será
+      prejudicada.
+      Se muitos avanços acontecerem no ataque, a pontuação da dupla será
+      beneficiada.
+      De qualquer maneira, o som emitido pela aferição permite identificar os
+      atrasos e avanços.
+
+      Como a regra usa o quadrado das velocidades, esse atraso e adiantamento
+      (se forem sistemáticos) podem afetar a pontuação final.
+
+- Tem como o atleta "roubar" ou "tirar vantagem" da regra?
+    - O atleta pode projetar o corpo para frente e adiantar ao máximo os golpes
+      para aumentar a medição das velocidades.
+      É recomendado um árbitro de linha para garantir que a distância mínima é
+      sempre respeitada.
+
+-->
