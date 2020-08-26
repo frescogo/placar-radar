@@ -16,7 +16,7 @@ int         NOW;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 3500;
+int         RADAR_AUTO_TIMEOUT = 5000;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
@@ -40,6 +40,8 @@ PImage      IMG_BAND;
 PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
+
+int         GOLPE_DELAY = 1500; //99999; //1500;
 
 String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
@@ -101,6 +103,9 @@ void go_saque () {
     JOGO_DESCANSO_INICIO = millis();
     JOGO.add(new ArrayList<int[]>());
     SNDS[5].play();
+    if (RADAR != null) {
+        RADAR.clear();
+    }
 }
 
 void go_queda () {
@@ -126,7 +131,7 @@ void go_termino () {
     draw();
 
     String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
-                   + nf(hour(),2) + ":" + nf(minute(),2) + ":" + nf(second(),2);
+                   + nf(hour(),2) + "_" + nf(minute(),2) + "_" + nf(second(),2);
     saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
 
     String manual = "";
@@ -278,6 +283,7 @@ int _cr       = 17;
 
 int _VEL = 0;
 int _DIR = 1;
+//int _NOW = 0;
 
 int REP_10 = 10;
 
@@ -315,6 +321,8 @@ boolean radar_check (byte[] s) {
         s[_cr] == '\r';
 }
 
+//int[] LAST = { 0,0,0 }; // vel, dir, ms
+
 int radar_radar () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
     while (true) {
@@ -336,19 +344,28 @@ int radar_radar () {
         return 0;               // erro no pacote
     }
 
-    String out = "A=";
-    for (int i=0; i<s.length-1; i++) {
-        out += char(s[i]);
-    }
     RADAR_OUT.println(char(s[_peak_dir]) + "=" + nf(four(s,_peak_val),3) + " | " +
                       char(s[_live_dir]) + "=" + nf(four(s,_live_val),3));
     RADAR_OUT.flush();
 
-    byte dir = s[_peak_dir];
-    int  vel = four(s,_peak_val);
+    byte pdir = s[_peak_dir];
+    int  pvel = four(s,_peak_val);
+    byte ldir = s[_live_dir];
+    int  lvel = four(s,_live_val);
 
-    BUF[BUF_I][_VEL] = vel;
-    BUF[BUF_I][_DIR] = dir;
+    // ignoro mesma vel/dir em menos de 500ms
+    //int now = millis();
+    //if (vel==LAST[_VEL] && dir==LAST[_DIR] && now+500<=LAST[_NOW]) {
+    //    vel = 0;
+    //}
+
+    // ignoro se pico e live em direcoes diferentes e live mais lento que 30%
+    if (pdir!=ldir || pvel>lvel*1.3) {
+        pvel = 0;
+    }
+
+    BUF[BUF_I][_VEL] = pvel;
+    BUF[BUF_I][_DIR] = pdir;
     BUF_I = (BUF_I + 1) % REP_10;
 
     // aceito somente 10 picos de velocidades iguais e na mesma direcao
@@ -361,10 +378,13 @@ int radar_radar () {
 
     if (BREAK) {
         BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
-        RADAR_OUT.println(">>> " + vel);
+        //LAST[_VEL] = vel;
+        //LAST[_DIR] = dir;
+        //LAST[_NOW] = now;
+        RADAR_OUT.println(">>> " + pvel);
         RADAR_OUT.flush();
-        vel /= 10;
-        return (dir == 'A') ? vel : -vel;
+        pvel /= 10;
+        return (pdir == 'A') ? pvel : -pvel;
     } else {
         return 0;
     }
@@ -710,7 +730,7 @@ void draw_draw () {
                 // mesmo jogador deu os ultimos dois golpes
             } else {
                 idx = golpe[1];
-                if (NOW <= golpe[0]+1000) {
+                if (NOW <= golpe[0]+GOLPE_DELAY) {
                     int kmh = golpe[2];
                     if (kmh == 0) {
                         int xxx = seq.size() - i - 1;
