@@ -283,7 +283,6 @@ int _cr       = 17;
 
 int _VEL = 0;
 int _DIR = 1;
-//int _NOW = 0;
 
 int REP_10 = 10;
 
@@ -321,8 +320,6 @@ boolean radar_check (byte[] s) {
         s[_cr] == '\r';
 }
 
-//int[] LAST = { 0,0,0 }; // vel, dir, ms
-
 int radar_radar () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
     while (true) {
@@ -353,12 +350,6 @@ int radar_radar () {
     byte ldir = s[_live_dir];
     int  lvel = four(s,_live_val);
 
-    // ignoro mesma vel/dir em menos de 500ms
-    //int now = millis();
-    //if (vel==LAST[_VEL] && dir==LAST[_DIR] && now+500<=LAST[_NOW]) {
-    //    vel = 0;
-    //}
-
     // ignoro se pico e live em direcoes diferentes e live mais lento que 30%
     if (pdir!=ldir || pvel>lvel*1.3) {
         pvel = 0;
@@ -378,9 +369,6 @@ int radar_radar () {
 
     if (BREAK) {
         BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
-        //LAST[_VEL] = vel;
-        //LAST[_DIR] = dir;
-        //LAST[_NOW] = now;
         RADAR_OUT.println(">>> " + pvel);
         RADAR_OUT.flush();
         pvel /= 10;
