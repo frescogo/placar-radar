@@ -108,7 +108,7 @@ sorteio.
 No modo de aferição com o radar e detecção autônoma de quedas, o árbitro só
 é necessário para iniciar a partida.
 
-## Instruções para o Árbitro
+## Instruções de Operação
 
 ```
 CTRL-R              reinicia a apresentação
