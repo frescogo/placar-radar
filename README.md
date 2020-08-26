@@ -1,4 +1,4 @@
-# FrescoGO!
+# FrescoGO! (versão 3.1)
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 
@@ -6,8 +6,6 @@
 $ pandoc README.md -H deeplists.tex -o frescogo.pdf
 $ pandoc README.md -H deeplists.tex -o frescogo.html
 -->
-
-# FrescoGO! (versão 3.1)
 
 O *FrescoGO!* é um software para a avaliação objetiva de apresentações de
 Frescobol.
@@ -20,11 +18,11 @@ O *FrescoGO!* oferece dois modos de aferição das velocidades:
   consecutivos e infere as velocidades considerando uma distância
   predeterminada entre os atletas.
 
-- Links do projeto:
-    - Site: <https://github.com/frescogo/frescogo>
-    - E-mail: <go.frescobol@gmail.com>
-    <!--- Vídeos: <https://www.youtube.com/channel/UCrc_Ds56Bh77CFKXldIU-9g>-->
-    - Licença: <https://creativecommons.org/publicdomain/mark/1.0/deed.pt_BR>
+Links do projeto:
+- Site: <https://github.com/frescogo/frescogo>
+- E-mail: <go.frescobol@gmail.com>
+<!--- Vídeos: <https://www.youtube.com/channel/UCrc_Ds56Bh77CFKXldIU-9g>-->
+- Licença: <https://creativecommons.org/publicdomain/mark/1.0/deed.pt_BR>
 
 **O software e a regra do FrescoGO! são de domínio público, podendo ser usados,
   copiados e modificados livremente.**
@@ -46,7 +44,7 @@ O *FrescoGO!* oferece dois modos de aferição das velocidades:
     - A pontuação de equilíbrio da dupla é a média de pontuação dos atletas:
         - `(A1 + A2) / 2`
     - Se um atleta estiver muito abaixo dessa média (com uma margem de 10%),
-      então a pontuação de equilíbrio será o menor total:
+      então a pontuação de equilíbrio será a pontuação desse atleta:
         - `EQU = MENOR((A1+A2)/2, MENOR(A1,A2)x1.10)`
 
 - **Quedas:**
@@ -85,7 +83,7 @@ sorteio.
   de descanso começa a acumular até que o atleta saque.
 - Após o saque, dependendo do modo de aferição escolhido, o radar (automático)
   ou árbitro (manual) aferem as velocidades até a queda da bolinha.
-- Um som identifica a faixa de velocidade do golpe anterior:
+- Um som identifica a faixa de velocidade de cada golpe aferido:
     - `até 50 kmh`: som grave
     - `até 65 kmh`: som agudo
     - `até 80 kmh`: som de explosão
@@ -96,12 +94,13 @@ sorteio.
 -->
 - Quando a bolinha cai, o árbitro marca a queda e um som característico é
   emitido.
-    - No modo autônomo, a queda é sinalizada após 5 segundos sem nenhuma
-      aferição detectada.
-    - O último golpe detectado é ignorado e o tempo volta até o momento em que
-      ele ocorreu.
-- O árbitro então pressiona o botão que habilita o saque e o fluxo reinicia.
-  No modo autônomo, o reinício é instantâneo.
+    - No modo autônomo, as quedas são sinalizadas após 5 segundos sem nenhuma
+      aferição detectada, sem a interferência do árbitro.
+    - O último golpe detectado antes de cada queda é ignorado e o tempo volta
+      até o momento em que ele ocorreu.
+- O árbitro então pressiona o botão que habilita o próximo saque e o fluxo
+  reinicia. No modo autônomo, o reinício é instantâneo, sem a interferência do
+  árbitro.
 - Um som agudo triplo é emitido quando faltam 30 segundos para a apresentação
   terminar.
 - A apresentação termina após o tempo total cronometrado ou após o limite de
@@ -110,14 +109,15 @@ sorteio.
 - Ao fim da apresentação, é gerado um relatório com o placar e todas as
   aferições de golpes.
 
-### Formatação do Resultado
+No modo de aferição com o radar e detecção autônoma de quedas, o árbitro só
+é necessário para iniciar a partida.
 
-A seguir são explicados os formatos de exibição do resultado da apresentação.
+### Relatório da Apresentação
 
-- Placar (a cada sequência)
+Ao final da apresentação é gerado um relatório com o seguinte formato:
 
 ```
-Data:          2020-08-26_19_43_52                  <-- data/hora da apresentação
+Data:          2020-08-26_19_43_52                      <-- data/hora da apresentação
 Versão:        v3.1.0 / 240s / 750cm / 40ata / 50-85kmh / equ=s
                   \-- versão do software
                           \-- tempo máximo de apresentação
@@ -127,23 +127,23 @@ Versão:        v3.1.0 / 240s / 750cm / 40ata / 50-85kmh / equ=s
                                                             \-- equilíbrio s/n
 
 
-Maria:         5689 pontos = 80 atas X 71.11 km/h   <-- atleta à esquerda
-Joao:          4189 pontos = 62 atas X 67.56 km/h   <-- atleta à direita
+Maria:         5689 pontos = 80 atas X 71.11 km/h       <-- atleta à esquerda
+Joao:          4189 pontos = 62 atas X 67.56 km/h       <-- atleta à direita
 
-Descanso:      12                                   <-- tempo total de descanso em segundos
-Quedas:        3                                    <-- total de quedas
-Total:         4330 pontos                          <-- PONTUAÇÃO FINAL
+Descanso:      12                                       <-- tempo total de descanso em segundos
+Quedas:        3                                        <-- total de quedas
+Total:         4330 pontos                              <-- PONTUAÇÃO FINAL
 
-SEQUÊNCIA 01                                        <-- sequências 01, 02, ...
+SEQUÊNCIA 01                                            <-- sequências 01, 02, ...
 ============
 
 TEMPO   DIR   KMH
 -----   ---   ---
-008308   ->   078       <-- golpes aferidos
-009338   ->   034       -- TEMPO = momento do golpe desde o início da
-011389   ->   069       --         apresentação em milésimos de segundo
-012415   ->   077       -- DIR   = direção do golpe
-012926   ->   043       -- KMH   = velocidade do golpe
+008308   ->   078           <-- golpes aferidos
+009338   ->   034           -- TEMPO = momento do golpe desde o início da
+011389   ->   069           --         apresentação em milésimos de segundo
+012415   ->   077           -- DIR   = direção do golpe
+012926   ->   043           -- KMH   = velocidade do golpe
 ...
 
 
