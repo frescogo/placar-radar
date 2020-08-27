@@ -1,4 +1,5 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
+// - EXE: mock/auto/timeout=false/false/5000, fullscreen
 
 // - RADAR
 

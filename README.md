@@ -30,25 +30,23 @@ Links do projeto:
 
 ## Regra - 4 minutos
 
-- **Golpes:**
-    - Somente golpes acima de `50` km/h são contabilizados.
-    - Somente os `80` golpes mais potentes de cada atleta são contabilizados.
-    - Cada atleta é avaliado em separado com uma pontuação:
-        - `A = N x V`
-            - `A` é a pontuação do atleta a ser calculada.
-            - `N` é a quantidade de golpes.
-            - `V` é a média de velocidade dos golpes.
-
-- **Média:**
-    - A pontuação da dupla é a média de pontuação dos atletas:
-        - `(A1 + A2) / 2`
-
-- **Quedas:**
-    - A apresentação é encerrada sumariamente ao atingir `16` quedas.
-    - Cada queda desconta `2%` da pontuação da dupla:
-        - `FIM = A1A2 - (2% por queda)`
-
-- **Fórmula:**
+- Somente golpes acima de `50` km/h são contabilizados.
+- Somente os `80` golpes mais potentes de cada atleta são contabilizados.
+- Cada atleta é avaliado em separado com uma pontuação:
+    - `A = N x V`
+        - `A` é a pontuação do atleta a ser calculada.
+        - `N` é a quantidade de golpes.
+        - `V` é a média de velocidade dos golpes.
+- A pontuação da dupla é a média de pontuação dos atletas:
+    - `(A1 + A2) / 2`
+- A apresentação é encerrada sumariamente ao atingir `16` quedas.
+- Cada queda desconta `2%` da pontuação da dupla:
+    - `FIM = A1A2 - (2% por queda)`
+- Em caso de empate entre duplas, os seguintes quesitos serão usados para
+  desempate:
+    (1) maior quantidade de golpes,
+    (2) menor quantidade de quedas,
+    (3) sorteio.
 
 ```
     A1  = N x V
@@ -56,10 +54,6 @@ Links do projeto:
     MED = (A1 + A2) / 2
     FIM = MED - (2% por queda)
 ```
-
-Em caso de empate entre duplas, os seguintes quesitos serão usados para
-desempate: (1) maior quantidade de golpes, (2) menor quantidade de quedas, (3)
-sorteio.
 
 <!--
 - Revés
