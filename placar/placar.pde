@@ -429,7 +429,7 @@ void setup () {
     CONF_ABORTA    = CONF.getInt("aborta");
 
     RADAR_REPS     = max(10, CONF.getInt("radar_reps"));
-    RADAR_MARGEM   = CONF.getFloar("radar_margem");
+    RADAR_MARGEM   = CONF.getFloat("radar_margem");
 
     CONF_RECORDE   = CONF.getInt("recorde");
     CONF_NOMES[0]  = CONF.getString("atleta1");
