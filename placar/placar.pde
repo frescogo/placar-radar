@@ -427,10 +427,10 @@ void setup () {
     CONF_NOMES[2]  = CONF.getString("arbitro");
     CONF_PARS      = "v" + VERSAO + " / " +
                      (CONF_TRINCA ? "trinca" : "dupla") + " / " +
-                     (conf_radar() ? CONF_DISTANCIA + "cm" : "radar") + " / " +
+                     (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
                      CONF_TEMPO   + "s / " +
                      CONF_ATAQUES + "ata / " +
-                     CONF_MINIMA  + (conf_radar() ? "-" + CONF_MAXIMA : "") + "kmh";
+                     CONF_MINIMA  + (conf_radar() ? "" : "-" + CONF_MAXIMA) + "kmh";
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
