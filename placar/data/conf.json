@@ -5,6 +5,11 @@
     "minima":     50,
     "maxima":     85,
     "trinca":     false,
+    "quedas":     800,
+    "aborta":     15,
+
+    "radar_reps":   10,
+    "radar_margem": 1.3,
 
     "recorde": 0,
     "imagem1": "data/fresco-alpha.png",

@@ -20,6 +20,8 @@ boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 5000; //3500; //5000;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
+int         RADAR_REPS;
+float       RADAR_MARGEM;
 
 SoundFile[] SNDS = new SoundFile[6];
 SoundFile[] HITS = new SoundFile[4];
@@ -30,6 +32,9 @@ int         CONF_ATAQUES;
 int         CONF_MINIMA;
 int         CONF_MAXIMA;
 boolean     CONF_TRINCA;
+int         CONF_QUEDAS;
+int         CONF_ABORTA;
+
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
 String      CONF_PARS;
@@ -87,11 +92,11 @@ int conf_ataques (int jog) {
 }
 
 int conf_quedas () {
-    return 800 * 60 / CONF_TEMPO;   // 8% / 60s
+    return CONF_QUEDAS * 60 / CONF_TEMPO;   // 8% / 60s
 }
 
-int conf_abort () {
-    return CONF_TEMPO / 15;         // 1 queda / 15s
+int conf_aborta () {
+    return CONF_TEMPO / CONF_ABORTA;         // 1 queda / 15s
 }
 
 boolean conf_radar () {
@@ -125,7 +130,7 @@ void go_saque () {
 void go_queda () {
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
-    if (jogo_quedas() >= conf_abort()) {
+    if (jogo_quedas() >= conf_aborta()) {
         go_termino();
     } else {
         SNDS[0].play();
@@ -253,7 +258,7 @@ void jogo_calc () {
 
     int p0  = JOGO_JOGS[0][0];
     int p1  = JOGO_JOGS[1][0];
-    int pts = (p0 + p1) / 2;
+    int pts = p0 + p1;
     int pct = jogo_quedas() * conf_quedas();
 
     JOGO_TOTAL = pts * (10000-pct) / 10000;
@@ -291,8 +296,6 @@ int _cr       = 17;
 
 int _VEL = 0;
 int _DIR = 1;
-
-int REP_10 = 10;
 
 int four (byte[] s, int idx) {
     return
@@ -359,16 +362,16 @@ int radar_radar () {
     int  lvel = four(s,_live_val);
 
     // ignoro se pico e live em direcoes diferentes e live mais lento que 30%
-    if (pdir!=ldir || pvel>lvel*1.3) {
+    if (pdir!=ldir || pvel>lvel*RADAR_MARGEM) {
         pvel = 0;
     }
 
     BUF[BUF_I][_VEL] = pvel;
     BUF[BUF_I][_DIR] = pdir;
-    BUF_I = (BUF_I + 1) % REP_10;
+    BUF_I = (BUF_I + 1) % RADAR_REPS;
 
     // aceito somente 10 picos de velocidades iguais e na mesma direcao
-    for (int i=1; i<REP_10; i++) {
+    for (int i=1; i<RADAR_REPS; i++) {
         if (BUF[i][_VEL]!=BUF[0][_VEL] || BUF[i][_DIR]!=BUF[0][_DIR]) {
             BREAK = true;   // quebra nos ultimos 10, passo a aceitar o proximo
             return 0;       // falhou na velocidade ou direcao
@@ -422,6 +425,12 @@ void setup () {
     CONF_MINIMA    = CONF.getInt("minima");
     CONF_MAXIMA    = CONF.getInt("maxima");
     CONF_TRINCA    = CONF.getBoolean("trinca");
+    CONF_QUEDAS    = CONF.getInt("quedas");
+    CONF_ABORTA    = CONF.getInt("aborta");
+
+    RADAR_REPS     = max(10, CONF.getInt("radar_reps"));
+    RADAR_MARGEM   = CONF.getFloar("radar_margem");
+
     CONF_RECORDE   = CONF.getInt("recorde");
     CONF_NOMES[0]  = CONF.getString("atleta1");
     CONF_NOMES[1]  = CONF.getString("atleta2");

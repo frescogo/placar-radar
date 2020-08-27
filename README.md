@@ -31,15 +31,13 @@ Links do projeto:
 ## Regra - 4 minutos
 
 - Cada atleta é avaliado em separado com uma pontuação:
-    - `A = N x V`
-        - `A` é a pontuação do atleta a ser calculada.
-        - `N` é a quantidade de golpes.
-        - `V` é a média de velocidade dos golpes.
-    - São validados somente os `80` golpes mais fortes acima de `50` km/h.
-- A pontuação da dupla é a média de pontuação dos atletas:
-    - `MED = (A1 + A2) / 2`
+    - `ATL = Ata x Vel`
+        - `ATL` é a pontuação do atleta a ser calculada.
+        - `Ata` é a quantidade de ataques.
+        - `Vel` é a média de velocidade dos golpes.
+    - São validados somente os `80` ataques mais fortes acima de `50` km/h.
 - Cada queda desconta `2%` da pontuação da dupla:
-    - `FIM = MED - (2% por queda)`
+    - `TOT = (ATL1 + ATL2) - (2% por queda)`
     - A apresentação é encerrada sumariamente ao atingir `16` quedas.
 - Em caso de empate entre duplas, os seguintes quesitos serão usados para
   desempate:
@@ -48,10 +46,9 @@ Links do projeto:
     (3) sorteio.
 - Resumo:
 ```
-    A1  = N x V
-    A2  = N x V
-    MED = (A1 + A2) / 2
-    FIM = MED - (2% por queda)
+    ATL1 = Ata x Vel
+    ATL2 = Ata x Vel
+    TOT  = (ATL1 + ATL2) - (2% por queda)
 ```
 
 <!--
