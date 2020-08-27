@@ -39,25 +39,22 @@ Links do projeto:
             - `N` é a quantidade de golpes.
             - `V` é a média de velocidade dos golpes.
 
-- **Equilíbrio:**
-    - A pontuação de equilíbrio da dupla é a média de pontuação dos atletas:
+- **Média:**
+    - A pontuação da dupla é a média de pontuação dos atletas:
         - `(A1 + A2) / 2`
-    - Se um atleta estiver muito abaixo dessa média (com uma margem de 10%),
-      então a pontuação de equilíbrio será a pontuação desse atleta:
-        - `EQU = MENOR((A1+A2)/2, MENOR(A1,A2)x1.10)`
 
 - **Quedas:**
     - A apresentação é encerrada sumariamente ao atingir `16` quedas.
-    - Cada queda desconta `2%` da pontuação de equilíbrio:
-        - `FIM = EQU - (2% por queda)`
+    - Cada queda desconta `2%` da pontuação da dupla:
+        - `FIM = A1A2 - (2% por queda)`
 
 - **Fórmula:**
 
 ```
     A1  = N x V
     A2  = N x V
-    EQU = MENOR((A1+A2)/2, MENOR(A1,A2)+10%)`
-    FIM = EQU - (2% por queda)
+    MED = (A1 + A2) / 2
+    FIM = MED - (2% por queda)
 ```
 
 Em caso de empate entre duplas, os seguintes quesitos serão usados para

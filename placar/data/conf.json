@@ -4,7 +4,7 @@
     "ataques":    40,
     "minima":     50,
     "maxima":     85,
-    "equilibrio": true,
+    "trinca":     false,
 
     "recorde": 0,
     "imagem1": "data/fresco-alpha.png",
