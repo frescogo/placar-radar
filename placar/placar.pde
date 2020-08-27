@@ -410,7 +410,7 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    CONF            = loadJSONObject("conf.json");
+    CONF            = loadJSONObject("data/conf.json");
     CONF_TEMPO      = CONF.getInt("tempo");
     CONF_DISTANCIA  = CONF.getInt("distancia");
     CONF_ATAQUES    = CONF.getInt("ataques");

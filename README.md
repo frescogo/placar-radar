@@ -21,8 +21,9 @@ O *FrescoGO!* oferece dois modos de aferição das velocidades:
 Links do projeto:
 - Site: <https://github.com/frescogo/frescogo>
 - E-mail: <go.frescobol@gmail.com>
-<!--- Vídeos: <https://www.youtube.com/channel/UCrc_Ds56Bh77CFKXldIU-9g>-->
 - Licença: <https://creativecommons.org/publicdomain/mark/1.0/deed.pt_BR>
+
+<!--- Vídeos: <https://www.youtube.com/channel/UCrc_Ds56Bh77CFKXldIU-9g>-->
 
 **O software e a regra do FrescoGO! são de domínio público, podendo ser usados,
   copiados e modificados livremente.**
