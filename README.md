@@ -37,17 +37,16 @@ Links do projeto:
         - `V` é a média de velocidade dos golpes.
     - São validados somente os `80` golpes mais fortes acima de `50` km/h.
 - A pontuação da dupla é a média de pontuação dos atletas:
-    - `(A1 + A2) / 2`
+    - `MED = (A1 + A2) / 2`
 - Cada queda desconta `2%` da pontuação da dupla:
-    - `FIM = A1A2 - (2% por queda)`
+    - `FIM = MED - (2% por queda)`
     - A apresentação é encerrada sumariamente ao atingir `16` quedas.
 - Em caso de empate entre duplas, os seguintes quesitos serão usados para
   desempate:
     (1) maior quantidade de golpes,
     (2) menor quantidade de quedas,
     (3) sorteio.
-- Resumo:
-```
+- Resumo: ```
     A1  = N x V
     A2  = N x V
     MED = (A1 + A2) / 2
