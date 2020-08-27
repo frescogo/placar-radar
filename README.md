@@ -46,7 +46,8 @@ Links do projeto:
     (1) maior quantidade de golpes,
     (2) menor quantidade de quedas,
     (3) sorteio.
-- Resumo: ```
+- Resumo:
+```
     A1  = N x V
     A2  = N x V
     MED = (A1 + A2) / 2
