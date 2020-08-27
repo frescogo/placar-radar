@@ -93,6 +93,10 @@ int conf_abort () {
     return CONF_TEMPO / 15;         // 1 queda / 15s
 }
 
+boolean conf_radar () {
+    return (RADAR!=null || RADAR_MOCK);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void go_reinicio () {
@@ -423,10 +427,10 @@ void setup () {
     CONF_NOMES[2]  = CONF.getString("arbitro");
     CONF_PARS      = "v" + VERSAO + " / " +
                      (CONF_TRINCA ? "trinca" : "dupla") + " / " +
-                     (RADAR == null ? CONF_DISTANCIA + "cm" : "radar") + " / " +
+                     (conf_radar() ? CONF_DISTANCIA + "cm" : "radar") + " / " +
                      CONF_TEMPO   + "s / " +
                      CONF_ATAQUES + "ata / " +
-                     CONF_MINIMA  + (RADAR == null ? "-" + CONF_MAXIMA : "") + "kmh";
+                     CONF_MINIMA  + (conf_radar() ? "-" + CONF_MAXIMA : "") + "kmh";
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -600,7 +604,7 @@ void draw () {
     NOW = millis();
 
     if (ESTADO.equals("jogando")) {
-        if (RADAR_MOCK || RADAR!=null) {
+        if (conf_radar()) {
             int kmh = radar();
             int kmh_ = abs(kmh);
             if (kmh != 0) {
