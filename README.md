@@ -7,15 +7,15 @@ $ pandoc README.md -H deeplists.tex -o frescogo.pdf
 $ pandoc README.md -H deeplists.tex -o frescogo.html
 -->
 
-O *FrescoGO!* é um software para a avaliação objetiva de apresentações de
-Frescobol.
+O *FrescoGO!* é um software para avaliação de apresentações de Frescobol
+competitivo.
 A avaliação é baseada na velocidade que a bolinha atinge a cada golpe dos
 atletas.
 O *FrescoGO!* oferece dois modos de aferição das velocidades:
 - Automático com um radar Doppler que mede as velocidades de pico da bolinha
   continuamente.
-- Manual com botões que medem o intervalo de tempo entre dois golpes
-  consecutivos e infere as velocidades considerando uma distância
+- Manual com teclas que medem o intervalo de tempo entre dois golpes
+  consecutivos para inferir as velocidades considerando uma distância
   predeterminada entre os atletas.
 
 Links do projeto:
@@ -99,22 +99,22 @@ No modo de aferição com o radar e detecção autônoma de quedas, o árbitro s
 ## Instruções de Operação
 
 ```
-CTRL-R              reinicia a apresentação
-CTRL-↑              inicia uma sequência
-CTRL-↓              marca uma queda de bola
-← | →               marca um golpe do atleta à esquerda ou à direita
+CTRL-R           reinicia a apresentação
+CTRL-↑           inicia uma sequência
+CTRL-↓           marca uma queda de bola
+← | →            marca um golpe do atleta à esquerda ou à direita (modo teclado)
 
-CTRL_- | CTRL_+     remove ou adiciona uma queda manualmente
-CTRL-BACKSPACE      volta atrás e descarta inteiramente a última sequência
+CTRL_- | CTRL_+  remove ou adiciona uma queda manualmente
+CTRL-BACKSPACE   volta atrás e descarta inteiramente a última sequência
 
-CTRL-0              edita o nome do árbitro
-CTRL-1              edita o nome do atleta à esquerda
-CTRL-2              edita o nome do atleta à direita
-CTRL-I              inverte a posição dos atletas
+CTRL-0           edita o nome do árbitro
+CTRL-1           edita o nome do atleta à esquerda
+CTRL-2           edita o nome do atleta à direita
+CTRL-I           inverte a posição dos atletas
 
-CTRL-S              grava (salva) novamente o placar e relatório
-CTRL-A              liga ou desliga o modo autônomo de detecção de quedas
-CTRL-Q              fecha o programa
+CTRL-S           grava (salva) novamente o placar e relatório
+CTRL-A           liga ou desliga o modo autônomo de detecção de quedas
+CTRL-Q           fecha o programa
 ```
 
 ## Relatório da Apresentação
@@ -123,13 +123,13 @@ Ao final da apresentação é gerado um relatório com o seguinte formato:
 
 ```
 Data:          2020-08-26_19_43_52                      <-- data/hora da apresentação
-Versão:        v3.1.0 / 240s / 750cm / 40ata / 50-85kmh / equ=s
+Versão:        v3.1.0 / dupla / radar / 240s / 40ata / 50kmh
                   \-- versão do software
-                          \-- tempo máximo de apresentação
-                                 \-- distância entre os ateltas
-                                         \-- máximo de ataques por minuto
-                                                  \-- mínima considerada / máxima manual
-                                                            \-- equilíbrio s/n
+                         \-- dupla ou trinca
+                                  \-- radar ou distância entre os atletas em cm
+                                         \-- tempo máximo de apresentação
+                                                 \-- máximo de ataques por minuto
+                                                         \-- velocidade mínima considerada
 
 
 Maria:         5689 pontos = 80 atas X 71.11 km/h       <-- atleta à esquerda
