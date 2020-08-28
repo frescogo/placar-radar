@@ -1,14 +1,12 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
 
-// - RADAR
-
 import processing.serial.*;
 import processing.sound.*;
 
 int         MAJOR    = 3;
 int         MINOR    = 1;
-int         REVISION = 0;
+int         REVISION = 1;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
@@ -362,7 +360,7 @@ int radar_radar () {
     int  lvel = four(s,_live_val);
 
     // ignoro se pico e live em direcoes diferentes e live mais lento que 30%
-    if (pdir!=ldir || pvel>lvel*RADAR_MARGEM) {
+    if (pdir!=ldir || pvel*RADAR_MARGEM>lvel) {
         pvel = 0;
     }
 
@@ -428,7 +426,7 @@ void setup () {
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
 
-    RADAR_REPS     = max(10, CONF.getInt("radar_reps"));
+    RADAR_REPS     = min(10, CONF.getInt("radar_reps"));
     RADAR_MARGEM   = CONF.getFloat("radar_margem");
 
     CONF_RECORDE   = CONF.getInt("recorde");
@@ -544,6 +542,22 @@ void keyPressed (KeyEvent e) {
             INV = !INV;
             ZER = 1 - ZER;
             ONE = 1 - ONE;
+        } else if (keyCode == 37) {
+            if (e.isAltDown()) {
+                RADAR_REPS--;
+                println("RADAR_REPS   = " + RADAR_REPS);
+            } else {
+                RADAR_MARGEM -= 0.05;
+                println("RADAR_MARGEM = " + RADAR_MARGEM);
+            }
+        } else if (keyCode == 39) {
+            if (e.isAltDown()) {
+                RADAR_REPS++;
+                println("RADAR_REPS   = " + RADAR_REPS);
+            } else {
+                RADAR_MARGEM += 0.05;
+                println("RADAR_MARGEM = " + RADAR_MARGEM);
+            }
         }
     }
 
