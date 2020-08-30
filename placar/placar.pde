@@ -2,15 +2,6 @@
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
 
 // - testar em outras máquinas
-// - return -1, afeta queda autonoma
-// - nao aceitar golpe na mesma velocidade/direcao em menos de 700ms
-
-/*
-75 km/h = 20.8 m/s
-20.8 m - 1000 ms
-15.0 m -  721 ms
-700ms sem repeticao é seguro
-*/
 
 import processing.serial.*;
 import processing.sound.*;
@@ -30,6 +21,7 @@ int         RADAR_AUTO_TIMEOUT = 5000; //3500; //5000;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 int         RADAR_REPS_MAX = 10;
+int         RADAR_IGUAL = 700;
 int         RADAR_REPS;
 float       RADAR_MARGEM;
 
@@ -306,6 +298,15 @@ int _cr       = 17;
 
 int _VEL = 0;
 int _DIR = 1;
+int _NOW = 2;
+
+/*
+75 km/h = 20.8 m/s
+20.8 m - 1000 ms
+15.0 m -  721 ms
+700ms sem repeticao é seguro
+*/
+int[] LAST = { 0,0,0 }; // vel, dir, ms
 
 int four (byte[] s, int idx) {
     return
@@ -376,9 +377,17 @@ int radar_radar () {
     byte ldir = s[_live_dir];
     int  lvel = four(s,_live_val);
 
-    // ignoro se pico e live em direcoes diferentes e live mais lento que 30%
+    // duvida se pico e live em direcoes diferentes e live mais lento que 30%
     if (pdir!=ldir || pvel*RADAR_MARGEM>lvel) {
-        pvel = 0;
+        pvel = -10;
+    }
+
+    // duvida se mesma vel/dir em menos de 700ms
+    int now = millis();
+    if (pvel==LAST[_VEL] && pdir==LAST[_DIR] && now+RADAR_IGUAL<=LAST[_NOW]) {
+        if (pvel != 0) {
+            pvel = -10;
+        }
     }
 
     BUF[BUF_I][_VEL] = pvel;
@@ -394,13 +403,16 @@ int radar_radar () {
     }
 
     if (BREAK) {
-        if (kmh != 0) {
+        if (pvel != 0) {
             BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
             RADAR_OUT.println(">>> " + pvel);   // TODO: o "0" nunca eh exibido
+            RADAR_OUT.flush();
             // mas eu preciso ficar informando o "0" pra detectar a queda autonoma
             // por isso mantenho o BREAK em true
         }
-        RADAR_OUT.flush();
+        LAST[_VEL] = pvel;
+        LAST[_DIR] = pdir;
+        LAST[_NOW] = now;
         pvel /= 10;
         return (pdir == 'A') ? pvel : -pvel;
     } else {
