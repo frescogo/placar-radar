@@ -17,7 +17,7 @@ int         NOW;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 5000; //3500; //5000;
+int         RADAR_AUTO_TIMEOUT = 3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 int         RADAR_REPS_MAX = 10;
