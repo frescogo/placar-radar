@@ -3,7 +3,7 @@
 
 // - testar em outras máquinas
 // - return -1, afeta queda autonoma
-// - nao aceitar golpe na mesma direcao em menos de DT
+// - nao aceitar golpe na mesma velocidade/direcao em menos de 700ms
 
 /*
 75 km/h = 20.8 m/s
@@ -341,6 +341,11 @@ boolean radar_check (byte[] s) {
         s[_cr] == '\r';
 }
 
+// -1: erro ou duvida
+// =0: nada detectado
+// >0: velocidade se distanciando
+// <0: velocidade se aproximando
+
 int radar_radar () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
     while (true) {
@@ -359,7 +364,7 @@ int radar_radar () {
 
     byte[] s = RADAR.readBytes(18);
     if (!radar_check(s)) {
-        return 0;               // erro no pacote
+        return -1;              // erro no pacote
     }
 
     RADAR_OUT.println(char(s[_peak_dir]) + "=" + nf(four(s,_peak_val),3) + " | " +
@@ -384,18 +389,22 @@ int radar_radar () {
     for (int i=1; i<RADAR_REPS; i++) {
         if (BUF[i][_VEL]!=BUF[0][_VEL] || BUF[i][_DIR]!=BUF[0][_DIR]) {
             BREAK = true;   // quebra nos ultimos 10, passo a aceitar o proximo
-            return 0;       // falhou na velocidade ou direcao
+            return -1;      // falhou na velocidade ou direcao
         }
     }
 
     if (BREAK) {
-        BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
-        RADAR_OUT.println(">>> " + pvel);
+        if (kmh != 0) {
+            BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
+            RADAR_OUT.println(">>> " + pvel);   // TODO: o "0" nunca eh exibido
+            // mas eu preciso ficar informando o "0" pra detectar a queda autonoma
+            // por isso mantenho o BREAK em true
+        }
         RADAR_OUT.flush();
         pvel /= 10;
         return (pdir == 'A') ? pvel : -pvel;
     } else {
-        return 0;
+        return -1;
     }
 }
 
@@ -643,7 +652,7 @@ void draw () {
         if (conf_radar()) {
             int kmh = radar();
             int kmh_ = abs(kmh);
-            if (kmh != 0) {
+            if (kmh!=-1 && kmh!=0) {
                 if (ESTADO_JOGANDO.equals("sacando")) {
                     ESTADO_JOGANDO = "jogando";
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
@@ -652,9 +661,10 @@ void draw () {
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
                 sound(kmh_);
-                if (RADAR_AUTO) {
-                    RADAR_AUTO_INICIO = NOW;
-                }
+            }
+            if (RADAR_AUTO && kmh!=0) {
+                // zera o timeout com qq bola que não seja 0
+                RADAR_AUTO_INICIO = NOW;
             }
         }
         if (ESTADO_JOGANDO.equals("jogando") &&
