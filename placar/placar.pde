@@ -1,6 +1,17 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
 
+// - testar em outras máquinas
+// - return -1, afeta queda autonoma
+// - nao aceitar golpe na mesma direcao em menos de DT
+
+/*
+75 km/h = 20.8 m/s
+20.8 m - 1000 ms
+15.0 m -  721 ms
+700ms sem repeticao é seguro
+*/
+
 import processing.serial.*;
 import processing.sound.*;
 
@@ -18,6 +29,7 @@ boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 5000; //3500; //5000;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
+int         RADAR_REPS_MAX = 10;
 int         RADAR_REPS;
 float       RADAR_MARGEM;
 
@@ -279,7 +291,7 @@ int radar_mock () {
 
 boolean BREAK = true;
 int     BUF_I = 0;
-int[][] BUF   = { {0,0},{0,0},{0,0},{0,0},{0,0},
+int[][] BUF   = { {0,0},{0,0},{0,0},{0,0},{0,0},    // RADAR_REPS_MAX = 10
                   {0,0},{0,0},{0,0},{0,0},{0,0} };
 
 int _SIZE     = 18;
@@ -426,7 +438,7 @@ void setup () {
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
 
-    RADAR_REPS     = min(10, CONF.getInt("radar_reps"));
+    RADAR_REPS     = min(RADAR_REPS_MAX, CONF.getInt("radar_reps"));
     RADAR_MARGEM   = CONF.getFloat("radar_margem");
 
     CONF_RECORDE   = CONF.getInt("recorde");
