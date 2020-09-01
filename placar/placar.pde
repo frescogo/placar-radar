@@ -24,7 +24,7 @@ boolean     RADAR_AUTO = true;
 int         RADAR_AUTO_TIMEOUT = 99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
-int         RADAR_REPS = 10;
+int         RADAR_REPS = 5;
 int         RADAR_IGUAL = 700;
 
 SoundFile[] SNDS = new SoundFile[6];
@@ -51,7 +51,7 @@ PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
 
-int         GOLPE_DELAY = 1500; //99999; //1500;
+int         GOLPE_DELAY = 99999; //1500;
 
 String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
@@ -350,7 +350,7 @@ boolean radar_check (byte[] s) {
 // >0: velocidade se distanciando
 // <0: velocidade se aproximando
 
-int radar_radar () {
+int radar_s () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
     while (true) {
         int n = RADAR.read();
@@ -409,11 +409,76 @@ int radar_radar () {
     return (dir == 'A') ? vel : -vel;
 }
 
+int radar_be () {
+    // aproximadamente 40/50 reads/sec (20/25 ms/read)
+//println(000000000);
+    while (true) {
+        delay(0);               // sem isso, o programa trava
+        int n = RADAR.read();
+        if (n == 0x88) {
+            break;              // espera o primeiro byte do pacote
+        }
+    }
+//println(111111111);
+    while (true) {
+        delay(0);               // sem isso, o programa trava
+        int n = RADAR.available();
+        if (n >= 22) {
+            break;              // espera ter o tamanho do pacote
+        }
+    }
+//println(222222222);
+
+    byte[] s = RADAR.readBytes(22);
+    //if (!radar_check(s)) {
+        //return -1;              // erro no pacote
+    //}
+
+    int dir = (s[7] >> 1) & 0x01;   // 0=out, 1=in
+    int vel = four(s,8);
+
+    String sdir = (dir == 0) ? "->" : "<-";
+    String msg = "[" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3);
+
+    RADAR_OUT.println(msg);
+    RADAR_OUT.flush();
+
+    BUF[BUF_I][_VEL] = vel;
+    BUF[BUF_I][_DIR] = dir;
+    BUF_I = (BUF_I + 1) % RADAR_REPS;
+
+    // aceito somente 10 picos de velocidades iguais e na mesma direcao
+    for (int i=1; i<RADAR_REPS; i++) {
+        vel = max(vel, BUF[i][_VEL]);
+        if (BUF[i][_DIR] != BUF[0][_DIR]) {
+            return -1;      // falhou na direcao
+        }
+    }
+
+    // duvida se mesma vel/dir em menos de 700ms
+    int now = millis();
+    if (vel!=0 && dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
+        return -1;
+    }
+
+    if (vel!=0 || LAST[_VEL]!=0) {
+        String msg2 = ">>> [" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3) + " <<<";
+        RADAR_OUT.println(msg2);
+        RADAR_OUT.flush();
+        println(msg2);
+    }
+    LAST[_VEL] = vel;
+    LAST[_DIR] = dir;
+    LAST[_NOW] = now;
+    vel = (vel + 5) / 10;  // round
+    return (dir == 0) ? vel : -vel;
+}
+
 int radar () {
     if (RADAR_MOCK) {
         return radar_mock();
     } else {
-        return radar_radar();
+        return radar_be();
     }
 }
 
@@ -429,8 +494,8 @@ void exit () {
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
     //size(600, 300);
-    size(1300, 900);
-    //fullScreen();
+    //size(1300, 900);
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -452,12 +517,6 @@ void setup () {
     CONF_NOMES[0]  = CONF.getString("atleta1");
     CONF_NOMES[1]  = CONF.getString("atleta2");
     CONF_NOMES[2]  = CONF.getString("arbitro");
-    CONF_PARS      = "v" + VERSAO + " / " +
-                     (CONF_TRINCA ? "trinca" : "dupla") + " / " +
-                     (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-                     CONF_TEMPO   + "s / " +
-                     CONF_ATAQUES + "ata / " +
-                     CONF_MINIMA  + (conf_radar() ? "" : "-" + CONF_MAXIMA) + "kmh";
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -497,12 +556,20 @@ void setup () {
     try {
         //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
         String[] list = Serial.list();
+        //println(list);
         RADAR = new Serial(this, list[list.length-1], 9600);
         RADAR_OUT = createWriter("radar.txt");
     } catch (RuntimeException e) {
         println("Erro na comunicação com o radar...");
         //exit();
     }
+
+    CONF_PARS = "v" + VERSAO + " / " +
+                (CONF_TRINCA ? "trinca" : "dupla") + " / " +
+                (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
+                CONF_TEMPO   + "s / " +
+                CONF_ATAQUES + "ata / " +
+                CONF_MINIMA  + (conf_radar() ? "" : "-" + CONF_MAXIMA) + "kmh";
 
     go_reinicio();
 }
@@ -638,6 +705,7 @@ void keyPressed (KeyEvent e) {
 
 void draw () {
     NOW = millis();
+    //println(RADAR);
 
     if (ESTADO.equals("jogando")) {
         if (conf_radar()) {
@@ -654,10 +722,12 @@ void draw () {
                 sound(kmh);
             }
             if (RADAR_AUTO && kmh!=0) {
+//println("!!!ZEROU!!! === " + kmh);
                 // zera o timeout com qq bola que não seja 0
                 RADAR_AUTO_INICIO = NOW;
             }
         }
+//println(RADAR_AUTO_INICIO + "+" + RADAR_AUTO_TIMEOUT + " < " + NOW);
         if (ESTADO_JOGANDO.equals("jogando") &&
             RADAR_AUTO && NOW>=RADAR_AUTO_INICIO+RADAR_AUTO_TIMEOUT) {
             go_queda();
