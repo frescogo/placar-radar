@@ -382,7 +382,7 @@ int radar_s () {
     BUF[BUF_I][_DIR] = dir;
     BUF_I = (BUF_I + 1) % RADAR_REPS;
 
-    // aceito somente 10 picos de velocidades iguais e na mesma direcao
+    // aceito somente REPS velocidades iguais e na mesma direcao
     for (int i=1; i<RADAR_REPS; i++) {
         vel = max(vel, BUF[i][_VEL]);
         if (BUF[i][_DIR] != BUF[0][_DIR]) {
@@ -574,7 +574,7 @@ void setup () {
     go_reinicio();
 }
 
-void sound (int kmh) {
+void _sound_ (int kmh) {
     if (kmh > 0) {
         HITS[1].play();
     } else {
@@ -582,7 +582,7 @@ void sound (int kmh) {
     }
 }
 
-void _sound_ (int kmh) {
+void sound (int kmh) {
     int kmh_ = abs(kmh);
     if (kmh_ < 50) {
         HITS[0].play();
