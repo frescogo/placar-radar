@@ -2,6 +2,10 @@
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
 
 // - testar em outras máquinas
+// - cores vm,am,az porporcional ata/tot
+// - configurar lado do radar e do pivo da trinca
+// - mostrar todos os parametros na configuracao: quedas/aborta
+// - pontuacao media
 
 import processing.serial.*;
 import processing.sound.*;
@@ -16,14 +20,12 @@ int         NOW;
 
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
-boolean     RADAR_AUTO = false;
-int         RADAR_AUTO_TIMEOUT = 3500;
+boolean     RADAR_AUTO = true;
+int         RADAR_AUTO_TIMEOUT = 99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
-int         RADAR_REPS_MAX = 10;
+int         RADAR_REPS = 10;
 int         RADAR_IGUAL = 700;
-int         RADAR_REPS;
-float       RADAR_MARGEM;
 
 SoundFile[] SNDS = new SoundFile[6];
 SoundFile[] HITS = new SoundFile[4];
@@ -133,10 +135,12 @@ void go_queda () {
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
     if (jogo_quedas() >= conf_aborta()) {
+        delay(1000);
         go_termino();
     } else {
         SNDS[0].play();
         if (RADAR_AUTO) {
+            delay(1000);
             go_saque();
         }
     }
@@ -281,7 +285,6 @@ int radar_mock () {
     return 0;
 }
 
-boolean BREAK = true;
 int     BUF_I = 0;
 int[][] BUF   = { {0,0},{0,0},{0,0},{0,0},{0,0},    // RADAR_REPS_MAX = 10
                   {0,0},{0,0},{0,0},{0,0},{0,0} };
@@ -363,7 +366,7 @@ int radar_radar () {
         }
     }
 
-    byte[] s = RADAR.readBytes(18);
+    byte[] s = RADAR.readBytes(_SIZE);
     if (!radar_check(s)) {
         return -1;              // erro no pacote
     }
@@ -372,52 +375,38 @@ int radar_radar () {
                       char(s[_live_dir]) + "=" + nf(four(s,_live_val),3));
     RADAR_OUT.flush();
 
-    byte pdir = s[_peak_dir];
-    int  pvel = four(s,_peak_val);
-    byte ldir = s[_live_dir];
-    int  lvel = four(s,_live_val);
+    byte dir = s[_live_dir];
+    int  vel = four(s,_live_val);
 
-    // duvida se pico e live em direcoes diferentes e live mais lento que 30%
-    if (pdir!=ldir || pvel*RADAR_MARGEM>lvel) {
-        pvel = -10;
-    }
-
-    // duvida se mesma vel/dir em menos de 700ms
-    int now = millis();
-    if (pvel==LAST[_VEL] && pdir==LAST[_DIR] && now+RADAR_IGUAL<=LAST[_NOW]) {
-        if (pvel != 0) {
-            pvel = -10;
-        }
-    }
-
-    BUF[BUF_I][_VEL] = pvel;
-    BUF[BUF_I][_DIR] = pdir;
+    BUF[BUF_I][_VEL] = vel;
+    BUF[BUF_I][_DIR] = dir;
     BUF_I = (BUF_I + 1) % RADAR_REPS;
 
     // aceito somente 10 picos de velocidades iguais e na mesma direcao
     for (int i=1; i<RADAR_REPS; i++) {
-        if (BUF[i][_VEL]!=BUF[0][_VEL] || BUF[i][_DIR]!=BUF[0][_DIR]) {
-            BREAK = true;   // quebra nos ultimos 10, passo a aceitar o proximo
-            return -1;      // falhou na velocidade ou direcao
+        vel = max(vel, BUF[i][_VEL]);
+        if (BUF[i][_DIR] != BUF[0][_DIR]) {
+            return -1;      // falhou na direcao
         }
     }
 
-    if (BREAK) {
-        if (pvel != 0) {
-            BREAK = false;  // nao aceito um novo, espero uma quebra nos ultimos 10
-            RADAR_OUT.println(">>> " + pvel);   // TODO: o "0" nunca eh exibido
-            RADAR_OUT.flush();
-            // mas eu preciso ficar informando o "0" pra detectar a queda autonoma
-            // por isso mantenho o BREAK em true
-        }
-        LAST[_VEL] = pvel;
-        LAST[_DIR] = pdir;
-        LAST[_NOW] = now;
-        pvel /= 10;
-        return (pdir == 'A') ? pvel : -pvel;
-    } else {
+    // duvida se mesma vel/dir em menos de 700ms
+    int now = millis();
+    if (dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
         return -1;
     }
+
+    if (vel!=0 || LAST[_VEL]!=0) {
+        String msg = "[" + (millis()/100) + "] " + char(dir) + " / " + vel;
+        RADAR_OUT.println(msg);
+        RADAR_OUT.flush();
+        println(msg);
+    }
+    LAST[_VEL] = vel;
+    LAST[_DIR] = dir;
+    LAST[_NOW] = now;
+    vel = (vel + 5) / 10;  // round
+    return (dir == 'A') ? vel : -vel;
 }
 
 int radar () {
@@ -440,7 +429,7 @@ void exit () {
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
     //size(600, 300);
-    size(1024, 768);
+    size(1300, 900);
     //fullScreen();
 
     dy = 0.001 * height;
@@ -458,9 +447,6 @@ void setup () {
     CONF_TRINCA    = CONF.getBoolean("trinca");
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
-
-    RADAR_REPS     = min(RADAR_REPS_MAX, CONF.getInt("radar_reps"));
-    RADAR_MARGEM   = CONF.getFloat("radar_margem");
 
     CONF_RECORDE   = CONF.getInt("recorde");
     CONF_NOMES[0]  = CONF.getString("atleta1");
@@ -509,9 +495,9 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
     try {
-        //println(Serial.list());
         //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
-        RADAR = new Serial(this, Serial.list()[0], 9600);
+        String[] list = Serial.list();
+        RADAR = new Serial(this, list[list.length-1], 9600);
         RADAR_OUT = createWriter("radar.txt");
     } catch (RuntimeException e) {
         println("Erro na comunicação com o radar...");
@@ -522,11 +508,20 @@ void setup () {
 }
 
 void sound (int kmh) {
-    if (kmh < 50) {
-        HITS[0].play();
-    } else if (kmh < 65) {
+    if (kmh > 0) {
         HITS[1].play();
-    } else if (kmh < 80) {
+    } else {
+        HITS[0].play();
+    }
+}
+
+void _sound_ (int kmh) {
+    int kmh_ = abs(kmh);
+    if (kmh_ < 50) {
+        HITS[0].play();
+    } else if (kmh_ < 65) {
+        HITS[1].play();
+    } else if (kmh_ < 80) {
         HITS[2].play();
     } else {
         HITS[3].play();
@@ -575,22 +570,6 @@ void keyPressed (KeyEvent e) {
             INV = !INV;
             ZER = 1 - ZER;
             ONE = 1 - ONE;
-        } else if (keyCode == 37) {
-            if (e.isAltDown()) {
-                RADAR_REPS--;
-                println("RADAR_REPS   = " + RADAR_REPS);
-            } else {
-                RADAR_MARGEM -= 0.05;
-                println("RADAR_MARGEM = " + RADAR_MARGEM);
-            }
-        } else if (keyCode == 39) {
-            if (e.isAltDown()) {
-                RADAR_REPS++;
-                println("RADAR_REPS   = " + RADAR_REPS);
-            } else {
-                RADAR_MARGEM += 0.05;
-                println("RADAR_MARGEM = " + RADAR_MARGEM);
-            }
         }
     }
 
@@ -664,7 +643,7 @@ void draw () {
         if (conf_radar()) {
             int kmh = radar();
             int kmh_ = abs(kmh);
-            if (kmh!=-1 && kmh!=0) {
+            if (kmh_ > 1) {
                 if (ESTADO_JOGANDO.equals("sacando")) {
                     ESTADO_JOGANDO = "jogando";
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
@@ -672,7 +651,7 @@ void draw () {
                 int[] golpe = { NOW, (kmh>0 ? 0 : 1), kmh_ };
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
-                sound(kmh_);
+                sound(kmh);
             }
             if (RADAR_AUTO && kmh!=0) {
                 // zera o timeout com qq bola que não seja 0

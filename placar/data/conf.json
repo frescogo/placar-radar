@@ -1,5 +1,5 @@
 {
-    "tempo":      240,
+    "tempo":      2400,
     "distancia":  750,
     "ataques":    40,
     "minima":     50,
@@ -7,9 +7,6 @@
     "trinca":     false,
     "quedas":     800,
     "aborta":     15,
-
-    "radar_reps":   10,
-    "radar_margem": 0.7,
 
     "recorde": 0,
     "imagem1": "data/fresco-alpha.png",
