@@ -3,7 +3,6 @@
 
 // - testar em outras máquinas
 // - cores vm,am,az porporcional ata/tot
-// - configurar lado do radar e do pivo da trinca
 // - mostrar todos os parametros na configuracao: quedas/aborta
 // - pontuacao media
 
@@ -21,7 +20,7 @@ int         NOW;
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
 boolean     RADAR_AUTO = true;
-int         RADAR_AUTO_TIMEOUT = 99999; //3500;
+int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 int         RADAR_REPS = 5;
@@ -39,6 +38,9 @@ boolean     CONF_TRINCA;
 int         CONF_QUEDAS;
 int         CONF_ABORTA;
 
+int         LADO_RADAR;
+int         LADO_PIVO;
+
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
 String      CONF_PARS;
@@ -51,7 +53,7 @@ PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
 
-int         GOLPE_DELAY = 99999; //1500;
+int         GOLPE_DELAY = 1500; //99999; //1500;
 
 String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
@@ -85,7 +87,7 @@ String ns (String str, int n) {
 
 int conf_ataques (int jog) {
     if (CONF_TRINCA) {
-        if (jog == 0) {
+        if (jog == LADO_PIVO) {
             return 0;
         } else {
             return max(1, CONF_TEMPO * CONF_ATAQUES / 60);
@@ -513,6 +515,9 @@ void setup () {
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
 
+    LADO_RADAR     = CONF.getInt("lado_radar") - 1;
+    LADO_PIVO      = CONF.getInt("lado_pivo")  - 1;
+
     CONF_RECORDE   = CONF.getInt("recorde");
     CONF_NOMES[0]  = CONF.getString("atleta1");
     CONF_NOMES[1]  = CONF.getString("atleta2");
@@ -716,7 +721,7 @@ void draw () {
                     ESTADO_JOGANDO = "jogando";
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
-                int[] golpe = { NOW, (kmh>0 ? 0 : 1), kmh_ };
+                int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_ };
                 ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                 seq.add(golpe);
                 sound(kmh);

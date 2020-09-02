@@ -8,6 +8,9 @@
     "quedas":     800,
     "aborta":     15,
 
+    "lado_radar": 1,
+    "lado_pivo":  1,
+
     "recorde": 0,
     "imagem1": "data/fresco-alpha.png",
     "imagem2": "data/fresco-alpha.png",
