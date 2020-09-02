@@ -19,7 +19,7 @@ int         NOW;
 
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
-boolean     RADAR_AUTO = true;
+boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
@@ -47,11 +47,13 @@ String      CONF_PARS;
 
 PImage      IMG1, IMG2;
 PImage      IMG_SPEED;
-PImage      IMG_RAQUETE;
+PImage      IMG_GOLPES;
 PImage      IMG_BAND;
 PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
+PImage      IMG_RADAR;
+PImage      IMG_RAQUETE;
 
 int         GOLPE_DELAY = 1500; //99999; //1500;
 
@@ -495,9 +497,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(600, 300);
+    size(600, 300);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -539,20 +541,24 @@ void setup () {
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
     IMG_SPEED    = loadImage("speed-03.png");
-    IMG_RAQUETE  = loadImage("raq-03.png");
+    IMG_GOLPES   = loadImage("raq-03.png");
     IMG_BAND     = loadImage("flag.png");
     IMG_APITO    = loadImage("apito-04.png");
     IMG_TROFEU   = loadImage("trophy-02.png");
     IMG_DESCANSO = loadImage("timeout-03.png");
+    IMG_RADAR    = loadImage("radar.png");
+    IMG_RAQUETE  = loadImage("raq.png");
 
-    IMG1.resize(0,height/8);
-    IMG2.resize(0,height/8);
-    IMG_SPEED.resize(0,(int)(45*dy));
-    IMG_RAQUETE.resize(0,(int)(50*dy));
-    IMG_BAND.resize(0,(int)(40*dy));
-    IMG_APITO.resize(0,(int)(30*dy));
-    IMG_TROFEU.resize(0,(int)(30*dy));
+    IMG1        .resize(0,height/8);
+    IMG2        .resize(0,height/8);
+    IMG_SPEED   .resize(0,(int)(45*dy));
+    IMG_GOLPES  .resize(0,(int)(50*dy));
+    IMG_BAND    .resize(0,(int)(40*dy));
+    IMG_APITO   .resize(0,(int)(30*dy));
+    IMG_TROFEU  .resize(0,(int)(30*dy));
     IMG_DESCANSO.resize(0,(int)(25*dy));
+    IMG_RADAR   .resize(0,(int)(30*dy));
+    IMG_RAQUETE .resize(0,(int)(40*dy));
 
     imageMode(CENTER);
     tint(255, 128);
@@ -877,6 +883,26 @@ void draw_draw () {
         }
     }
 
+    if (conf_radar()) {
+        if (LADO_RADAR == 0) {
+            image(IMG_RADAR, 20*dx,       4*H);
+        } else {
+            image(IMG_RADAR, width-20*dx, 4*H);
+        }
+    }
+
+    if (CONF_TRINCA) {
+        if (LADO_PIVO == 0) {
+            image(IMG_RAQUETE, 4*W-20*dx,       2.5*H);
+            image(IMG_RAQUETE, 7*W+20*dx,       2.5*H-10*dy);
+            image(IMG_RAQUETE, 7*W+20*dx+10*dx, 2.5*H+10*dy);
+        } else {
+            image(IMG_RAQUETE, 4*W-20*dx-10*dx, 2.5*H-10*dy);
+            image(IMG_RAQUETE, 4*W-20*dx,       2.5*H+10*dy);
+            image(IMG_RAQUETE, 7*W+20*dx,       2.5*H);
+        }
+    }
+
     draw_lado(1.5*W, ZER);
     draw_lado(7.5*W, ONE);
 
@@ -887,7 +913,7 @@ void draw_draw () {
         noStroke();
         noFill();
 
-        image(IMG_RAQUETE, off, 5.5*H+5*dy);
+        image(IMG_GOLPES, off, 5.5*H+5*dy);
 
         image(IMG_SPEED, off, 6.5*H+5*dy);
         textAlign(CENTER, CENTER);
