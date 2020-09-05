@@ -313,7 +313,7 @@ int _NOW = 2;
 15.0 m -  721 ms
 700ms sem repeticao é seguro
 */
-int[] LAST = { 0,0,0 }; // vel, dir, ms
+int[] LAST = { 0,-1,0 }; // vel, dir, ms
 
 int four (byte[] s, int idx) {
     return
@@ -354,71 +354,14 @@ boolean radar_check (byte[] s) {
 // >0: velocidade se distanciando
 // <0: velocidade se aproximando
 
-int radar_s () {
-    // aproximadamente 40/50 reads/sec (20/25 ms/read)
-    while (true) {
-        int n = RADAR.read();
-        if (n == 0x83) {
-            break;              // espera o primeiro byte do pacote
-        }
-    }
-    while (true) {
-        delay(0);               // sem isso, o programa trava
-        int n = RADAR.available();
-        if (n >= _SIZE) {
-            break;              // espera ter o tamanho do pacote
-        }
-    }
-
-    byte[] s = RADAR.readBytes(_SIZE);
-    if (!radar_check(s)) {
-        return -1;              // erro no pacote
-    }
-
-    RADAR_OUT.println(char(s[_peak_dir]) + "=" + nf(four(s,_peak_val),3) + " | " +
-                      char(s[_live_dir]) + "=" + nf(four(s,_live_val),3));
-    RADAR_OUT.flush();
-
-    byte dir = s[_live_dir];
-    int  vel = four(s,_live_val);
-
-    BUF[BUF_I][_VEL] = vel;
-    BUF[BUF_I][_DIR] = dir;
-    BUF_I = (BUF_I + 1) % RADAR_REPS;
-
-    // aceito somente REPS velocidades iguais e na mesma direcao
-    for (int i=1; i<RADAR_REPS; i++) {
-        vel = max(vel, BUF[i][_VEL]);
-        if (BUF[i][_DIR] != BUF[0][_DIR]) {
-            return -1;      // falhou na direcao
-        }
-    }
-
-    // duvida se mesma vel/dir em menos de 700ms
-    int now = millis();
-    if (dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
-        return -1;
-    }
-
-    if (vel!=0 || LAST[_VEL]!=0) {
-        String msg = "[" + (millis()/100) + "] " + char(dir) + " / " + vel;
-        RADAR_OUT.println(msg);
-        RADAR_OUT.flush();
-        println(msg);
-    }
-    LAST[_VEL] = vel;
-    LAST[_DIR] = dir;
-    LAST[_NOW] = now;
-    vel = (vel + 5) / 10;  // round
-    return (dir == 'A') ? vel : -vel;
-}
-
 int radar_be () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
 //println(000000000);
     while (true) {
         delay(0);               // sem isso, o programa trava
         int n = RADAR.read();
+//println(n);
+//println(char(n));
         if (n == 0x88) {
             break;              // espera o primeiro byte do pacote
         }
@@ -440,8 +383,11 @@ int radar_be () {
 
     int dir = (s[7] >> 1) & 0x01;   // 0=out, 1=in
     int vel = four(s,8);
+    if (vel == 0) {
+        dir = -1;                   // -1=none
+    }
 
-    String sdir = (dir == 0) ? "->" : "<-";
+    String sdir = (dir == 0) ? "->" : ((dir == 1) ? "<-" : "--");
     String msg = "[" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3);
 
     RADAR_OUT.println(msg);
@@ -451,17 +397,18 @@ int radar_be () {
     BUF[BUF_I][_DIR] = dir;
     BUF_I = (BUF_I + 1) % RADAR_REPS;
 
-    // aceito somente 10 picos de velocidades iguais e na mesma direcao
-    for (int i=1; i<RADAR_REPS; i++) {
+    // aceito somente se N velocidades na mesma direcao
+    for (int i=0; i<RADAR_REPS; i++) {
         vel = max(vel, BUF[i][_VEL]);
         if (BUF[i][_DIR] != BUF[0][_DIR]) {
             return -1;      // falhou na direcao
         }
     }
 
-    // duvida se mesma vel/dir em menos de 700ms
+    // duvida se mesma dir em menos de 700ms
     int now = millis();
-    if (vel!=0 && dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
+    //if (vel!=0 && dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
+    if (dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
         return -1;
     }
 
@@ -471,11 +418,13 @@ int radar_be () {
         RADAR_OUT.flush();
         println(msg2);
     }
+
     LAST[_VEL] = vel;
     LAST[_DIR] = dir;
     LAST[_NOW] = now;
+
     vel = (vel + 5) / 10;  // round
-    return (dir == 0) ? vel : -vel;
+    return (dir == 1) ? -vel : vel;
 }
 
 int radar () {
