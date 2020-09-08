@@ -407,9 +407,8 @@ int radar_be () {
 
     // duvida se mesma dir em menos de 700ms
     int now = millis();
-    //if (vel!=0 && dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
     if (dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
-        return -1;
+        return (vel == 0) ? 0 : -1;     // retorna 0 pra contar no timeout de queda
     }
 
     if (vel!=0 || LAST[_VEL]!=0) {
@@ -446,9 +445,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(600, 300);
+    //size(600, 300);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
