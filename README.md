@@ -37,7 +37,7 @@ Links do projeto:
         - `Vel` é a média de velocidade dos golpes.
     - São validados somente os `80` ataques mais fortes acima de `50` km/h.
 - Cada queda desconta `2%` da pontuação da dupla:
-    - `TOT = (ATL1 + ATL2) - (2% por queda)`
+    - `TOTAL = (ATL1 + ATL2) - (2% por queda)`
     - A apresentação é encerrada sumariamente ao atingir `16` quedas.
 - Em caso de empate entre duplas, os seguintes quesitos serão usados para
   desempate:
@@ -46,9 +46,9 @@ Links do projeto:
     (3) sorteio.
 - Resumo:
 ```
-    ATL1 = Ata x Vel
-    ATL2 = Ata x Vel
-    TOT  = (ATL1 + ATL2) - (2% por queda)
+    ATL1  = Ata x Vel
+    ATL2  = Ata x Vel
+    TOTAL = (ATL1 + ATL2) - (2% por queda)
 ```
 
 <!--
