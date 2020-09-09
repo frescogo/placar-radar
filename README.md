@@ -117,6 +117,34 @@ CTRL-A           liga ou desliga o modo autônomo de detecção de quedas
 CTRL-Q           fecha o programa
 ```
 
+## Arquivo de Configurações
+
+O arquivo `data\conf.json` possui algumas configurações do software que podem
+ser ajustadas, conforme descrito a seguir:
+
+```
+{
+    "tempo":      240,      ; tempo total de jogo (240s)
+    "distancia":  750,      ; distância considerada no modo manual (750cm)
+    "ataques":    40,       ; quantidade de ataques por minuto (40 ataques)
+    "minima":     50,       ; velocidade mínima de um ataque (50km/h)
+    "maxima":     85,       ; velocidade máxima no modo manual (85km/h)
+    "trinca":     false,    ; modo de trinca ou dupla (dupla)
+    "quedas":     800,      ; desconto de queda para cada minuto (8%)
+    "aborta":     15,       ; limite de quedas por jogo (15s por queda)
+
+    "lado_radar": 1,        ; lado em que o radar está posicionado (esquerdo)
+    "lado_pivo":  1,        ; lado em que o pivô da trinca está posicionado (esquerdo)
+
+    "recorde": 0,           ; recorde ao ligar o software
+    "imagem1": "data/fresco-alpha.png",     ; imagem à esquerda da tela
+    "imagem2": "data/fresco-alpha.png",     ; imagem à direita da tela
+    "atleta1": "Atleta 1",  ; nome do atleta à esquerda
+    "atleta2": "Atleta 2",  ; nome do atleta à direita
+    "arbitro": "Árbitro"    ; nome do árbitro
+}
+```
+
 ## Relatório da Apresentação
 
 Ao final da apresentação é gerado um relatório com o seguinte formato:
@@ -289,3 +317,19 @@ SEQUÊNCIA 02
       sempre respeitada.
 
 -->
+
+## Agradecimentos
+
+Agradecemos a todos os que contribuíram para o desenvolvimento do FrescoGO!:
+
+- Adão (RJ)
+- Alessandra (BA)
+- Antônio (RJ)
+- Clebinho (RN)
+- Dão (RJ)
+- Elton (RJ)
+- Fátima (RJ)
+- Lúcia (RJ)
+- Luciano Paredão (RN)
+- Luiz Negão (RJ)
+- Mateus (RJ)

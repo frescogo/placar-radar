@@ -639,7 +639,7 @@ void keyPressed (KeyEvent e) {
 //println(keyCode);
         if (e.isControlDown() && keyCode==40) { // CTRL-DOWN
             go_queda();
-        } else if (keyCode==37 || keyCode==39) { // CTRL-LEFT/RIGHT
+        } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
                 JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
