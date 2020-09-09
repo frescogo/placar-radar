@@ -78,8 +78,8 @@ Links do projeto:
 -->
 - Quando a bolinha cai, o árbitro marca a queda e um som característico é
   emitido.
-    - No modo autônomo, as quedas são sinalizadas após 5 segundos sem nenhuma
-      aferição detectada, sem a interferência do árbitro.
+    - No modo autônomo, as quedas são sinalizadas após 3.5 segundos sem nenhuma
+      aferição detectada. Não há necessidade de interferência do árbitro.
     - O último golpe detectado antes de cada queda é ignorado e o tempo volta
       até o momento em que ele ocorreu.
 - O árbitro então pressiona o botão que habilita o próximo saque e o fluxo
