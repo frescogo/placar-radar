@@ -117,7 +117,7 @@ CTRL-A           liga ou desliga o modo autônomo de detecção de quedas
 CTRL-Q           fecha o programa
 ```
 
-## Arquivo de Configurações
+## Arquivo de Configuração
 
 O arquivo `data\conf.json` possui algumas configurações do software que podem
 ser ajustadas, conforme descrito a seguir:
