@@ -151,7 +151,7 @@ Ao final da apresentação é gerado um relatório com o seguinte formato:
 
 ```
 Data:          2020-08-26_19_43_52                      <-- data/hora da apresentação
-Versão:        v3.1.0 / dupla / radar / 240s / 40ata / 50kmh
+Versão:        v3.1.1 / dupla / radar / 240s / 40ata / 50kmh
                   \-- versão do software
                          \-- dupla ou trinca
                                   \-- radar ou distância entre os atletas em cm
@@ -165,7 +165,7 @@ Joao:          4189 pontos = 62 atas X 67.56 km/h       <-- atleta à direita
 
 Descanso:      12                                       <-- tempo total de descanso em segundos
 Quedas:        3                                        <-- total de quedas
-Total:         4330 pontos                              <-- PONTUAÇÃO FINAL
+Total:         9626 pontos                              <-- PONTUAÇÃO FINAL
 
 SEQUÊNCIA 01                                            <-- sequências 01, 02, ...
 ============
