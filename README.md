@@ -35,7 +35,7 @@ Links do projeto:
         - `ATL` é a pontuação do atleta a ser calculada.
         - `Ata` é a quantidade de ataques.
         - `Vel` é a média de velocidade dos golpes.
-    - São validados somente os `80` ataques mais fortes acima de `50` km/h.
+    - São validados somente os `100` ataques mais fortes acima de `50` km/h.
 - Cada queda desconta `2%` da pontuação da dupla:
     - `TOTAL = (ATL1 + ATL2) - (2% por queda)`
     - A apresentação é encerrada sumariamente ao atingir `16` quedas.
@@ -126,9 +126,10 @@ ser ajustadas, conforme descrito a seguir:
 {
     "tempo":      240,      ; tempo total de jogo (240s)
     "distancia":  750,      ; distância considerada no modo manual (750cm)
-    "ataques":    40,       ; quantidade de ataques por minuto (40 ataques)
+    "ataques":    50,       ; quantidade de ataques por minuto (50 ataques)
     "minima":     50,       ; velocidade mínima de um ataque (50km/h)
     "maxima":     85,       ; velocidade máxima no modo manual (85km/h)
+    "saque":      45,       ; velocidade mínima para considerar um saque (45km/h)
     "trinca":     false,    ; modo de trinca ou dupla (dupla)
     "quedas":     800,      ; desconto de queda para cada minuto (8%)
     "aborta":     15,       ; limite de quedas por jogo (15s por queda)
@@ -141,7 +142,8 @@ ser ajustadas, conforme descrito a seguir:
     "imagem2": "data/fresco-alpha.png",     ; imagem à direita da tela
     "atleta1": "Atleta 1",  ; nome do atleta à esquerda
     "atleta2": "Atleta 2",  ; nome do atleta à direita
-    "arbitro": "Árbitro"    ; nome do árbitro
+    "arbitro": "Árbitro",   ; nome do árbitro
+    "serial":  ""           ; porta serial do radar ("" = maior detectada)
 }
 ```
 
@@ -151,7 +153,7 @@ Ao final da apresentação é gerado um relatório com o seguinte formato:
 
 ```
 Data:          2020-08-26_19_43_52                      <-- data/hora da apresentação
-Versão:        v3.1.1 / dupla / radar / 240s / 40ata / 50kmh
+Versão:        v3.1.2 / dupla / radar / 240s / 40ata / 50kmh
                   \-- versão do software
                          \-- dupla ou trinca
                                   \-- radar ou distância entre os atletas em cm

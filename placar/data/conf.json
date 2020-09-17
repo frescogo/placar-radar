@@ -1,12 +1,13 @@
 {
     "tempo":      240,
     "distancia":  750,
-    "ataques":    40,
+    "ataques":    50,
     "minima":     50,
     "maxima":     85,
     "trinca":     false,
     "quedas":     800,
     "aborta":     15,
+    "saque":      45,
 
     "lado_radar": 1,
     "lado_pivo":  1,
@@ -16,5 +17,6 @@
     "imagem2": "data/fresco-alpha.png",
     "atleta1": "Atleta 1",
     "atleta2": "Atleta 2",
-    "arbitro": "Árbitro"
+    "arbitro": "Árbitro",
+    "serial":  ""
 }

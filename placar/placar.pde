@@ -11,7 +11,7 @@ import processing.sound.*;
 
 int         MAJOR    = 3;
 int         MINOR    = 1;
-int         REVISION = 1;
+int         REVISION = 2;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
@@ -34,6 +34,7 @@ int         CONF_DISTANCIA;
 int         CONF_ATAQUES;
 int         CONF_MINIMA;
 int         CONF_MAXIMA;
+int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_QUEDAS;
 int         CONF_ABORTA;
@@ -43,6 +44,7 @@ int         LADO_PIVO;
 
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
+String      CONF_SERIAL;
 String      CONF_PARS;
 
 PImage      IMG1, IMG2;
@@ -461,6 +463,7 @@ void setup () {
     CONF_ATAQUES   = CONF.getInt("ataques");
     CONF_MINIMA    = CONF.getInt("minima");
     CONF_MAXIMA    = CONF.getInt("maxima");
+    CONF_SAQUE     = CONF.getInt("saque");
     CONF_TRINCA    = CONF.getBoolean("trinca");
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
@@ -472,6 +475,7 @@ void setup () {
     CONF_NOMES[0]  = CONF.getString("atleta1");
     CONF_NOMES[1]  = CONF.getString("atleta2");
     CONF_NOMES[2]  = CONF.getString("arbitro");
+    CONF_SERIAL    = CONF.getString("serial");
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -513,10 +517,13 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
     try {
-        //RADAR = new Serial(this, "/dev/ttyUSB0", 9600);
-        String[] list = Serial.list();
         //println(list);
-        RADAR = new Serial(this, list[list.length-1], 9600);
+        if (CONF_SERIAL.equals("")) {
+            String[] list = Serial.list();
+            RADAR = new Serial(this, list[list.length-1], 9600);
+        } else {
+            RADAR = new Serial(this, CONF_SERIAL, 9600);
+        }
         RADAR_OUT = createWriter("radar.txt");
     } catch (RuntimeException e) {
         println("Erro na comunicação com o radar...");
@@ -671,14 +678,16 @@ void draw () {
             int kmh = radar();
             int kmh_ = abs(kmh);
             if (kmh_ > 1) {
-                if (ESTADO_JOGANDO.equals("sacando")) {
+                if (ESTADO_JOGANDO.equals("sacando") && kmh_>=CONF_SAQUE) {
                     ESTADO_JOGANDO = "jogando";
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
-                int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_ };
-                ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-                seq.add(golpe);
-                sound(kmh);
+                if (ESTADO_JOGANDO.equals("jogando")) {
+                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_ };
+                    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+                    seq.add(golpe);
+                    sound(kmh);
+                }
             }
             if (RADAR_AUTO && kmh!=0) {
 //println("!!!ZEROU!!! === " + kmh);
