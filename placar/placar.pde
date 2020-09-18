@@ -625,6 +625,7 @@ void keyPressed (KeyEvent e) {
                 go_saque();
             } else if (keyCode == 8) {          // CTRL-BACKSPACE
                 if (JOGO.size() > 0) {
+                    JOGO_QUEDAS--;
                     JOGO.remove(JOGO.size()-1);
                     SNDS[4].play();
                 }
