@@ -100,6 +100,7 @@ No modo de aferição com o radar e detecção autônoma de quedas, o árbitro s
 
 ```
 CTRL-R           reinicia a apresentação
+CTRL-E           reinicia no modo "esquenta" com tempo corrido e sem quedas
 CTRL-↑           inicia uma sequência
 CTRL-↓           marca uma queda de bola
 ← | →            marca um golpe do atleta à esquerda ou à direita (modo teclado)
@@ -133,6 +134,7 @@ ser ajustadas, conforme descrito a seguir:
     "trinca":     false,    ; modo de trinca ou dupla (dupla)
     "quedas":     800,      ; desconto de queda para cada minuto (8%)
     "aborta":     15,       ; limite de quedas por jogo (15s por queda)
+    "esquenta":   60,       ; tempo total de "esquenta" (60s)
 
     "lado_radar": 1,        ; lado em que o radar está posicionado (esquerdo)
     "lado_pivo":  1,        ; lado em que o pivô da trinca está posicionado (esquerdo)
