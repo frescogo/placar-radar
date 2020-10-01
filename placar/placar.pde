@@ -608,7 +608,26 @@ void keyPressed (KeyEvent e) {
         }
     }
 
-    if (ESTADO.equals("ocioso")) {
+    if (keyCode == 8) {                         // CTRL-BACKSPACE
+        if (ESTADO.equals("ocioso")) {
+            if (JOGO.size()>0) {
+                JOGO_QUEDAS--;
+                JOGO.remove(JOGO.size()-1);
+                SNDS[4].play();
+            }
+        } else if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
+            ESTADO = "ocioso";
+            if (JOGO.size() > 0) {
+                JOGO.remove(JOGO.size()-1);
+                if (JOGO.size() > 0) {
+                    JOGO_QUEDAS--;
+                    JOGO.remove(JOGO.size()-1);
+                    SNDS[4].play();
+                }
+            }
+        }
+
+    } else if (ESTADO.equals("ocioso")) {
         if (e.isControlDown()) {
             if (keyCode == '0') {               // CTRL-0
                 ESTADO = "digitando";
@@ -625,12 +644,6 @@ void keyPressed (KeyEvent e) {
 
             } else if (keyCode == 38) {         // CTRL-UP
                 go_saque();
-            } else if (keyCode == 8) {          // CTRL-BACKSPACE
-                if (JOGO.size() > 0) {
-                    JOGO_QUEDAS--;
-                    JOGO.remove(JOGO.size()-1);
-                    SNDS[4].play();
-                }
             }
         }
     } else if (ESTADO.equals("digitando")) {
