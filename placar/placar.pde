@@ -182,6 +182,10 @@ void go_termino () {
 
     draw();
 
+    if (ESQUENTA) {
+        return;
+    }
+
     String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
                    + nf(hour(),2) + "_" + nf(minute(),2) + "_" + nf(second(),2);
     saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
