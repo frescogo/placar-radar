@@ -26,6 +26,8 @@ PrintWriter RADAR_OUT;
 int         RADAR_REPS = 5;
 int         RADAR_IGUAL = 700;
 
+boolean     ESQUENTA = false;
+
 SoundFile[] SNDS = new SoundFile[6];
 SoundFile[] HITS = new SoundFile[4];
 
@@ -38,6 +40,7 @@ int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_QUEDAS;
 int         CONF_ABORTA;
+int         CONF_ESQUENTA;
 
 int         LADO_RADAR;
 int         LADO_PIVO;
@@ -89,24 +92,28 @@ String ns (String str, int n) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+int conf_tempo () {
+    return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO);
+}
+
 int conf_ataques (int jog) {
     if (CONF_TRINCA) {
         if (jog == LADO_PIVO) {
             return 0;
         } else {
-            return max(1, CONF_TEMPO * CONF_ATAQUES / 60);
+            return max(1, conf_tempo() * CONF_ATAQUES / 60);
         }
     } else {
-        return max(1, CONF_TEMPO * CONF_ATAQUES / 60 / 2);
+        return max(1, conf_tempo() * CONF_ATAQUES / 60 / 2);
     }
 }
 
 int conf_quedas () {
-    return CONF_QUEDAS * 60 / CONF_TEMPO;   // 8% / 60s
+    return CONF_QUEDAS * 60 / conf_tempo();   // 8% / 60s
 }
 
 int conf_aborta () {
-    return CONF_TEMPO / CONF_ABORTA;         // 1 queda / 15s
+    return conf_tempo() / CONF_ABORTA;         // 1 queda / 15s
 }
 
 boolean conf_radar () {
@@ -115,11 +122,22 @@ boolean conf_radar () {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void go_esquenta () {
+    ESTADO = "ocioso";
+    JOGO = new ArrayList<ArrayList>();
+    JOGO_DESCANSO_TOTAL     = 0;
+    JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
+    JOGO_QUEDAS             = 0;
+    JOGO_QUEDAS_MANUAL      = 0;
+    JOGO_TEMPO_INICIO       = millis();
+    SNDS[1].play();
+}
+
 void go_reinicio () {
     ESTADO = "ocioso";
     JOGO = new ArrayList<ArrayList>();
     JOGO_DESCANSO_TOTAL     = 0;
-    JOGO_TEMPO_RESTANTE_OLD = CONF_TEMPO;
+    JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
     JOGO_TEMPO_INICIO       = millis();
@@ -138,6 +156,9 @@ void go_saque () {
 }
 
 void go_queda () {
+    if (ESQUENTA) {
+        return;
+    }
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
     if (jogo_quedas() >= conf_aborta()) {
@@ -216,7 +237,7 @@ void _jogo_tempo () {
     //    ret += millis() - seq.get(seq.size()-1)[0];
     //}
     JOGO_TEMPO_PASSADO = ret / 1000 / 5 * 5;
-    JOGO_TEMPO_RESTANTE = max(0, CONF_TEMPO-JOGO_TEMPO_PASSADO);
+    JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO);
 }
 
 void _jogo_lado (int jog) {
@@ -467,6 +488,7 @@ void setup () {
     CONF_TRINCA    = CONF.getBoolean("trinca");
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
+    CONF_ESQUENTA  = CONF.getInt("esquenta");
 
     LADO_RADAR     = CONF.getInt("lado_radar") - 1;
     LADO_PIVO      = CONF.getInt("lado_pivo")  - 1;
@@ -593,11 +615,15 @@ void keyPressed (KeyEvent e) {
         } else if (keyCode == 'A') {            // CTRL-A
             RADAR_AUTO = !RADAR_AUTO;
             RADAR_AUTO_INICIO = millis();
+        } else if (keyCode == 'E') {            // CTRL-E
+            ESQUENTA = true;
+            go_esquenta();
         } else if (keyCode == '-') {
             JOGO_QUEDAS_MANUAL--;
         } else if (keyCode == '=') {
             JOGO_QUEDAS_MANUAL++;
         } else if (keyCode == 'R') {            // CTRL-R
+            ESQUENTA = false;
             go_reinicio();
         } else if (keyCode == 'S') {            // CTRL-S
             go_termino();
@@ -917,7 +943,11 @@ void draw_draw () {
         image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
 
         // auto
-        if (RADAR_AUTO) {
+        if (ESQUENTA) {
+            fill(200, 200, 0);
+            ellipseMode(CENTER);
+            ellipse(6.5*W, 5.2*H, 20*dy, 20*dy);
+        } else if (RADAR_AUTO) {
             fill(0, 150, 0);
             ellipseMode(CENTER);
             ellipse(6.5*W, 5.2*H, 20*dy, 20*dy);

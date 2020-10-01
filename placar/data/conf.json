@@ -8,6 +8,7 @@
     "quedas":     800,
     "aborta":     15,
     "saque":      45,
+    "esquenta":   60,
 
     "lado_radar": 1,
     "lado_pivo":  1,
