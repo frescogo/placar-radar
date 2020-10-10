@@ -11,7 +11,7 @@ import processing.sound.*;
 
 int         MAJOR    = 3;
 int         MINOR    = 1;
-int         REVISION = 2;
+int         REVISION = 3;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
