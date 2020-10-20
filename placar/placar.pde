@@ -781,7 +781,7 @@ void draw_draw () {
         rect(4*W, 0, 3*W, 3*H);
 
         fill(255);
-        textSize(120*dy);
+        textSize(140*dy);
         textAlign(CENTER, CENTER);
         text(mins+":"+segs, width/2, 1.25*H-10*dy);
 
@@ -796,7 +796,7 @@ void draw_draw () {
         } else {
             fill(150,150,150);
         }
-        textSize(25*dy);
+        textSize(35*dy);
         textAlign(CENTER, CENTER);
         text(descanso+" s", width/2, 2.50*H);
         float w = textWidth(descanso+" s");
@@ -809,7 +809,7 @@ void draw_draw () {
     } else {
         fill(150,150,150);
     }
-    textSize(12*dy);
+    textSize(18*dy);
     textAlign(CENTER, TOP);
     text("("+CONF_PARS+")", width/2, 0);
     if (INV) {
@@ -829,7 +829,7 @@ void draw_draw () {
 
         fill(255);
         textAlign(CENTER, CENTER);
-        textSize(90*dy);
+        textSize(110*dy);
         text(jogo_quedas(), width/2, height/2-15*dy);
     }
 
@@ -971,7 +971,7 @@ void draw_draw () {
 
         // TOTAL
         fill(255);
-        textSize(120*dy);
+        textSize(140*dy);
         textAlign(CENTER, CENTER);
         text(JOGO_TOTAL, width/2, 7*H);
     }
@@ -995,9 +995,9 @@ void draw_nome (float x, int jog, boolean digitando) {
         fill(255, 0, 0);
     } else {
         noStroke();
-        fill(0);
+        fill(0,0,255);
     }
-    textSize(60*dy);
+    textSize(90*dy);
     textAlign(CENTER, CENTER);
     text(nome, x+2*W, 2.5*H-10*dy);
 }
@@ -1012,11 +1012,11 @@ void draw_ultima (float x, int kmh) {
         fill(200,200,200);
     }
     textAlign(CENTER, BOTTOM);
-    textSize(90*dy);
-    text(kmh, x, 4*H+20*dy);
+    textSize(120*dy);
+    text(kmh, x, 4*H+45*dy);
     textAlign(CENTER, TOP);
-    textSize(40*dy);
-    text("km/h", x, 4*H+20*dy);
+    textSize(30*dy);
+    text("km/h", x, 4*H+35*dy);
 }
 
 void draw_lado (float x, int jog) {
@@ -1027,10 +1027,10 @@ void draw_lado (float x, int jog) {
     fill(0);
     textAlign(CENTER, CENTER);
 
-    textSize(15*dy);
+    textSize(25*dy);
     text("." + nf(JOG[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
 
-    textSize(50*dy);
+    textSize(65*dy);
     text(JOG[2]/100, x+W, 6.5*H);         // media1
     text(JOG[0], x+W, 7.5*H);             // pontos
 
