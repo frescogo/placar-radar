@@ -72,7 +72,7 @@ int         ONE = 1;
 
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
-int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_OLD;
+int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
 int[][]     JOGO_JOGS = new int[2][3];
 
 float       dy; // 0.001 height
@@ -230,18 +230,28 @@ void go_termino () {
 
 void _jogo_tempo () {
     int ret = 0;
+    int last = NOW;
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
-        if (seq.size() >= 2) {
-            ret += (seq.get(seq.size()-1)[0] - seq.get(0)[0]);
+        int S = seq.size();
+        if (S > 0) {
+            last = seq.get(S-1)[0];
+            if (S >= 2) {
+                ret += (seq.get(S-1)[0] - seq.get(0)[0]);
+            }
         }
     }
     //if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
     //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
     //    ret += millis() - seq.get(seq.size()-1)[0];
     //}
-    JOGO_TEMPO_PASSADO = ret / 1000 / 5 * 5;
+    JOGO_TEMPO_PASSADO = ret / 1000;
     JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO);
+    JOGO_TEMPO_RESTANTE_SHOW = JOGO_TEMPO_RESTANTE;
+
+    if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
+        JOGO_TEMPO_RESTANTE_SHOW -= ((NOW - last) / 1000);
+    }
 }
 
 void _jogo_lado (int jog) {
@@ -770,8 +780,9 @@ void draw_draw () {
 
     // TEMPO
     {
-        String mins = nf(JOGO_TEMPO_RESTANTE / 60, 2);
-        String segs = nf(JOGO_TEMPO_RESTANTE % 60, 2);
+        int show = max(0, JOGO_TEMPO_RESTANTE_SHOW);
+        String mins = nf(show / 60, 2);
+        String segs = nf(show % 60, 2);
 
         if (ESTADO.equals("terminado")) {
             fill(255,0,0);
