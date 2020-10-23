@@ -5,6 +5,10 @@
 // - cores vm,am,az porporcional ata/tot
 // - mostrar todos os parametros na configuracao: quedas/aborta
 // - pontuacao media
+// - mostrar tempo de descanso extrapolado
+// - resultados.txt
+// - data de inicio do jogo (usar no relatorio?)
+// - sons (cortar bomba, som de final, som > 95)
 
 import processing.serial.*;
 import processing.sound.*;
@@ -29,7 +33,7 @@ int         RADAR_IGUAL = 700;
 boolean     ESQUENTA = false;
 
 SoundFile[] SNDS = new SoundFile[6];
-SoundFile[] HITS = new SoundFile[4];
+SoundFile[] HITS = new SoundFile[5];
 
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
@@ -516,15 +520,16 @@ void setup () {
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
     SNDS[2] = new SoundFile(this,"30s.wav");
-    SNDS[3] = new SoundFile(this,"finish.wav");
+    SNDS[3] = new SoundFile(this,"queda2.wav");
     SNDS[4] = new SoundFile(this,"undo.wav");
     SNDS[5] = new SoundFile(this,"start.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
     HITS[0] = new SoundFile(this,"hit-00.mp3");
     HITS[1] = new SoundFile(this,"hit-01.wav");
-    HITS[2] = new SoundFile(this,"hit-02.mp3");
+    HITS[2] = new SoundFile(this,"hit-02.wav");
     HITS[3] = new SoundFile(this,"hit-03.wav");
+    HITS[4] = new SoundFile(this,"hit-04.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -594,8 +599,10 @@ void sound (int kmh) {
         HITS[1].play();
     } else if (kmh_ < 80) {
         HITS[2].play();
-    } else {
+    } else if (kmh_ < 95) {
         HITS[3].play();
+    } else {
+        HITS[4].play();
     }
 }
 
