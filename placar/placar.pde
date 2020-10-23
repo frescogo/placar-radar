@@ -5,13 +5,11 @@
 // - cores vm,am,az porporcional ata/tot
 // - mostrar todos os parametros na configuracao: quedas/aborta
 // - pontuacao media
-// - mostrar tempo de descanso extrapolado
-// - resultados.txt
 // - data de inicio do jogo (usar no relatorio?)
-// - aquecimento nao termina, "aquecimento" no lugar do tempo
 
 import processing.serial.*;
 import processing.sound.*;
+import java.io.*;
 
 int         MAJOR    = 3;
 int         MINOR    = 1;
@@ -197,42 +195,69 @@ void go_termino () {
 
     String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
                    + nf(hour(),2) + "_" + nf(minute(),2) + "_" + nf(second(),2);
+
+    // placar.png
     saveFrame("relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+"-placar.png");
 
-    String manual = "";
-    if (JOGO_QUEDAS_MANUAL != 0) {
-        String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
-        manual = " (" + JOGO_QUEDAS + plus + JOGO_QUEDAS_MANUAL + ")";
-    }
-
-    String[] jogs = new String[2];
-    for (int i=0; i<2; i++) {
-        jogs[i] = ns(CONF_NOMES[i]+":",15) + JOGO_JOGS[i][0] + " pontos = " +
-                  min(conf_ataques(i),JOGO_JOGS[i][1]) + " atas X " +
-                  nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
-    }
-
-    String out = ns("Data:",     15) + ts + "\n"
-               + ns("Versão:",   15) + CONF_PARS + "\n"
-               //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
-               + "\n" + jogs[0] + jogs[1] + "\n"
-               + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
-               + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
-               + ns("Total:",    15) + JOGO_TOTAL + " pontos\n"
-               + "\n";
-    for (int i=0; i<JOGO.size(); i++) {
-        ArrayList<int[]> seq = JOGO.get(i);
-        out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
-        for (int j=0; j<seq.size(); j++) {
-            int[] golpe = seq.get(j);
-            int ms = golpe[0] - JOGO_TEMPO_INICIO;
-            out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
+    // placar.txt
+    {
+        String manual = "";
+        if (JOGO_QUEDAS_MANUAL != 0) {
+            String plus = (JOGO_QUEDAS_MANUAL > 0 ? "+" : "");
+            manual = " (" + JOGO_QUEDAS + plus + JOGO_QUEDAS_MANUAL + ")";
         }
-        out += "\n\n";
+
+        String[] jogs = new String[2];
+        for (int i=0; i<2; i++) {
+            jogs[i] = ns(CONF_NOMES[i]+":",15) + JOGO_JOGS[i][0] + " pontos = " +
+                      min(conf_ataques(i),JOGO_JOGS[i][1]) + " atas X " +
+                      nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
+        }
+
+        String out = ns("Data:",     15) + ts + "\n"
+                   + ns("Versão:",   15) + CONF_PARS + "\n"
+                   //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
+                   + "\n" + jogs[0] + jogs[1] + "\n"
+                   + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
+                   + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
+                   + ns("Total:",    15) + JOGO_TOTAL + " pontos\n"
+                   + "\n";
+        for (int i=0; i<JOGO.size(); i++) {
+            ArrayList<int[]> seq = JOGO.get(i);
+            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
+            for (int j=0; j<seq.size(); j++) {
+                int[] golpe = seq.get(j);
+                int ms = golpe[0] - JOGO_TEMPO_INICIO;
+                out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
+            }
+            out += "\n\n";
+        }
+        String[] outs = { out };
+        String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
+        saveStrings(name, outs);
     }
-    String[] outs = { out };
-    String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
-    saveStrings(name, outs);
+
+    // resultados.csv
+    try {
+        File file = new File("relatorios/resultados.csv");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        FileWriter     fw = new FileWriter(file, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter    pw = new PrintWriter(bw);
+        pw.write (
+            ts + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
+            CONF_NOMES[0] + " ; " + JOGO_JOGS[0][0] + " ; " + JOGO_JOGS[0][1] + " ; " + (float(JOGO_JOGS[0][2])/100) + " ; " +
+            CONF_NOMES[1] + " ; " + JOGO_JOGS[1][0] + " ; " + JOGO_JOGS[1][1] + " ; " + (float(JOGO_JOGS[1][2])/100) + " ; " +
+            "\n"
+        );
+        pw.close();
+    } catch (IOException e) {
+        println("Erro em 'resultados.csv'.");
+        exit();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
