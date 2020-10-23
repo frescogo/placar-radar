@@ -1,9 +1,5 @@
 # FrescoGO! - Placar para o Radar
 
-```
-$ processing-java --sketch=.../placar-radar/placar --run
-```
-
 ## Fluxo da Apresentação
 
 - Um sino com 5 sons curtos indica que a uma nova apresentação irá começar.
