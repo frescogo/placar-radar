@@ -31,6 +31,7 @@ int         RADAR_REPS = 5;
 int         RADAR_IGUAL = 700;
 
 boolean     ESQUENTA = false;
+int         ESQUENTA_INICIO;
 
 SoundFile[] SNDS = new SoundFile[6];
 SoundFile[] HITS = new SoundFile[5];
@@ -158,6 +159,9 @@ void go_saque () {
     if (RADAR != null) {
         RADAR.clear();
     }
+    if (ESQUENTA) {
+        ESQUENTA_INICIO = NOW;
+    }
 }
 
 void go_queda () {
@@ -236,20 +240,28 @@ void go_termino () {
 void _jogo_tempo () {
     int ret = 0;
     int last = NOW;
-    for (int i=0; i<JOGO.size(); i++) {
-        ArrayList<int[]> seq = JOGO.get(i);
-        int S = seq.size();
-        if (S > 0) {
-            last = seq.get(S-1)[0];
-            if (S >= 2) {
-                ret += (seq.get(S-1)[0] - seq.get(0)[0]);
+
+    if (ESQUENTA) {
+        if (!ESTADO.equals("ocioso")) {
+            ret = NOW - ESQUENTA_INICIO;
+        }
+    } else {
+        for (int i=0; i<JOGO.size(); i++) {
+            ArrayList<int[]> seq = JOGO.get(i);
+            int S = seq.size();
+            if (S > 0) {
+                last = seq.get(S-1)[0];
+                if (S >= 2) {
+                    ret += (seq.get(S-1)[0] - seq.get(0)[0]);
+                }
             }
         }
+        //if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
+        //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+        //    ret += millis() - seq.get(seq.size()-1)[0];
+        //}
     }
-    //if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
-    //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-    //    ret += millis() - seq.get(seq.size()-1)[0];
-    //}
+
     JOGO_TEMPO_PASSADO = ret / 1000;
     JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO);
     JOGO_TEMPO_RESTANTE_SHOW = JOGO_TEMPO_RESTANTE;
@@ -805,27 +817,34 @@ void draw_draw () {
         textAlign(CENTER, CENTER);
         text(mins+":"+segs, width/2, 1.25*H-10*dy);
 
-        int descanso = JOGO_DESCANSO_TOTAL;
-        if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
-            descanso += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
-        }
-        descanso /= 1000;
-        descanso = CONF_DESCANSO - descanso;
-
-        if (descanso < 0) {
+        if (ESQUENTA) {
             fill(255,0,0);
-        } else if (ESTADO.equals("terminado")) {
-            fill(255);
+            textSize(35*dy);
+            textAlign(CENTER, CENTER);
+            text("AQUECIMENTO", width/2, 2.50*H);
         } else {
-            fill(150,150,150);
-        }
-        textSize(35*dy);
-        textAlign(CENTER, CENTER);
-        text(abs(descanso) + " s", width/2, 2.50*H);
-        image(IMG_DESCANSO, width/2-50*dx, 2.50*H);
-        if (descanso < 0) {
-            textSize(20*dy);
-            text("(ESGOTADO)", width/2, 2.5*H+30*dy);
+            int descanso = JOGO_DESCANSO_TOTAL;
+            if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
+                descanso += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
+            }
+            descanso /= 1000;
+            descanso = CONF_DESCANSO - descanso;
+
+            if (descanso < 0) {
+                fill(255,0,0);
+            } else if (ESTADO.equals("terminado")) {
+                fill(255);
+            } else {
+                fill(150,150,150);
+            }
+            textSize(35*dy);
+            textAlign(CENTER, CENTER);
+            text(abs(descanso) + " s", width/2, 2.50*H);
+            image(IMG_DESCANSO, width/2-50*dx, 2.50*H);
+            if (descanso < 0) {
+                textSize(20*dy);
+                text("(ESGOTADO)", width/2, 2.5*H+30*dy);
+            }
         }
     }
 
