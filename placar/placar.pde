@@ -8,7 +8,7 @@
 // - mostrar tempo de descanso extrapolado
 // - resultados.txt
 // - data de inicio do jogo (usar no relatorio?)
-// - sons (cortar bomba, som de final, som > 95)
+// - aquecimento nao termina, "aquecimento" no lugar do tempo
 
 import processing.serial.*;
 import processing.sound.*;
@@ -45,6 +45,7 @@ boolean     CONF_TRINCA;
 int         CONF_QUEDAS;
 int         CONF_ABORTA;
 int         CONF_ESQUENTA;
+int         CONF_DESCANSO;
 
 int         LADO_RADAR;
 int         LADO_PIVO;
@@ -507,6 +508,7 @@ void setup () {
     CONF_QUEDAS    = CONF.getInt("quedas");
     CONF_ABORTA    = CONF.getInt("aborta");
     CONF_ESQUENTA  = CONF.getInt("esquenta");
+    CONF_DESCANSO  = CONF.getInt("descanso");
 
     LADO_RADAR     = CONF.getInt("lado_radar") - 1;
     LADO_PIVO      = CONF.getInt("lado_pivo")  - 1;
@@ -808,17 +810,23 @@ void draw_draw () {
             descanso += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
         }
         descanso /= 1000;
+        descanso = CONF_DESCANSO - descanso;
 
-        if (ESTADO.equals("terminado")) {
+        if (descanso < 0) {
+            fill(255,0,0);
+        } else if (ESTADO.equals("terminado")) {
             fill(255);
         } else {
             fill(150,150,150);
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(descanso+" s", width/2, 2.50*H);
-        float w = textWidth(descanso+" s");
-        image(IMG_DESCANSO, width/2-w-15*dx, 2.50*H);
+        text(abs(descanso) + " s", width/2, 2.50*H);
+        image(IMG_DESCANSO, width/2-50*dx, 2.50*H);
+        if (descanso < 0) {
+            textSize(20*dy);
+            text("(ESGOTADO)", width/2, 2.5*H+30*dy);
+        }
     }
 
     // PARS / INVERTIDO?

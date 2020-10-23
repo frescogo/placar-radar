@@ -9,6 +9,7 @@
     "aborta":     15,
     "saque":      45,
     "esquenta":   60,
+    "descanso":   90,
 
     "lado_radar": 1,
     "lado_pivo":  1,
