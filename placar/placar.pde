@@ -75,6 +75,7 @@ int         ZER = 0;
 int         ONE = 1;
 
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
+boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
 int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
 int[][]     JOGO_JOGS = new int[2][3];
@@ -130,6 +131,7 @@ void go_esquenta () {
     ESTADO = "ocioso";
     JOGO = new ArrayList<ArrayList>();
     JOGO_DESCANSO_TOTAL     = 0;
+    JOGO_DESCANSO_PLAY      = false;
     JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
@@ -141,6 +143,7 @@ void go_reinicio () {
     ESTADO = "ocioso";
     JOGO = new ArrayList<ArrayList>();
     JOGO_DESCANSO_TOTAL     = 0;
+    JOGO_DESCANSO_PLAY      = false;
     JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
@@ -857,6 +860,10 @@ void draw_draw () {
 
             if (descanso < 0) {
                 fill(255,0,0);
+                if (!JOGO_DESCANSO_PLAY) {
+                    JOGO_DESCANSO_PLAY = true;
+                    SNDS[2].play();
+                }
             } else if (ESTADO.equals("terminado")) {
                 fill(255);
             } else {
