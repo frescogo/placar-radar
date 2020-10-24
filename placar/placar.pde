@@ -242,7 +242,7 @@ void go_termino () {
 
     // resultados.csv
     try {
-        File file = new File("relatorios/resultados.csv");
+        File file = new File(sketchPath("/relatorios/resultados.csv"));
         if (!file.exists()) {
             file.createNewFile();
         }
