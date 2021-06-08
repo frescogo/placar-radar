@@ -315,13 +315,16 @@ void _jogo_lado (int jog) {
     }
     kmhs.sortReverse();
     int N = min(conf_ataques(jog),kmhs.size());
-    int sum = 0;
+    int sum1 = 0;
+    int sum2 = 0;
     for (int i=0; i<N; i++) {
-        sum += kmhs.get(i);
+        int cur = kmhs.get(i);
+        sum1 += cur;
+        sum2 += cur*cur/50;
     }
-    JOGO_JOGS[jog][0] = sum;
+    JOGO_JOGS[jog][0] = sum2;
     JOGO_JOGS[jog][1] = kmhs.size();
-    JOGO_JOGS[jog][2] = sum * 100 / max(1,N);
+    JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -1124,6 +1127,6 @@ void draw_lado (float x, int jog) {
 
     textSize(15*dy);
     textAlign(CENTER, CENTER);
-    text("(x)", x+W, 6*H);
-    text("(=)", x+W, 7*H);
+    //text("(x)", x+W, 6*H);
+    //text("(=)", x+W, 7*H);
 }
