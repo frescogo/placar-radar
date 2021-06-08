@@ -37,11 +37,12 @@ SoundFile[] HITS = new SoundFile[5];
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
 int         CONF_ATAQUES;
-int         CONF_MINIMA;
-int         CONF_MAXIMA;
+int         CONF_VEL_MIN;
+int         CONF_VEL_MAX;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
-int         CONF_QUEDAS;
+int         CONF_QUEDAS_BASE;
+int         CONF_QUEDAS_PENA;
 int         CONF_ABORTA;
 int         CONF_ESQUENTA;
 int         CONF_DESCANSO;
@@ -113,12 +114,16 @@ int conf_ataques (int jog) {
     }
 }
 
-int conf_quedas () {
-    return CONF_QUEDAS * 60 / conf_tempo();   // 8% / 60s
+int conf_quedas_base () {
+    return CONF_QUEDAS_BASE * conf_tempo() / 60;    // 1 / 60s
+}
+
+int conf_quedas_pena () {
+    return CONF_QUEDAS_PENA * 60 / conf_tempo();    // 12% / 60s
 }
 
 int conf_aborta () {
-    return conf_tempo() / CONF_ABORTA;         // 1 queda / 15s
+    return conf_tempo() / CONF_ABORTA;              // 1 queda / 15s
 }
 
 boolean conf_radar () {
@@ -307,16 +312,16 @@ void _jogo_lado (int jog) {
             int[] golpe = seq.get(j);
             if (golpe[1] == jog) {
                 int kmh = jogo_kmh(seq,j);
-                if (kmh >= CONF_MINIMA) {
-                    kmhs.append(jogo_kmh(seq,j));
+                if (kmh >= CONF_VEL_MIN) {
+                    kmhs.append(kmh);
                 }
             }
         }
     }
     kmhs.sortReverse();
     int N = min(conf_ataques(jog),kmhs.size());
-    int sum1 = 0;
-    int sum2 = 0;
+    int sum1 = 0;   // simples
+    int sum2 = 0;   // quadrado
     for (int i=0; i<N; i++) {
         int cur = kmhs.get(i);
         sum1 += cur;
@@ -330,20 +335,24 @@ void _jogo_lado (int jog) {
 int jogo_kmh (ArrayList<int[]> seq, int i) {
     int[] cur = seq.get(i);
     int kmh = cur[2];
-    if (kmh != 0) {
+    if (kmh != 0) {     // radar ligado
         return kmh;
-    } else {
+    } else {            // radar desligado
         if (seq.size() < i+2) {
             return 0;
         } else {
             int[] nxt = seq.get(i+1);
-            return min(CONF_MAXIMA, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
+            return min(CONF_VEL_MAX, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
         }
     }
 }
 
 int jogo_quedas () {
     return JOGO_QUEDAS + JOGO_QUEDAS_MANUAL;
+}
+
+int jogo_quedas_pct () {
+    return max(0, jogo_quedas()-conf_quedas_base()) * conf_quedas_pena();
 }
 
 void jogo_calc () {
@@ -354,9 +363,8 @@ void jogo_calc () {
     int p0  = JOGO_JOGS[0][0];
     int p1  = JOGO_JOGS[1][0];
     int pts = p0 + p1;
-    int pct = jogo_quedas() * conf_quedas();
 
-    JOGO_TOTAL = pts * (10000-pct) / 10000;
+    JOGO_TOTAL = pts * (10000-jogo_quedas_pct()) / 10000;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -367,7 +375,7 @@ int radar_mock () {
     if (dt > 500) {
         old = NOW;
         if (random(0,4) <= 2) {
-            int vel = int(random(30,CONF_MAXIMA));
+            int vel = int(random(30,CONF_VEL_MAX));
             return (int(random(0,2))==0) ? vel : -vel;
         }
     }
@@ -530,9 +538,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(600, 300);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -541,17 +549,24 @@ void setup () {
     H = height /  8.0;
 
     CONF           = loadJSONObject("data/conf.json");
-    CONF_TEMPO     = CONF.getInt("tempo");
-    CONF_DISTANCIA = CONF.getInt("distancia");
-    CONF_ATAQUES   = CONF.getInt("ataques");
-    CONF_MINIMA    = CONF.getInt("minima");
-    CONF_MAXIMA    = CONF.getInt("maxima");
-    CONF_SAQUE     = CONF.getInt("saque");
+    CONF_TEMPO     = CONF.getInt("tempo");              // 300s  = 5mins
+    CONF_DISTANCIA = CONF.getInt("distancia");          // 750cm = 7.5m
+    CONF_ATAQUES   = CONF.getInt("ataques");            // 50 ataques por minuto para a dupla
+    CONF_VEL_MIN   = CONF.getInt("vel_min");            // 50km/h menor velocidade contabilizada
+    CONF_VEL_MAX   = CONF.getInt("vel_max");            // 85km/h maior velocidade contabilizada no modo manual
+    CONF_SAQUE     = CONF.getInt("saque");              // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA    = CONF.getBoolean("trinca");
-    CONF_QUEDAS    = CONF.getInt("quedas");
+    CONF_QUEDAS_BASE = CONF.getInt("quedas_base");
+    CONF_QUEDAS_PENA = CONF.getInt("quedas_pena");
     CONF_ABORTA    = CONF.getInt("aborta");
     CONF_ESQUENTA  = CONF.getInt("esquenta");
     CONF_DESCANSO  = CONF.getInt("descanso");
+
+    // 300s
+    // 20 quedas interrompe o jogo
+    // 125 ataques máximo por atleta
+    // 5 quedas de trégua
+    // 3% de penalidade por queda
 
     LADO_RADAR     = CONF.getInt("lado_radar") - 1;
     LADO_PIVO      = CONF.getInt("lado_pivo")  - 1;
@@ -621,7 +636,7 @@ void setup () {
                 (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
                 CONF_TEMPO   + "s / " +
                 CONF_ATAQUES + "ata / " +
-                CONF_MINIMA  + (conf_radar() ? "" : "-" + CONF_MAXIMA) + "kmh";
+                CONF_VEL_MIN  + (conf_radar() ? "" : "-" + CONF_VEL_MAX) + "kmh";
 
     go_reinicio();
 }
@@ -762,7 +777,7 @@ void keyPressed (KeyEvent e) {
             int jog = (keyCode == 37) ? ZER : ONE;
             int[] golpe = { NOW, jog, 0 };
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-            seq.add(golpe);
+            seq.add(golpe);  // golpe[2]=0  -->  radar desligado
             int kmh = 0;
             if (seq.size() >= 2) {
                 kmh = jogo_kmh(seq, seq.size()-2);
@@ -793,7 +808,7 @@ void draw () {
                 if (ESTADO_JOGANDO.equals("jogando")) {
                     int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_ };
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-                    seq.add(golpe);
+                    seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
                     sound(kmh);
                 }
             }
@@ -1045,15 +1060,22 @@ void draw_draw () {
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CONF_RECORDE, width/2, 6*H-5*dy);
+        text(CONF_RECORDE, width/2, 6*H-15*dy);
         float w2 = textWidth(str(CONF_RECORDE));
-        image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H);
+        image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H-10*dy);
 
         // TOTAL
         fill(255);
         textSize(140*dy);
         textAlign(CENTER, CENTER);
-        text(JOGO_TOTAL, width/2, 7*H);
+        text(JOGO_TOTAL, width/2, 7*H-15*dy);
+
+        // conta
+        fill(150,150,150);
+        textSize(15*dy);
+        float pct = float(jogo_quedas_pct()) / 100;
+        String conta = "(" + JOGO_JOGS[0][0] + " + " + JOGO_JOGS[1][0] + ") - " + pct + "%";
+        text(conta, width/2, 7.5*H+20*dy);
     }
 }
 
@@ -1086,7 +1108,7 @@ void draw_ultima (float x, int kmh) {
     if (kmh == 0) {
         return;
     }
-    if (kmh >= CONF_MINIMA) {
+    if (kmh >= CONF_VEL_MIN) {
         fill(0);
     } else {
         fill(200,200,200);
