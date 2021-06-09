@@ -37,6 +37,7 @@ SoundFile[] HITS = new SoundFile[5];
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
 int         CONF_ATAQUES;
+int         CONF_EQUILIBRIO;
 int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
 int         CONF_SAQUE;
@@ -362,9 +363,16 @@ void jogo_calc () {
 
     int p0  = JOGO_JOGS[0][0];
     int p1  = JOGO_JOGS[1][0];
-    int pts = p0 + p1;
 
-    JOGO_TOTAL = pts * (10000-jogo_quedas_pct()) / 10000;
+    // considera o equilibrio a partir de 30 ataques
+    int n0 = JOGO_JOGS[0][1];
+    int n1 = JOGO_JOGS[1][1];
+    if (n0+n1 >= 30) {
+        p0 = min(p0, p1*CONF_EQUILIBRIO/100);
+        p1 = min(p1, p0*CONF_EQUILIBRIO/100);
+    }
+
+    JOGO_TOTAL = (p0+p1) * (10000-jogo_quedas_pct()) / 10000;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -552,6 +560,7 @@ void setup () {
     CONF_TEMPO     = CONF.getInt("tempo");              // 300s  = 5mins
     CONF_DISTANCIA = CONF.getInt("distancia");          // 750cm = 7.5m
     CONF_ATAQUES   = CONF.getInt("ataques");            // 50 ataques por minuto para a dupla
+    CONF_EQUILIBRIO = CONF.getInt("equilibrio");        // 120=20% de diferenca maxima entre os atletas
     CONF_VEL_MIN   = CONF.getInt("vel_min");            // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX   = CONF.getInt("vel_max");            // 85km/h maior velocidade contabilizada no modo manual
     CONF_SAQUE     = CONF.getInt("saque");              // 45km/h menor velocidade que considera saque no modo autonomo
@@ -1126,16 +1135,9 @@ void draw_lado (float x, int jog) {
     noStroke();
     fill(color(255,255,255));
     rect(x, 5*H, 2*W, 3*H);
+
     fill(0);
-    textAlign(CENTER, CENTER);
-
-    textSize(25*dy);
-    text("." + nf(JOG[2]%100,2), x+W+30*dx, 6.5*H+15*dy);   // media1
-
     textSize(65*dy);
-    text(JOG[2]/100, x+W, 6.5*H);         // media1
-    text(JOG[0], x+W, 7.5*H);             // pontos
-
     int atas = conf_ataques(jog);
     if (atas>0 && JOG[1]>=atas) {         // golpes vs limite
         fill(255,0,0);
@@ -1147,8 +1149,24 @@ void draw_lado (float x, int jog) {
     textAlign(TOP, LEFT);
     text("/"+conf_ataques(jog), x+W+w1+10*dx, 5.5*H+30*dy);  // limite
 
-    textSize(15*dy);
+    fill(0);
     textAlign(CENTER, CENTER);
+
+    // media
+    textSize(65*dy);
+    text(JOG[2]/100, x+W, 6.5*H);
+    textSize(25*dy);
+    text("." + nf(JOG[2]%100,2), x+W+30*dx, 6.5*H+15*dy);
+
+    // pontos
+    textSize(65*dy);
+    if (JOG[0] > JOGO_JOGS[1-jog][0]*CONF_EQUILIBRIO/100) {
+        fill(255,0,0);
+    }
+    text(JOG[0], x+W, 7.5*H);
+
+    //textSize(15*dy);
+    //textAlign(CENTER, CENTER);
     //text("(x)", x+W, 6*H);
     //text("(=)", x+W, 7*H);
 }

@@ -1,7 +1,8 @@
 {
     "tempo":      240,
     "distancia":  750,
-    "ataques":    50,
+    "ataques":    60,
+    "equilibrio":  120,
     "vel_min":     50,
     "vel_max":     85,
     "trinca":     false,
