@@ -356,23 +356,28 @@ int jogo_quedas_pct () {
     return max(0, jogo_quedas()-conf_quedas_base()) * conf_quedas_pena();
 }
 
-void jogo_calc () {
-    _jogo_tempo();
-    _jogo_lado(0);
-    _jogo_lado(1);
+int[] jogo_equ () {
+    int p0 = JOGO_JOGS[0][0];
+    int p1 = JOGO_JOGS[1][0];
 
-    int p0  = JOGO_JOGS[0][0];
-    int p1  = JOGO_JOGS[1][0];
-
-    // considera o equilibrio a partir de 30 ataques
     int n0 = JOGO_JOGS[0][1];
     int n1 = JOGO_JOGS[1][1];
+
     if (n0+n1 >= 30) {
         p0 = min(p0, p1*CONF_EQUILIBRIO/100);
         p1 = min(p1, p0*CONF_EQUILIBRIO/100);
     }
 
-    JOGO_TOTAL = (p0+p1) * (10000-jogo_quedas_pct()) / 10000;
+    return new int[] {p0,p1};
+}
+
+void jogo_calc () {
+    _jogo_tempo();
+    _jogo_lado(0);
+    _jogo_lado(1);
+
+    int[] ps = jogo_equ();
+    JOGO_TOTAL = (ps[0]+ps[1]) * (10000-jogo_quedas_pct()) / 10000;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1080,10 +1085,11 @@ void draw_draw () {
         text(JOGO_TOTAL, width/2, 7*H-15*dy);
 
         // conta
+        int[] ps = jogo_equ();
         fill(150,150,150);
         textSize(15*dy);
         float pct = float(jogo_quedas_pct()) / 100;
-        String conta = "(" + JOGO_JOGS[0][0] + " + " + JOGO_JOGS[1][0] + ") - " + pct + "%";
+        String conta = "(" + ps[0] + " + " + ps[1] + ") - " + pct + "%";
         text(conta, width/2, 7.5*H+20*dy);
     }
 }
@@ -1137,6 +1143,7 @@ void draw_lado (float x, int jog) {
     rect(x, 5*H, 2*W, 3*H);
 
     fill(0);
+    textAlign(CENTER, CENTER);
     textSize(65*dy);
     int atas = conf_ataques(jog);
     if (atas>0 && JOG[1]>=atas) {         // golpes vs limite
