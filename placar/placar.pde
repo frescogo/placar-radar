@@ -11,9 +11,9 @@ import processing.serial.*;
 import processing.sound.*;
 import java.io.*;
 
-int         MAJOR    = 3;
-int         MINOR    = 1;
-int         REVISION = 3;
+int         MAJOR    = 4;
+int         MINOR    = 0;
+int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
@@ -42,8 +42,8 @@ int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
-int         CONF_QUEDAS_BASE;
-int         CONF_QUEDAS_PENA;
+int         CONF_TREGUA;
+int         CONF_QUEDAS;
 int         CONF_ABORTA;
 int         CONF_ESQUENTA;
 int         CONF_DESCANSO;
@@ -116,11 +116,11 @@ int conf_ataques (int jog) {
 }
 
 int conf_quedas_base () {
-    return CONF_QUEDAS_BASE * conf_tempo() / 60;    // 1 / 60s
+    return CONF_TREGUA * conf_tempo() / 60;    // 1 / 60s
 }
 
 int conf_quedas_pena () {
-    return CONF_QUEDAS_PENA * 60 / conf_tempo();    // 12% / 60s
+    return CONF_QUEDAS * 60 / conf_tempo();    // 12% / 60s
 }
 
 int conf_aborta () {
@@ -218,18 +218,26 @@ void go_termino () {
 
         String[] jogs = new String[2];
         for (int i=0; i<2; i++) {
-            jogs[i] = ns(CONF_NOMES[i]+":",15) + JOGO_JOGS[i][0] + " pontos = " +
-                      min(conf_ataques(i),JOGO_JOGS[i][1]) + " atas X " +
+            jogs[i] = ns(CONF_NOMES[i]+":",15) + nf(JOGO_JOGS[i][0],5) + " pontos / " +
+                      nf(JOGO_JOGS[i][1],3) + " golpes / " +
                       nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
         }
 
-        String out = ns("Data:",     15) + ts + "\n"
-                   + ns("Versão:",   15) + CONF_PARS + "\n"
-                   //+ ns("Atletas:", 15) + CONF_NOMES[0] + " e " + CONF_NOMES[1] + "\n"
-                   + "\n" + jogs[0] + jogs[1] + "\n"
-                   + ns("Descanso:", 15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
-                   + ns("Quedas:",   15) + jogo_quedas() + manual + "\n"
-                   + ns("Total:",    15) + JOGO_TOTAL + " pontos\n"
+        int[] ps = jogo_equ();
+
+        String out = ns("Data:",          15) + ts + "\n"
+                   + ns("Versão:",        15) + CONF_PARS + "\n"
+                   + "\n"
+                   + ns("Descanso:",      15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
+                   + ns("Quedas:",        15) + jogo_quedas() + manual + "\n"
+                   + "\n"
+                   + jogs[0] + jogs[1]
+                   + "\n"
+                   + ns("Parcial:",       15) + nf(JOGO_JOGS[0][0]+JOGO_JOGS[1][0],5) + " pontos\n"
+                   + ns("Desequilibrio:", 15) + nf((JOGO_JOGS[0][0]+JOGO_JOGS[1][0]) - (ps[0]+ps[1]), 5) + " (-)\n"
+                   + ns("Quedas:",        15) + nf(ps[0]+ps[1] - JOGO_TOTAL, 5) + " (-)\n"
+                   + "\n"
+                   + ns("FINAL:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
@@ -248,7 +256,7 @@ void go_termino () {
 
     // resultados.csv
     try {
-        File file = new File(sketchPath("/relatorios/resultados.csv"));
+        File file = new File(sketchPath("") + "/relatorios/resultados.csv");
         if (!file.exists()) {
             file.createNewFile();
         }
@@ -561,20 +569,20 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    CONF           = loadJSONObject("data/conf.json");
-    CONF_TEMPO     = CONF.getInt("tempo");              // 300s  = 5mins
-    CONF_DISTANCIA = CONF.getInt("distancia");          // 750cm = 7.5m
-    CONF_ATAQUES   = CONF.getInt("ataques");            // 50 ataques por minuto para a dupla
+    CONF            = loadJSONObject("data/conf.json");
+    CONF_TEMPO      = CONF.getInt("tempo");             // 300s  = 5mins
+    CONF_DISTANCIA  = CONF.getInt("distancia");         // 750cm = 7.5m
+    CONF_ATAQUES    = CONF.getInt("ataques");           // 50 ataques por minuto para a dupla
     CONF_EQUILIBRIO = CONF.getInt("equilibrio");        // 120=20% de diferenca maxima entre os atletas
-    CONF_VEL_MIN   = CONF.getInt("vel_min");            // 50km/h menor velocidade contabilizada
-    CONF_VEL_MAX   = CONF.getInt("vel_max");            // 85km/h maior velocidade contabilizada no modo manual
-    CONF_SAQUE     = CONF.getInt("saque");              // 45km/h menor velocidade que considera saque no modo autonomo
-    CONF_TRINCA    = CONF.getBoolean("trinca");
-    CONF_QUEDAS_BASE = CONF.getInt("quedas_base");
-    CONF_QUEDAS_PENA = CONF.getInt("quedas_pena");
-    CONF_ABORTA    = CONF.getInt("aborta");
-    CONF_ESQUENTA  = CONF.getInt("esquenta");
-    CONF_DESCANSO  = CONF.getInt("descanso");
+    CONF_VEL_MIN    = CONF.getInt("minima");            // 50km/h menor velocidade contabilizada
+    CONF_VEL_MAX    = CONF.getInt("maxima");            // 85km/h maior velocidade contabilizada no modo manual
+    CONF_SAQUE      = CONF.getInt("saque");             // 45km/h menor velocidade que considera saque no modo autonomo
+    CONF_TRINCA     = CONF.getBoolean("trinca");
+    CONF_TREGUA     = CONF.getInt("tregua");
+    CONF_QUEDAS     = CONF.getInt("quedas");
+    CONF_ABORTA     = CONF.getInt("aborta");
+    CONF_ESQUENTA   = CONF.getInt("esquenta");
+    CONF_DESCANSO   = CONF.getInt("descanso");
 
     // 300s
     // 20 quedas interrompe o jogo
@@ -582,14 +590,14 @@ void setup () {
     // 5 quedas de trégua
     // 3% de penalidade por queda
 
-    LADO_RADAR     = CONF.getInt("lado_radar") - 1;
-    LADO_PIVO      = CONF.getInt("lado_pivo")  - 1;
+    LADO_RADAR = CONF.getInt("lado_radar") - 1;
+    LADO_PIVO  = CONF.getInt("lado_pivo")  - 1;
 
-    CONF_RECORDE   = CONF.getInt("recorde");
-    CONF_NOMES[0]  = CONF.getString("atleta1");
-    CONF_NOMES[1]  = CONF.getString("atleta2");
-    CONF_NOMES[2]  = CONF.getString("arbitro");
-    CONF_SERIAL    = CONF.getString("serial");
+    CONF_RECORDE  = CONF.getInt("recorde");
+    CONF_NOMES[0] = CONF.getString("atleta1");
+    CONF_NOMES[1] = CONF.getString("atleta2");
+    CONF_NOMES[2] = CONF.getString("arbitro");
+    CONF_SERIAL   = CONF.getString("serial");
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -648,9 +656,7 @@ void setup () {
     CONF_PARS = "v" + VERSAO + " / " +
                 (CONF_TRINCA ? "trinca" : "dupla") + " / " +
                 (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-                CONF_TEMPO   + "s / " +
-                CONF_ATAQUES + "ata / " +
-                CONF_VEL_MIN  + (conf_radar() ? "" : "-" + CONF_VEL_MAX) + "kmh";
+                CONF_TEMPO   + "s";
 
     go_reinicio();
 }

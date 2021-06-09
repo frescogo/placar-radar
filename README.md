@@ -67,12 +67,14 @@ ser ajustadas, conforme descrito a seguir:
 {
     "tempo":      240,      ; tempo total de jogo (240s)
     "distancia":  750,      ; distância considerada no modo manual (750cm)
-    "ataques":    50,       ; quantidade de ataques por minuto (50 ataques)
+    "ataques":    60,       ; quantidade de ataques por minuto (60 ataques)
+    "equilibrio": 120,      ; máximo de pontuação relativo ao mínimo entre os atletas (120%)
     "minima":     50,       ; velocidade mínima de um ataque (50km/h)
     "maxima":     85,       ; velocidade máxima no modo manual (85km/h)
     "saque":      45,       ; velocidade mínima para considerar um saque (45km/h)
     "trinca":     false,    ; modo de trinca ou dupla (dupla)
-    "quedas":     800,      ; desconto de queda para cada minuto (8%)
+    "tregua":     1,        ; trégua de quedas por minuto (1 queda por minuto)
+    "quedas":     1500,     ; desconto de queda para cada minuto (15%)
     "aborta":     15,       ; limite de quedas por jogo (15s por queda)
     "esquenta":   60,       ; tempo total de "esquenta" (60s)
 
@@ -94,22 +96,24 @@ ser ajustadas, conforme descrito a seguir:
 Ao final da apresentação é gerado um relatório com o seguinte formato:
 
 ```
-Data:          2020-08-26_19_43_52                      <-- data/hora da apresentação
-Versão:        v3.1.2 / dupla / radar / 240s / 40ata / 50kmh
+Data:          2021-06-09_19_08_00                      <-- data/hora da apresentação
+Versão:        v4.0.0 / dupla / 750cm / 300s
                   \-- versão do software
                          \-- dupla ou trinca
                                   \-- radar ou distância entre os atletas em cm
                                          \-- tempo máximo de apresentação
-                                                 \-- máximo de ataques por minuto
-                                                         \-- velocidade mínima considerada
 
+Descanso:      14                                       <-- tempo total de descanso em segundos
+Quedas:        9                                        <-- total de quedas
 
-Maria:         5689 pontos = 80 atas X 71.11 km/h       <-- atleta à esquerda
-Joao:          4189 pontos = 62 atas X 67.56 km/h       <-- atleta à direita
+Maria:         09058 pontos / 130 golpes / 58.43 km/h   <-- atleta à esquerda
+Joao:          11196 pontos / 172 golpes / 60.65 km/h   <-- atleta à direita
 
-Descanso:      12                                       <-- tempo total de descanso em segundos
-Quedas:        3                                        <-- total de quedas
-Total:         9626 pontos                              <-- PONTUAÇÃO FINAL
+Parcial:       20254 pontos                             <-- soma simples da pontuação dos atletas
+Desequilibrio: 00327 (-)                                <-- desconto de desequilíbrio
+Quedas:        02392 (-)                                <-- desconto de quedas
+
+FINAL:         17535 pontos                             <-- PONTUAÇÃO FINAL
 
 SEQUÊNCIA 01                                            <-- sequências 01, 02, ...
 ============
@@ -117,10 +121,10 @@ SEQUÊNCIA 01                                            <-- sequências 01, 02,
 TEMPO   DIR   KMH
 -----   ---   ---
 008308   ->   078           <-- golpes aferidos
-009338   ->   034           -- TEMPO = momento do golpe desde o início da
+009338   <-   034           -- TEMPO = momento do golpe desde o início da
 011389   ->   069           --         apresentação em milésimos de segundo
 012415   ->   077           -- DIR   = direção do golpe
-012926   ->   043           -- KMH   = velocidade do golpe
+012926   <-   043           -- KMH   = velocidade do golpe
 ...
 
 
