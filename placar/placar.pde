@@ -1177,11 +1177,11 @@ void draw_lado (boolean isesq, float x, int jog) {
     fill(150,150,150);
     if (isesq) {
         textSize(30*dy);
-        text(JOG[4], x+2*W, 6.5*H-H/6);
-        text(JOG[3], x+2*W, 6.5*H+H/4);
+        text(JOG[4], x+2*W+30*dx, 6.5*H-H/6);
+        text(JOG[3], x+2*W+30*dx, 6.5*H+H/4);
         textSize(15*dy);
-        text("máx", x+2*W+30*dx, 6.5*H-H/6);
-        text("min", x+2*W+30*dx, 6.5*H+H/4);
+        text("máx", x+2*W, 6.5*H-H/6);
+        text("min", x+2*W, 6.5*H+H/4);
     } else {
         textSize(30*dy);
         text(JOG[4], x-W/3, 6.5*H-H/6);
