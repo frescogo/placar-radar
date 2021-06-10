@@ -594,8 +594,8 @@ void setup () {
     LADO_RADAR      = CONF.getInt("lado_radar") - 1;
     LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
     CONF_RECORDE    = CONF.getInt("recorde");
-    CONF_NOMES[0]   = "Atleta 1"
-    CONF_NOMES[1]   = "Atleta 2"
+    CONF_NOMES[0]   = "Atleta 1";
+    CONF_NOMES[1]   = "Atleta 2";
     CONF_NOMES[2]   = CONF.getString("arbitro");
     CONF_SERIAL     = CONF.getString("serial");
 
