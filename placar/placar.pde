@@ -314,8 +314,6 @@ void _jogo_tempo () {
 }
 
 void _jogo_lado (int jog) {
-    int _min = 0;
-    int _max = 0;
     IntList kmhs = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
@@ -325,8 +323,6 @@ void _jogo_lado (int jog) {
                 int kmh = jogo_kmh(seq,j);
                 if (kmh >= CONF_VEL_MIN) {
                     kmhs.append(kmh);
-                    _min = (_min==0) ? kmh : min(_min, kmh);
-                    _max = max(_max, kmh);
                 }
             }
         }
@@ -343,8 +339,8 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][0] = sum2;
     JOGO_JOGS[jog][1] = kmhs.size();
     JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
-    JOGO_JOGS[jog][3] = _min;
-    JOGO_JOGS[jog][4] = _max;
+    JOGO_JOGS[jog][3] = (N == 0) ? 0 : kmhs.get(N-1);
+    JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -565,9 +561,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -1178,6 +1174,7 @@ void draw_lado (boolean isesq, float x, int jog) {
     text("." + nf(JOG[2]%100,2), x+W+30*dx, 6.5*H+15*dy);
 
     // min / max
+    fill(150,150,150);
     if (isesq) {
         textSize(30*dy);
         text(JOG[4], x+2*W, 6.5*H-H/6);
@@ -1195,6 +1192,7 @@ void draw_lado (boolean isesq, float x, int jog) {
     }
 
     // pontos
+    fill(0);
     textSize(65*dy);
     if (JOG[0] > JOGO_JOGS[1-jog][0]*CONF_EQUILIBRIO/100) {
         fill(255,0,0);
