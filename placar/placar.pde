@@ -80,7 +80,7 @@ int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
 int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
-int[][]     JOGO_JOGS = new int[2][3];
+int[][]     JOGO_JOGS = new int[2][5];  // pts, golpes, med, min, max
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -314,6 +314,8 @@ void _jogo_tempo () {
 }
 
 void _jogo_lado (int jog) {
+    int _min = 0;
+    int _max = 0;
     IntList kmhs = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
@@ -323,6 +325,8 @@ void _jogo_lado (int jog) {
                 int kmh = jogo_kmh(seq,j);
                 if (kmh >= CONF_VEL_MIN) {
                     kmhs.append(kmh);
+                    _min = (_min==0) ? kmh : min(_min, kmh);
+                    _max = max(_max, kmh);
                 }
             }
         }
@@ -339,6 +343,8 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][0] = sum2;
     JOGO_JOGS[jog][1] = kmhs.size();
     JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
+    JOGO_JOGS[jog][3] = _min;
+    JOGO_JOGS[jog][4] = _max;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -559,9 +565,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(1000, 600);
+    //size(1000, 600);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -1021,8 +1027,8 @@ void draw_draw () {
         }
     }
 
-    draw_lado(1.5*W, ZER);
-    draw_lado(7.5*W, ONE);
+    draw_lado(true,  1.25*W, ZER);
+    draw_lado(false, 7.75*W, ONE);
 
     textSize(15*dy);
     fill(150,150,150);
@@ -1142,7 +1148,7 @@ void draw_ultima (float x, int kmh) {
     text("km/h", x, 4*H+35*dy);
 }
 
-void draw_lado (float x, int jog) {
+void draw_lado (boolean isesq, float x, int jog) {
     int[] JOG = JOGO_JOGS[jog];
     noStroke();
     fill(color(255,255,255));
@@ -1170,6 +1176,23 @@ void draw_lado (float x, int jog) {
     text(JOG[2]/100, x+W, 6.5*H);
     textSize(25*dy);
     text("." + nf(JOG[2]%100,2), x+W+30*dx, 6.5*H+15*dy);
+
+    // min / max
+    if (isesq) {
+        textSize(30*dy);
+        text(JOG[4], x+2*W, 6.5*H-H/6);
+        text(JOG[3], x+2*W, 6.5*H+H/4);
+        textSize(15*dy);
+        text("máx", x+2*W+30*dx, 6.5*H-H/6);
+        text("min", x+2*W+30*dx, 6.5*H+H/4);
+    } else {
+        textSize(30*dy);
+        text(JOG[4], x-W/3, 6.5*H-H/6);
+        text(JOG[3], x-W/3, 6.5*H+H/4);
+        textSize(15*dy);
+        text("máx", x-W/3+30*dx, 6.5*H-H/6);
+        text("min", x-W/3+30*dx, 6.5*H+H/4);
+    }
 
     // pontos
     textSize(65*dy);
