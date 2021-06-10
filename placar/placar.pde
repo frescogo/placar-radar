@@ -373,7 +373,7 @@ int[] jogo_equ () {
     int n0 = JOGO_JOGS[0][1];
     int n1 = JOGO_JOGS[1][1];
 
-    if (n0+n1 >= 30) {
+    if (CONF_EQUILIBRIO!=0 && n0+n1>=30) {
         p0 = min(p0, p1*CONF_EQUILIBRIO/100);
         p1 = min(p1, p0*CONF_EQUILIBRIO/100);
     }
@@ -571,35 +571,33 @@ void setup () {
     W = width  / 11.0;
     H = height /  8.0;
 
-    CONF            = loadJSONObject("data/conf.json");
-    CONF_TEMPO      = CONF.getInt("tempo");             // 300s  = 5mins
-    CONF_DISTANCIA  = CONF.getInt("distancia");         // 750cm = 7.5m
-    CONF_ATAQUES    = CONF.getInt("ataques");           // 50 ataques por minuto para a dupla
-    CONF_EQUILIBRIO = CONF.getInt("equilibrio");        // 120=20% de diferenca maxima entre os atletas
-    CONF_VEL_MIN    = CONF.getInt("minima");            // 50km/h menor velocidade contabilizada
-    CONF_VEL_MAX    = CONF.getInt("maxima");            // 85km/h maior velocidade contabilizada no modo manual
-    CONF_SAQUE      = CONF.getInt("saque");             // 45km/h menor velocidade que considera saque no modo autonomo
-    CONF_TRINCA     = CONF.getBoolean("trinca");
-    CONF_TREGUA     = CONF.getInt("tregua");
-    CONF_QUEDAS     = CONF.getInt("quedas");
-    CONF_ABORTA     = CONF.getInt("aborta");
-    CONF_ESQUENTA   = CONF.getInt("esquenta");
-    CONF_DESCANSO   = CONF.getInt("descanso");
-
     // 300s
     // 20 quedas interrompe o jogo
     // 125 ataques máximo por atleta
     // 5 quedas de trégua
     // 3% de penalidade por queda
 
-    LADO_RADAR = CONF.getInt("lado_radar") - 1;
-    LADO_PIVO  = CONF.getInt("lado_pivo")  - 1;
-
-    CONF_RECORDE  = CONF.getInt("recorde");
-    CONF_NOMES[0] = CONF.getString("atleta1");
-    CONF_NOMES[1] = CONF.getString("atleta2");
-    CONF_NOMES[2] = CONF.getString("arbitro");
-    CONF_SERIAL   = CONF.getString("serial");
+    CONF            = loadJSONObject("data/conf.json");
+    CONF_TEMPO      = CONF.getInt("tempo");      // 300s  = 5mins
+    CONF_DISTANCIA  = CONF.getInt("distancia");  // 750cm = 7.5m
+    CONF_ATAQUES    = CONF.getInt("ataques");    // 60 ataques por minuto para a dupla
+    CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 120=20% de diferenca maxima entre os atletas (0=desligado)
+    CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
+    CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
+    CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
+    CONF_TRINCA     = CONF.getBoolean("trinca");
+    CONF_TREGUA     = CONF.getInt("tregua");
+    CONF_QUEDAS     = CONF.getInt("quedas");
+    CONF_ABORTA     = CONF.getInt("aborta");
+    CONF_ESQUENTA   = CONF.getInt("esquenta");
+    CONF_DESCANSO   = CONF.getInt("descanso");
+    LADO_RADAR      = CONF.getInt("lado_radar") - 1;
+    LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
+    CONF_RECORDE    = CONF.getInt("recorde");
+    CONF_NOMES[0]   = "Atleta 1"
+    CONF_NOMES[1]   = "Atleta 2"
+    CONF_NOMES[2]   = CONF.getString("arbitro");
+    CONF_SERIAL     = CONF.getString("serial");
 
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
@@ -1194,7 +1192,7 @@ void draw_lado (boolean isesq, float x, int jog) {
     // pontos
     fill(0);
     textSize(65*dy);
-    if (JOG[0] > JOGO_JOGS[1-jog][0]*CONF_EQUILIBRIO/100) {
+    if (CONF_EQUILIBRIO!=0 && JOG[0]>JOGO_JOGS[1-jog][0]*CONF_EQUILIBRIO/100) {
         fill(255,0,0);
     }
     text(JOG[0], x+W, 7.5*H);

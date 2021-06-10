@@ -2,7 +2,7 @@
     "tempo":      300,
     "distancia":  750,
     "ataques":    60,
-    "equilibrio": 120,
+    "equilibrio": 0,
     "minima":     50,
     "maxima":     85,
     "trinca":     false,
@@ -12,15 +12,11 @@
     "saque":      45,
     "esquenta":   60,
     "descanso":   90,
-
     "lado_radar": 1,
     "lado_pivo":  1,
-
-    "recorde": 0,
-    "imagem1": "data/fresco-radar.png",
-    "imagem2": "data/fresco-radar.png",
-    "atleta1": "Atleta 1",
-    "atleta2": "Atleta 2",
-    "arbitro": "Árbitro",
-    "serial":  ""
+    "recorde":    0,
+    "imagem1":    "data/fresco-radar.png",
+    "imagem2":    "data/fresco-radar.png",
+    "arbitro":    "Árbitro",
+    "serial":     ""
 }
