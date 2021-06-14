@@ -21,6 +21,7 @@ int         NOW;
 
 Serial      RADAR;
 boolean     RADAR_MOCK = false;
+int         RADAR_MOCK_SPEED = 500;
 boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
@@ -395,11 +396,11 @@ void jogo_calc () {
 int old = millis();
 int radar_mock () {
     int dt  = NOW - old;
-    if (dt > 500) {
+    if (dt > RADAR_MOCK_SPEED) {
         old = NOW;
         if (random(0,4) <= 2) {
             int vel = int(random(30,CONF_VEL_MAX));
-            return (int(random(0,2))==0) ? vel : -vel;
+            return (int(random(0,5))>=2) ? vel : -vel;
         }
     }
     return 0;
@@ -561,9 +562,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(1000, 600);
+    //size(1000, 600);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -573,7 +574,7 @@ void setup () {
 
     // 300s
     // 20 quedas interrompe o jogo
-    // 125 ataques máximo por atleta
+    // 150 ataques máximo por atleta
     // 5 quedas de trégua
     // 3% de penalidade por queda
 
@@ -581,7 +582,7 @@ void setup () {
     CONF_TEMPO      = CONF.getInt("tempo");      // 300s  = 5mins
     CONF_DISTANCIA  = CONF.getInt("distancia");  // 750cm = 7.5m
     CONF_ATAQUES    = CONF.getInt("ataques");    // 60 ataques por minuto para a dupla
-    CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 120=20% de diferenca maxima entre os atletas (0=desligado)
+    CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
@@ -609,8 +610,8 @@ void setup () {
 
     HITS[0] = new SoundFile(this,"hit-00.mp3");
     HITS[1] = new SoundFile(this,"hit-01.wav");
-    HITS[2] = new SoundFile(this,"hit-02.wav");
-    HITS[3] = new SoundFile(this,"hit-03.wav");
+    HITS[2] = new SoundFile(this,"hit-03.wav");
+    HITS[3] = new SoundFile(this,"hit-02.wav");
     HITS[4] = new SoundFile(this,"hit-04.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));

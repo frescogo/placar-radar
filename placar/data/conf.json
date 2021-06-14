@@ -2,7 +2,7 @@
     "tempo":      300,
     "distancia":  750,
     "ataques":    60,
-    "equilibrio": 0,
+    "equilibrio": 130,
     "minima":     50,
     "maxima":     85,
     "trinca":     false,
