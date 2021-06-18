@@ -2,13 +2,13 @@
 
 ```
 C-2 Pag 55
-- Units                 km/h
-- Unit Resolution       tenths of units
-- Low Speed             30 km/h
+- Units             km/h
+- Unit Resolution   tenths of units
+- Low Speed         30 km/h
 
 C-4 Pag 57
-- Message Format        bE
-- Message Period        0 ms
+- Message Format    bE
+- Message Period    0 ms
 
 D-1 Pag 63
 - Target Direction      2 = Both
