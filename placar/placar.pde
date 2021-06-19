@@ -676,11 +676,13 @@ void sound (int kmh) {
         if (!conf_radar()) {
             HITS[0].play();
         }
-    } else if (kmh_ < 65) {
+    } else if (kmh_ < 60) {
+        HITS[0].play();
+    } else if (kmh_ < 70) {
         HITS[1].play();
     } else if (kmh_ < 80) {
         HITS[2].play();
-    } else if (kmh_ < 95) {
+    } else if (kmh_ < 90) {
         HITS[3].play();
     } else {
         HITS[4].play();
