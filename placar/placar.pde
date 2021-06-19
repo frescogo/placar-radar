@@ -13,7 +13,7 @@ import java.io.*;
 
 int         MAJOR    = 4;
 int         MINOR    = 0;
-int         REVISION = 0;
+int         REVISION = 1;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;

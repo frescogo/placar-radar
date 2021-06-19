@@ -8,10 +8,11 @@
 - Após o saque, dependendo do modo de aferição escolhido, o radar (automático)
   ou árbitro (manual) aferem as velocidades até a queda da bolinha.
 - Um som identifica a faixa de velocidade de cada golpe aferido:
-    - `até 50 kmh`: som grave
-    - `até 65 kmh`: som agudo
-    - `até 80 kmh`: som de explosão
-    - `acima de 80 kmh`: som de laser
+    - `50--59`: grave
+    - `60--69`: agudo
+    - `70--79`: laser
+    - `80--89`: explosão
+    - `90--++`: ambulância
 <!--
 - Quando a apresentação está desequilibrada, os ataques do atleta que mais
   pontuou acompanham um som grave.
