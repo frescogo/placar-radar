@@ -13,7 +13,7 @@ import java.io.*;
 
 int         MAJOR    = 4;
 int         MINOR    = 0;
-int         REVISION = 1;
+int         REVISION = 2;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
@@ -26,7 +26,6 @@ boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
-int         RADAR_REPS = 5;
 int         RADAR_IGUAL = 700;
 
 boolean     ESQUENTA = false;
@@ -51,6 +50,7 @@ int         CONF_DESCANSO;
 
 int         LADO_RADAR;
 int         LADO_PIVO;
+int         RADAR_REPS;
 
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
@@ -594,6 +594,7 @@ void setup () {
     CONF_DESCANSO   = CONF.getInt("descanso");
     LADO_RADAR      = CONF.getInt("lado_radar") - 1;
     LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
+    RADAR_REPS      = CONF.getInt("radar_reps");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";

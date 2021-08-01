@@ -80,6 +80,7 @@ ser ajustadas, conforme descrito a seguir:
     "esquenta":   60,             ; tempo total de "esquenta" (60s)
     "lado_radar": 1,              ; lado em que o radar está posicionado (esquerdo)
     "lado_pivo":  1,              ; lado em que o pivô da trinca está posicionado (esquerdo)
+    "radar_reps": 5,              ; mínimo de medidas na mesma direção para golpe válido
     "recorde":    0,              ; recorde ao ligar o software
     "imagem1":    "data/esq.png", ; imagem à esquerda da tela
     "imagem2":    "data/dir.png", ; imagem à direita da tela
