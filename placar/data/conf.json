@@ -14,7 +14,7 @@
     "descanso":   90,
     "lado_radar": 1,
     "lado_pivo":  1,
-    "radar_reps": 5,
+    "radar_reps": 3,
     "recorde":    0,
     "imagem1":    "data/fresco-radar.png",
     "imagem2":    "data/fresco-radar.png",

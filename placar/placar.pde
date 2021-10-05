@@ -7,6 +7,9 @@
 // - pontuacao media
 // - data de inicio do jogo (usar no relatorio?)
 
+// add chico to dialout
+// cu -l /dev/ttyUSB0
+
 import processing.serial.*;
 import processing.sound.*;
 import java.io.*;
@@ -507,8 +510,10 @@ int radar_be () {
     String sdir = (dir == 0) ? "->" : ((dir == 1) ? "<-" : "--");
     String msg = "[" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3);
 
-    RADAR_OUT.println(msg);
-    RADAR_OUT.flush();
+    if (vel != 0) {
+        RADAR_OUT.println(msg);
+        RADAR_OUT.flush();
+    }
 
     BUF[BUF_I][_VEL] = vel;
     BUF[BUF_I][_DIR] = dir;
@@ -537,8 +542,10 @@ int radar_be () {
     }
 
     LAST[_VEL] = vel;
-    LAST[_DIR] = 1-dir; // negate current dir (only accept opposite next)
-    LAST[_NOW] = now;
+    if (vel != 0) {
+        LAST[_DIR] = 1-dir; // negate current dir (only accept opposite next)
+        LAST[_NOW] = now;
+    }
 
     BUF[I][_DIR] = -1;  // restarts buffer
 
@@ -565,9 +572,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -645,9 +652,10 @@ void setup () {
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
     try {
-        //println(list);
         if (CONF_SERIAL.equals("")) {
             String[] list = Serial.list();
+            //println(list);
+            //println(list[list.length-1]);
             RADAR = new Serial(this, list[list.length-1], 9600);
         } else {
             RADAR = new Serial(this, CONF_SERIAL, 9600);
@@ -776,7 +784,7 @@ void keyPressed (KeyEvent e) {
                 ESTADO_DIGITANDO = 1;
                 CONF_NOMES[1] = "";
 
-            } else if (keyCode == 38) {         // CTRL-UP
+            } else if (keyCode==38 || keyCode=='U') {         // CTRL-UP
                 go_saque();
             }
         }
@@ -794,7 +802,7 @@ void keyPressed (KeyEvent e) {
         }
     } else if (ESTADO.equals("jogando")) {
 //println(keyCode);
-        if (e.isControlDown() && keyCode==40) { // CTRL-DOWN
+        if (e.isControlDown() && (keyCode==40 || keyCode=='J')) { // CTRL-DOWN
             go_queda();
         } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
