@@ -12,8 +12,8 @@ import processing.sound.*;
 import java.io.*;
 
 int         MAJOR    = 4;
-int         MINOR    = 0;
-int         REVISION = 2;
+int         MINOR    = 1;
+int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
@@ -203,7 +203,7 @@ void go_termino () {
         return;
     }
 
-    String ts = "" + year() + "-" + nf(month(),2) + "-" + nf(day(),2) + "_"
+    String ts = "" + year() + "_" + nf(month(),2) + "_" + nf(day(),2) + "_"
                    + nf(hour(),2) + "_" + nf(minute(),2) + "_" + nf(second(),2);
 
     // placar.png
@@ -512,6 +512,7 @@ int radar_be () {
 
     BUF[BUF_I][_VEL] = vel;
     BUF[BUF_I][_DIR] = dir;
+    int I = BUF_I;
     BUF_I = (BUF_I + 1) % RADAR_REPS;
 
     // aceito somente se N velocidades na mesma direcao
@@ -524,8 +525,8 @@ int radar_be () {
 
     // duvida se mesma dir em menos de 700ms
     int now = millis();
-    if (dir==LAST[_DIR] && now-RADAR_IGUAL<LAST[_NOW]) {
-        return (vel == 0) ? 0 : -1;     // retorna 0 pra contar no timeout de queda
+    if (dir!=LAST[_DIR] && now<LAST[_NOW]+RADAR_IGUAL) {
+        return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
     }
 
     if (vel!=0 || LAST[_VEL]!=0) {
@@ -536,8 +537,10 @@ int radar_be () {
     }
 
     LAST[_VEL] = vel;
-    LAST[_DIR] = dir;
+    LAST[_DIR] = 1-dir; // negate current dir (only accept opposite next)
     LAST[_NOW] = now;
+
+    BUF[I][_DIR] = -1;  // restarts buffer
 
     vel = (vel + 5) / 10;  // round
     return (dir == 1) ? -vel : vel;
