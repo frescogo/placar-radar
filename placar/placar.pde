@@ -29,7 +29,6 @@ boolean     RADAR_AUTO = false;
 int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
-int         RADAR_IGUAL = 700;
 
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
@@ -54,6 +53,7 @@ int         CONF_DESCANSO;
 int         LADO_RADAR;
 int         LADO_PIVO;
 int         RADAR_REPS;
+int         RADAR_IGUAL;
 
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
@@ -605,6 +605,7 @@ void setup () {
     LADO_RADAR      = CONF.getInt("lado_radar") - 1;
     LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
     RADAR_REPS      = CONF.getInt("radar_reps");
+    RADAR_IGUAL     = CONF.getInt("radar_igual");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";
