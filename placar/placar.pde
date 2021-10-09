@@ -54,6 +54,7 @@ int         LADO_RADAR;
 int         LADO_PIVO;
 int         RADAR_REPS;
 int         RADAR_IGUAL;
+int         RADAR_OPOSI;
 
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
@@ -533,6 +534,9 @@ int radar_be () {
     if (dir!=LAST[_DIR] && now<LAST[_NOW]+RADAR_IGUAL) {
         return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
     }
+    if (dir==LAST[_DIR] && now<LAST[_NOW]+RADAR_OPOSI) {
+        return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
+    }
 
     if (vel!=0 || LAST[_VEL]!=0) {
         String msg2 = ">>> [" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3) + " <<<";
@@ -606,6 +610,7 @@ void setup () {
     LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
     RADAR_REPS      = CONF.getInt("radar_reps");
     RADAR_IGUAL     = CONF.getInt("radar_igual");
+    RADAR_OPOSI     = CONF.getInt("radar_oposi");
     CONF_RECORDE    = CONF.getInt("recorde");
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";

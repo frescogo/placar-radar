@@ -16,6 +16,7 @@
     "lado_pivo":    1,
     "radar_reps":   3,
     "radar_igual":  700,
+    "radar_oposi":  300,
     "recorde":      0,
     "imagem1":      "data/fresco-radar.png",
     "imagem2":      "data/fresco-radar.png",
