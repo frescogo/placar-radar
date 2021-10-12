@@ -617,6 +617,10 @@ void setup () {
     CONF_NOMES[2]   = CONF.getString("arbitro");
     CONF_SERIAL     = CONF.getString("serial");
 
+    if (CONF_TRINCA) {
+        CONF_EQUILIBRIO = 0;
+    }
+
     SNDS[0] = new SoundFile(this,"fall.wav");
     SNDS[1] = new SoundFile(this,"restart.wav");
     SNDS[2] = new SoundFile(this,"30s.wav");
