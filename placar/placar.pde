@@ -760,7 +760,7 @@ void keyPressed (KeyEvent e) {
         }
     }
 
-    if (keyCode == 8) {                         // CTRL-BACKSPACE
+    if (e.isControlDown() && key==BACKSPACE) {  // CTRL-BACKSPACE
         if (ESTADO.equals("ocioso")) {
             if (JOGO.size()>0) {
                 JOGO_QUEDAS--;
