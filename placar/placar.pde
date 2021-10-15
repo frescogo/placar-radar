@@ -1217,7 +1217,7 @@ void draw_lado (boolean isesq, float x, int jog) {
     // pontos
     fill(0);
     textSize(65*dy);
-    if (CONF_EQUILIBRIO!=0 && JOG[0]>JOGO_JOGS[1-jog][0]*CONF_EQUILIBRIO/100) {
+    if (CONF_EQUILIBRIO!=0 && JOGO_JOGS[1-jog][0]>JOG[0]*CONF_EQUILIBRIO/100) {
         fill(255,0,0);
     }
     text(JOG[0], x+W, 7.5*H);
