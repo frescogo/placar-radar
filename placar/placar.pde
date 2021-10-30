@@ -708,7 +708,7 @@ void sound (int kmh) {
         HITS[2].play();
     } else if (kmh_ < 90) {
         HITS[3].play();
-    } else if (kmh_ < 90) {
+    } else if (kmh_ < 100) {
         HITS[4].play();
     } else {
         HITS[5].play();
