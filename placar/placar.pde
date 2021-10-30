@@ -34,7 +34,7 @@ boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
 SoundFile[] SNDS = new SoundFile[6];
-SoundFile[] HITS = new SoundFile[5];
+SoundFile[] HITS = new SoundFile[6];
 
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
@@ -629,11 +629,12 @@ void setup () {
     SNDS[5] = new SoundFile(this,"snds/start.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
-    HITS[0] = new SoundFile(this,"snds/peteleco.mp3");
-    HITS[1] = new SoundFile(this,"snds/agudo.wav");
-    HITS[2] = new SoundFile(this,"snds/laser.wav");
-    HITS[3] = new SoundFile(this,"snds/hit.wav");
-    HITS[4] = new SoundFile(this,"snds/ambulancia.wav");
+    HITS[0] = new SoundFile(this,"snds/peteleco.mp3");   // 50--60
+    HITS[1] = new SoundFile(this,"snds/agudo.wav");      // 60--70
+    HITS[2] = new SoundFile(this,"snds/laser.wav");      // 70--80
+    HITS[3] = new SoundFile(this,"snds/hit.wav");        // 80--90
+    HITS[4] = new SoundFile(this,"snds/trophaser.wav");  // 90--100
+    HITS[5] = new SoundFile(this,"snds/ambulancia.wav"); // 100--
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -706,8 +707,10 @@ void sound (int kmh) {
         HITS[2].play();
     } else if (kmh_ < 90) {
         HITS[3].play();
-    } else {
+    } else if (kmh_ < 90) {
         HITS[4].play();
+    } else {
+        HITS[5].play();
     }
 }
 

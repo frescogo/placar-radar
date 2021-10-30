@@ -32,5 +32,7 @@
     - <https://freesound.org/people/funhouse/sounds/2514/>
 - `explosion_06`
     - <https://freesound.org/people/derplayer/sounds/587196/>
-- `Alien_01.wav`
+- `alien.wav`
     - <https://freesound.org/people/MATRIXXX_/sounds/453060/>
+- `guitar`
+    - <https://freesound.org/people/mikey_eff/sounds/97224/>
