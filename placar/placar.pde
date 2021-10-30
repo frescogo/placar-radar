@@ -621,30 +621,30 @@ void setup () {
         CONF_EQUILIBRIO = 0;
     }
 
-    SNDS[0] = new SoundFile(this,"fall.wav");
-    SNDS[1] = new SoundFile(this,"restart.wav");
-    SNDS[2] = new SoundFile(this,"30s.wav");
-    SNDS[3] = new SoundFile(this,"queda2.wav");
-    SNDS[4] = new SoundFile(this,"undo.wav");
-    SNDS[5] = new SoundFile(this,"start.wav");
+    SNDS[0] = new SoundFile(this,"snds/fall.wav");
+    SNDS[1] = new SoundFile(this,"snds/restart.wav");
+    SNDS[2] = new SoundFile(this,"snds/30s.wav");
+    SNDS[3] = new SoundFile(this,"snds/queda2.wav");
+    SNDS[4] = new SoundFile(this,"snds/undo.wav");
+    SNDS[5] = new SoundFile(this,"snds/start.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
-    HITS[0] = new SoundFile(this,"hit-00.mp3");
-    HITS[1] = new SoundFile(this,"hit-01.wav");
-    HITS[2] = new SoundFile(this,"hit-03.wav");
-    HITS[3] = new SoundFile(this,"hit-02.wav");
-    HITS[4] = new SoundFile(this,"hit-04.wav");
+    HITS[0] = new SoundFile(this,"snds/hit-00.mp3");
+    HITS[1] = new SoundFile(this,"snds/hit-01.wav");
+    HITS[2] = new SoundFile(this,"snds/hit-03.wav");
+    HITS[3] = new SoundFile(this,"snds/hit-02.wav");
+    HITS[4] = new SoundFile(this,"snds/hit-04.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
-    IMG_SPEED    = loadImage("speed-03.png");
-    IMG_GOLPES   = loadImage("raq-03.png");
-    IMG_BAND     = loadImage("flag.png");
-    IMG_APITO    = loadImage("apito-04.png");
-    IMG_TROFEU   = loadImage("trophy-02.png");
-    IMG_DESCANSO = loadImage("timeout-03.png");
-    IMG_RADAR    = loadImage("radar.png");
-    IMG_RAQUETE  = loadImage("raq.png");
+    IMG_SPEED    = loadImage("icos/speed-03.png");
+    IMG_GOLPES   = loadImage("icos/raq-03.png");
+    IMG_BAND     = loadImage("icos/flag.png");
+    IMG_APITO    = loadImage("icos/apito-04.png");
+    IMG_TROFEU   = loadImage("icos/trophy-02.png");
+    IMG_DESCANSO = loadImage("icos/timeout-03.png");
+    IMG_RADAR    = loadImage("icos/radar.png");
+    IMG_RAQUETE  = loadImage("icos/raq.png");
 
     IMG1        .resize(0,height/8);
     IMG2        .resize(0,height/8);

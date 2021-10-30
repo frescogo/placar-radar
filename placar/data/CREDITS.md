@@ -26,3 +26,11 @@
     - <https://freesound.org/people/TROLlox_78/sounds/274119/>
 - `hit-01`
     - <https://freesound.org/people/KeyKrusher/sounds/154953/>
+- `explosion-double.wav`
+    - <https://freesound.org/people/derplayer/sounds/587179/>
+- `trophaser.wav`
+    - <https://freesound.org/people/funhouse/sounds/2514/>
+- `explosion_06`
+    - <https://freesound.org/people/derplayer/sounds/587196/>
+- `Alien_01.wav`
+    - <https://freesound.org/people/MATRIXXX_/sounds/453060/>
