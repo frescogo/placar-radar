@@ -629,11 +629,11 @@ void setup () {
     SNDS[5] = new SoundFile(this,"snds/start.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
-    HITS[0] = new SoundFile(this,"snds/hit-00.mp3");
-    HITS[1] = new SoundFile(this,"snds/hit-01.wav");
-    HITS[2] = new SoundFile(this,"snds/hit-03.wav");
-    HITS[3] = new SoundFile(this,"snds/hit-02.wav");
-    HITS[4] = new SoundFile(this,"snds/hit-04.wav");
+    HITS[0] = new SoundFile(this,"snds/peteleco.mp3");
+    HITS[1] = new SoundFile(this,"snds/agudo.wav");
+    HITS[2] = new SoundFile(this,"snds/laser.wav");
+    HITS[3] = new SoundFile(this,"snds/hit.wav");
+    HITS[4] = new SoundFile(this,"snds/ambulancia.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));

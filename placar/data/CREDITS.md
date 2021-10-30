@@ -1,6 +1,6 @@
 - `fall.wav`
     - <https://freesound.org/people/themusicalnomad/sounds/253886/>
-- `hit-00.mp3`
+- `peteleco.mp3`
     - <https://freesound.org/people/zgump/sounds/83539/>
 - `30s.wav`
     - <https://freesound.org/people/gurie/sounds/368780/>
@@ -22,9 +22,9 @@
     - <https://freesound.org/people/unadamlar/sounds/476176/>
 - `laser.wav`
     - <https://freesound.org/people/jobro/sounds/35686/>
-- `shot.mp3`
+- `hit.mp3`
     - <https://freesound.org/people/TROLlox_78/sounds/274119/>
-- `hit-01`
+- `agudo.wav`
     - <https://freesound.org/people/KeyKrusher/sounds/154953/>
 - `explosion-double.wav`
     - <https://freesound.org/people/derplayer/sounds/587179/>
