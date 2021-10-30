@@ -576,9 +576,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(1000, 600);
+    //size(1000, 600);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -673,7 +673,8 @@ void setup () {
         }
         RADAR_OUT = createWriter("radar.txt");
     } catch (RuntimeException e) {
-        println("Erro na comunicação com o radar...");
+        println("Erro na comunicação com o radar:");
+        println(e);
         //exit();
     }
 
