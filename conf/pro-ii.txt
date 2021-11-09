@@ -1,0 +1,29 @@
+- TELA (o PEAK deve estar desligado):
+
+KM/H
+XMIT
+
+
+- MENU (clica)
+
+RANGE	4
+DIR	both
+HIT	OFF
+LIGHT	OFF
+BATT	ChXX
+
+- MENU (segura)
+
+LOW	30
+HIGH	150
+KM/H	Unit
+RES	tnth
+TARGT	bALL
+CLEAR 	0SEC
+TRIG	Loc
+AUX	OFF
+ANGLE	0
+BAUD	96
+FOR	bE
+LEAD0	ZEro
+RESET	no
