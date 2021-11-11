@@ -4,7 +4,7 @@
     "ataques":      60,
     "equilibrio":   130,
     "minima":       50,
-    "maxima":       85,
+    "maxima":       150,
     "trinca":       false,
     "tregua":       1,
     "quedas":       1500,
