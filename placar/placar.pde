@@ -765,8 +765,17 @@ void keyPressed (KeyEvent e) {
     }
 
     if (e.isControlDown() && key==BACKSPACE) {  // CTRL-BACKSPACE
-        if (ESTADO.equals("ocioso")) {
-            if (JOGO.size()>0) {
+        if (ESTADO.equals("terminado")) {
+            ESTADO = "ocioso";
+            if (JOGO.size() > 0) {
+                if (jogo_quedas() >= conf_aborta()) {
+                    JOGO_QUEDAS--;
+                }
+                JOGO.remove(JOGO.size()-1);
+                SNDS[4].play();
+            }
+        } else if (ESTADO.equals("ocioso")) {
+            if (JOGO.size() > 0) {
                 JOGO_QUEDAS--;
                 JOGO.remove(JOGO.size()-1);
                 SNDS[4].play();
