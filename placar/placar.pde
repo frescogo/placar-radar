@@ -1245,8 +1245,8 @@ void draw_lado (boolean isesq, float x, int jog) {
             fill(255,150,0);
             ok = false;
         }
-        if (!ok && JOG[0]>0) {
-            int pct = jog1*100/JOG[0] - 100;
+        if (!ok) {
+            int pct = (JOG[0]==0) ? 100 : min(100, jog1*100/JOG[0] - 100);
             textSize(30*dy);
             if (isesq) {
                 text("↓"+pct+"%", width/2-2*W, 7.5*H);
