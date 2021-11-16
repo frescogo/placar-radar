@@ -150,7 +150,7 @@ void go_esquenta () {
     SNDS[1].play();
 }
 
-void go_reinicio () {
+void go_reinicio (boolean snd) {
     ESTADO = "ocioso";
     JOGO = new ArrayList<ArrayList>();
     JOGO_DESCANSO_TOTAL     = 0;
@@ -159,7 +159,9 @@ void go_reinicio () {
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
     JOGO_TEMPO_INICIO       = millis();
-    SNDS[1].play();
+    if (snd) {
+        SNDS[1].play();
+    }
 }
 
 void go_saque () {
@@ -683,7 +685,7 @@ void setup () {
                 (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
                 CONF_TEMPO   + "s";
 
-    go_reinicio();
+    go_reinicio(false);
 }
 
 void _sound_ (int kmh) {
@@ -754,7 +756,7 @@ void keyPressed (KeyEvent e) {
             JOGO_QUEDAS_MANUAL++;
         } else if (keyCode == 'R') {            // CTRL-R
             ESQUENTA = false;
-            go_reinicio();
+            go_reinicio(true);
         } else if (keyCode == 'S') {            // CTRL-S
             go_termino();
         } else if (keyCode == 'I') {            // CTRL-I
