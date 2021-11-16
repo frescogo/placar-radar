@@ -834,8 +834,13 @@ void keyPressed (KeyEvent e) {
             }
             int jog = (keyCode == 37) ? ZER : ONE;
             int[] golpe = { NOW, jog, 0 };
+            if (conf_radar()) {
+                golpe[2] = 30;
+            } else {
+                // golpe[2]=0  -->  radar desligado
+            }
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-            seq.add(golpe);  // golpe[2]=0  -->  radar desligado
+            seq.add(golpe);
             int kmh = 0;
             if (seq.size() >= 2) {
                 kmh = jogo_kmh(seq, seq.size()-2);
