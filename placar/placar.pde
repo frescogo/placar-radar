@@ -378,9 +378,10 @@ int[] jogo_equ () {
     int n0 = JOGO_JOGS[0][1];
     int n1 = JOGO_JOGS[1][1];
 
-    if (CONF_EQUILIBRIO!=0 && n0+n1>=30) {
-        p0 = min(p0, p1*CONF_EQUILIBRIO/100);
-        p1 = min(p1, p0*CONF_EQUILIBRIO/100);
+    if (CONF_EQUILIBRIO != 0) {
+        int pct = max(0, 100-JOGO_TEMPO_PASSADO);
+        p0 = min(p0, max(p0*pct/100, p1*CONF_EQUILIBRIO/100));
+        p1 = min(p1, max(p1*pct/100, p0*CONF_EQUILIBRIO/100));
     }
 
     return new int[] {p0,p1};
