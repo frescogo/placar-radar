@@ -1242,7 +1242,9 @@ void draw_lado (boolean isesq, float x, int jog) {
     if (CONF_EQUILIBRIO != 0) {
         int jog1 = JOGO_JOGS[1-jog][0];
         boolean ok = true;
+        int clr = color(0);
         if (jog1>JOG[0]*CONF_EQUILIBRIO/100) {
+            clr = color(255,0,0);
             fill(255,0,0);
             ok = false;
         } else if (jog1>JOG[0]*(100+(CONF_EQUILIBRIO-100)/2)/100) {
@@ -1259,6 +1261,7 @@ void draw_lado (boolean isesq, float x, int jog) {
             }
             textSize(65*dy);
         }
+        fill(clr);
         text(JOG[0], x+W, 7.5*H);
     }
     text(JOG[0], x+W, 7.5*H);
