@@ -749,8 +749,12 @@ void keyPressed (KeyEvent e) {
             ESQUENTA = true;
             go_esquenta();
         } else if (keyCode == '-') {
-            JOGO_QUEDAS_MANUAL--;
+            if (jogo_quedas() > 0) {
+                SNDS[4].play();
+                JOGO_QUEDAS_MANUAL--;
+            }
         } else if (keyCode == '=') {
+            SNDS[4].play();
             JOGO_QUEDAS_MANUAL++;
         } else if (keyCode == 'R') {            // CTRL-R
             ESQUENTA = false;
