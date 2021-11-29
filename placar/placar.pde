@@ -15,7 +15,7 @@ import processing.sound.*;
 import java.io.*;
 
 int         MAJOR    = 4;
-int         MINOR    = 2;
+int         MINOR    = 3;
 int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
@@ -337,7 +337,7 @@ void _jogo_lado (int jog) {
     int sum1 = 0;   // simples
     int sum2 = 0;   // quadrado
     for (int i=0; i<N; i++) {
-        int cur = kmhs.get(i);
+        int cur = min(100,kmhs.get(i)); // >100 probably error
         sum1 += cur;
         sum2 += cur*cur/50;
     }
@@ -1143,7 +1143,7 @@ void draw_draw () {
         fill(150,150,150);
         textSize(15*dy);
         float pct = float(jogo_quedas_pct()) / 100;
-        String conta = "(" + ps[0] + " + " + ps[1] + ") - " + pct + "%";
+        String conta = "(" + (ps[0]+ps[1]) + " - " + pct + "%)";
         text(conta, width/2, 7.5*H+20*dy);
     }
 }
