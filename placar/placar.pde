@@ -697,7 +697,7 @@ void _sound_ (int kmh) {
 
 void sound (int kmh) {
     int kmh_ = abs(kmh);
-    if (kmh_ < 50) {
+    if (kmh_ < CONF_VEL_MIN) {
         if (!conf_radar()) {
             HITS[0].play();
         }
