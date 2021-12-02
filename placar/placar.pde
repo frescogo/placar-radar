@@ -23,6 +23,7 @@ JSONObject  CONF;
 int         NOW;
 
 Serial      RADAR;
+boolean     RADAR_OK   = false;
 boolean     RADAR_MOCK = false;
 int         RADAR_MOCK_SPEED = 500;
 boolean     RADAR_AUTO = false;
@@ -68,7 +69,8 @@ PImage      IMG_BAND;
 PImage      IMG_APITO;
 PImage      IMG_TROFEU;
 PImage      IMG_DESCANSO;
-PImage      IMG_RADAR;
+PImage      IMG_RADAR_OK;
+PImage      IMG_RADAR_NO;
 PImage      IMG_RAQUETE;
 
 int         GOLPE_DELAY = 1500; //99999; //1500;
@@ -478,30 +480,16 @@ boolean radar_check (byte[] s) {
 
 int radar_be () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
-//println(000000000);
-    while (true) {
-        delay(0);               // sem isso, o programa trava
-        int n = RADAR.read();
-//println(n);
-//println(char(n));
-        if (n == 0x88) {
-            break;              // espera o primeiro byte do pacote
-        }
+
+    RADAR_OK = true;
+
+    delay(0);                   // sem isso, o programa trava
+    if (RADAR.available()<23 || RADAR.read()!=0x88) {
+        RADAR_OK = false;
+        return -1;              // espera o primeiro byte do pacote
     }
-//println(111111111);
-    while (true) {
-        delay(0);               // sem isso, o programa trava
-        int n = RADAR.available();
-        if (n >= 22) {
-            break;              // espera ter o tamanho do pacote
-        }
-    }
-//println(222222222);
 
     byte[] s = RADAR.readBytes(22);
-    //if (!radar_check(s)) {
-        //return -1;              // erro no pacote
-    //}
 
     int dir = (s[7] >> 1) & 0x01;   // 0=out, 1=in
     int vel = four(s,8);
@@ -526,6 +514,7 @@ int radar_be () {
     for (int i=0; i<RADAR_REPS; i++) {
         vel = max(vel, BUF[i][_VEL]);
         if (BUF[i][_DIR] != BUF[0][_DIR]) {
+            RADAR_OK = false;
             return -1;      // falhou na direcao
         }
     }
@@ -630,12 +619,12 @@ void setup () {
     SNDS[5] = new SoundFile(this,"snds/start.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
-    HITS[0] = new SoundFile(this,"snds/peteleco.mp3");   // 50--60
-    HITS[1] = new SoundFile(this,"snds/agudo.wav");      // 60--70
-    HITS[2] = new SoundFile(this,"snds/laser.wav");      // 70--80
-    HITS[3] = new SoundFile(this,"snds/hit.wav");        // 80--90
-    HITS[4] = new SoundFile(this,"snds/explosion_06.wav");  // 90--100
-    HITS[5] = new SoundFile(this,"snds/ambulancia.wav"); // 100--
+    HITS[0] = new SoundFile(this,"snds/peteleco.mp3");      // 50--60
+    HITS[1] = new SoundFile(this,"snds/agudo.wav");         // 60--70
+    HITS[2] = new SoundFile(this,"snds/laser.wav");         // 70--80
+    HITS[3] = new SoundFile(this,"snds/hit.wav");           // 80--90
+    HITS[4] = new SoundFile(this,"snds/explosion_06.ogg");  // 90--100
+    HITS[5] = new SoundFile(this,"snds/ambulancia.wav");    // 100--
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -645,7 +634,8 @@ void setup () {
     IMG_APITO    = loadImage("icos/apito-04.png");
     IMG_TROFEU   = loadImage("icos/trophy-02.png");
     IMG_DESCANSO = loadImage("icos/timeout-03.png");
-    IMG_RADAR    = loadImage("icos/radar.png");
+    IMG_RADAR_OK = loadImage("icos/radar_ok.png");
+    IMG_RADAR_NO = loadImage("icos/radar_no.png");
     IMG_RAQUETE  = loadImage("icos/raq.png");
 
     IMG1        .resize(0,height/8);
@@ -656,7 +646,8 @@ void setup () {
     IMG_APITO   .resize(0,(int)(30*dy));
     IMG_TROFEU  .resize(0,(int)(30*dy));
     IMG_DESCANSO.resize(0,(int)(25*dy));
-    IMG_RADAR   .resize(0,(int)(30*dy));
+    IMG_RADAR_OK.resize(0,(int)(30*dy));
+    IMG_RADAR_NO.resize(0,(int)(30*dy));
     IMG_RAQUETE .resize(0,(int)(40*dy));
 
     imageMode(CENTER);
@@ -864,10 +855,16 @@ void draw () {
     NOW = millis();
     //println(RADAR);
 
+    // preciso chamar o radar pra ver se ele esta funcionando (sem travar)
+    int kmh  = -1;
+    int kmh_ =  1;
+    if (conf_radar()) {
+        kmh = radar();
+        kmh_ = abs(kmh);
+    }
+
     if (ESTADO.equals("jogando")) {
         if (conf_radar()) {
-            int kmh = radar();
-            int kmh_ = abs(kmh);
             if (kmh_ > 1) {
                 if (ESTADO_JOGANDO.equals("sacando") && kmh_>=CONF_SAQUE) {
                     ESTADO_JOGANDO = "jogando";
@@ -1050,11 +1047,9 @@ void draw_draw () {
     }
 
     if (conf_radar()) {
-        if (LADO_RADAR == 0) {
-            image(IMG_RADAR, 20*dx,       4*H);
-        } else {
-            image(IMG_RADAR, width-20*dx, 4*H);
-        }
+        PImage img = (RADAR_OK      ? IMG_RADAR_OK : IMG_RADAR_NO);
+        float  x   = (LADO_RADAR==0 ? 20*dx        : width-20*dx);
+        image(img, x, 4*H);
     }
 
     if (CONF_TRINCA) {
