@@ -1,5 +1,6 @@
 ///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
+// - pkill -9 -f processing
 
 // - testar em outras máquinas
 // - cores vm,am,az porporcional ata/tot
@@ -23,7 +24,7 @@ JSONObject  CONF;
 int         NOW;
 
 Serial      RADAR;
-boolean     RADAR_OK   = false;
+int         RADAR_ERR  = 0;
 boolean     RADAR_MOCK = false;
 int         RADAR_MOCK_SPEED = 500;
 boolean     RADAR_AUTO = false;
@@ -481,11 +482,9 @@ boolean radar_check (byte[] s) {
 int radar_be () {
     // aproximadamente 40/50 reads/sec (20/25 ms/read)
 
-    RADAR_OK = true;
-
     delay(0);                   // sem isso, o programa trava
     if (RADAR.available()<23 || RADAR.read()!=0x88) {
-        RADAR_OK = false;
+        RADAR_ERR = min(100, RADAR_ERR+1);
         return -1;              // espera o primeiro byte do pacote
     }
 
@@ -514,10 +513,12 @@ int radar_be () {
     for (int i=0; i<RADAR_REPS; i++) {
         vel = max(vel, BUF[i][_VEL]);
         if (BUF[i][_DIR] != BUF[0][_DIR]) {
-            RADAR_OK = false;
+            RADAR_ERR = min(100, RADAR_ERR+1);
             return -1;      // falhou na direcao
         }
     }
+
+    RADAR_ERR = 0;
 
     // duvida se mesma dir em menos de 700ms
     int now = millis();
@@ -1049,7 +1050,7 @@ void draw_draw () {
     }
 
     if (conf_radar()) {
-        PImage img = (RADAR_OK      ? IMG_RADAR_OK : IMG_RADAR_NO);
+        PImage img = (RADAR_ERR<=10 ? IMG_RADAR_OK : IMG_RADAR_NO);
         float  x   = (LADO_RADAR==0 ? 20*dx        : width-20*dx);
         image(img, x, 4*H);
     }
