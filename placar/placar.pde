@@ -623,7 +623,7 @@ void setup () {
     HITS[1] = new SoundFile(this,"snds/agudo.wav");         // 60--70
     HITS[2] = new SoundFile(this,"snds/laser.wav");         // 70--80
     HITS[3] = new SoundFile(this,"snds/hit.wav");           // 80--90
-    HITS[4] = new SoundFile(this,"snds/explosion_06.ogg");  // 90--100
+    HITS[4] = new SoundFile(this,"snds/explosion_06.wav");  // 90--100
     HITS[5] = new SoundFile(this,"snds/ambulancia.wav");    // 100--
 
     IMG1         = loadImage(CONF.getString("imagem1"));
