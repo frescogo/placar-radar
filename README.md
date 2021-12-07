@@ -11,8 +11,9 @@
     - `50--59`: grave
     - `60--69`: agudo
     - `70--79`: laser
-    - `80--89`: explosão
-    - `90--++`: ambulância
+    - `80--89`: explosão 1
+    - `90--99`: explosão 2
+    - `100--+`: ambulância
 <!--
 - Quando a apresentação está desequilibrada, os ataques do atleta que mais
   pontuou acompanham um som grave.
@@ -56,6 +57,7 @@ CTRL-I           inverte a posição dos atletas
 
 CTRL-S           grava (salva) novamente o placar e relatório
 CTRL-A           liga ou desliga o modo autônomo de detecção de quedas
+CTRL-M           alterna entre modo de jogo e depuração
 CTRL-Q           fecha o programa
 ```
 
@@ -69,18 +71,21 @@ ser ajustadas, conforme descrito a seguir:
     "tempo":      300,            ; tempo total de jogo (300s)
     "distancia":  750,            ; distância considerada no modo manual (750cm)
     "ataques":    60,             ; quantidade de ataques por minuto (60 ataques)
-    "equilibrio": 0,              ; limite da maior pontuação relativa à menor (0=desligado, 120=120%)
+    "equilibrio": 130,            ; limite da maior pontuação relativa à menor (0=desligado, 130=130%)
     "minima":     50,             ; velocidade mínima de um golpe pontuável (50km/h)
     "maxima":     85,             ; velocidade máxima no modo manual (85km/h)
-    "saque":      45,             ; velocidade mínima para considerar um saque (45km/h)
     "trinca":     false,          ; modo de trinca ou dupla (dupla)
     "tregua":     1,              ; trégua de quedas por minuto (1 queda por minuto)
     "quedas":     1500,           ; desconto de queda para cada minuto (15%)
     "aborta":     15,             ; limite de quedas por jogo (15s por queda)
+    "saque":      45,             ; velocidade mínima para considerar um saque (45km/h)
     "esquenta":   60,             ; tempo total de "esquenta" (60s)
+    "descanso":   90,             ; tempo máximo de descanso (90s)
     "lado_radar": 1,              ; lado em que o radar está posicionado (esquerdo)
     "lado_pivo":  1,              ; lado em que o pivô da trinca está posicionado (esquerdo)
-    "radar_reps": 5,              ; mínimo de medidas na mesma direção para golpe válido
+    "radar_reps": 3,              ; mínimo de medidas na mesma direção para golpe válido (3 medidas)
+    "radar_igual":  700,          ; tempo mínimo para aceitar golpes na mesma direção (700ms)
+    "radar_oposi":  300,          ; tempo mínimo para aceitar golpes em direções opostas (300ms)
     "recorde":    0,              ; recorde ao ligar o software
     "imagem1":    "data/esq.png", ; imagem à esquerda da tela
     "imagem2":    "data/dir.png", ; imagem à direita da tela
