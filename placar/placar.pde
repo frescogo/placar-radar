@@ -22,6 +22,7 @@ String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
 int         NOW;
+int         MODO = 0;   // 0=jogo, 1=debug
 
 Serial      RADAR;
 int         RADAR_ERR  = 0;
@@ -132,7 +133,7 @@ int conf_quedas_pena () {
 }
 
 int conf_aborta () {
-    return conf_tempo() / CONF_ABORTA;              // 1 queda / 15s
+    return conf_tempo() / CONF_ABORTA;         // 1 queda / 15s
 }
 
 boolean conf_radar () {
@@ -509,6 +510,13 @@ int radar_be () {
     int I = BUF_I;
     BUF_I = (BUF_I + 1) % RADAR_REPS;
 
+    RADAR_ERR = 0;
+
+    if (MODO == 1) {
+        vel = (vel + 5) / 10;  // round
+        return (dir == 1) ? -vel : vel;
+    }
+
     // aceito somente se N velocidades na mesma direcao
     for (int i=0; i<RADAR_REPS; i++) {
         vel = max(vel, BUF[i][_VEL]);
@@ -517,8 +525,6 @@ int radar_be () {
             return -1;      // falhou na direcao
         }
     }
-
-    RADAR_ERR = 0;
 
     // duvida se mesma dir em menos de 700ms
     int now = millis();
@@ -737,6 +743,8 @@ void keyPressed (KeyEvent e) {
     if (e.isControlDown()) {
         if (keyCode == 'Q') {                   // CTRL-Q
             key = ESC;
+        } else if (keyCode == 'M') {            // CTRL-M
+            MODO = 1 - MODO;
         } else if (keyCode == 'A') {            // CTRL-A
             RADAR_AUTO = !RADAR_AUTO;
             RADAR_AUTO_INICIO = millis();
@@ -866,6 +874,11 @@ void draw () {
         kmh_ = abs(kmh);
     }
 
+    if (MODO == 1) {
+        draw_debug(kmh);
+        return;
+    }
+
     if (ESTADO.equals("jogando")) {
         if (conf_radar()) {
             if (kmh_ > 1) {
@@ -901,10 +914,64 @@ void draw () {
     }
 
     jogo_calc();
-    draw_draw();
+    draw_jogo();
 }
 
-void draw_draw () {
+int kmhs_n = 40;
+int[] kmhs = new int[kmhs_n];
+int kmhs_i = 0;
+
+void draw_debug (int kmh) {
+
+    int prv = (kmhs_i == 0) ? 0 : kmhs[kmhs_i-1%kmhs_n];
+    boolean no = (kmh == -1) || (kmh==0 && prv==0);
+
+    int cur;    // 0, -xx, +xx
+    if (no) {
+        cur = prv;
+    } else {
+        kmhs[kmhs_i++%kmhs_n] = kmh;
+        cur = kmh;
+    }
+
+    background(255,255,255);
+    fill(0);
+    textSize(120*dy);
+    textAlign(CENTER, CENTER);
+    text(abs(cur), width/2, height/2);
+
+    stroke(color(0,0,255));
+    strokeWeight(10*dy);
+    if (cur > 0) {
+        //ellipse(3*W, 4*H, 60*dy, 60*dy);
+        line(2.5*W, 4*H, 2.5*W+60*dy, 4*H);
+        line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H+20*dy);
+        line(2.5*W+60*dy, 4*H, 2.5*W+45*dy, 4*H-20*dy);
+    } else if (cur < 0) {
+        //ellipse(8*W, 4*H, 60*dy, 60*dy);
+        line(8.5*W, 4*H, 8.5*W-60*dy, 4*H);
+        line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H-20*dy);
+        line(8.5*W-60*dy, 4*H, 8.5*W-45*dy, 4*H+20*dy);
+    }
+    strokeWeight(1);
+
+    int x = width/2 - kmhs_n*20/2;
+    textSize(18*dy);
+    textAlign(CENTER, CENTER);
+    for (int i=0; i<kmhs_n; i++) {
+        int curi = kmhs[(kmhs_i+i)%kmhs_n];
+        String diri = "";
+        if (curi > 0) {
+            diri = ">";
+        } else if (curi < 0) {
+            diri = "<";
+        }
+        text(abs(curi), x+20*i, height-60);
+        text(diri,      x+20*i, height-50);
+    }
+}
+
+void draw_jogo () {
     background(255,255,255);
 
     draw_logo(0*W, IMG1);
