@@ -605,7 +605,7 @@ void setup () {
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";
     CONF_NOMES[2]   = CONF.getString("arbitro");
-    CONF_SERIAL     = CONF.getString("serial");
+    CONF_SERIAL     = CONF.getString("serial");     // ""=auto, "desligado", "/dev/ttyUSB0"
 
     if (CONF_TRINCA) {
         CONF_EQUILIBRIO = 0;
@@ -646,28 +646,30 @@ void setup () {
     IMG_APITO   .resize(0,(int)(30*dy));
     IMG_TROFEU  .resize(0,(int)(30*dy));
     IMG_DESCANSO.resize(0,(int)(25*dy));
-    IMG_RADAR_OK.resize(0,(int)(30*dy));
-    IMG_RADAR_NO.resize(0,(int)(30*dy));
+    IMG_RADAR_OK.resize(0,(int)(50*dy));
+    IMG_RADAR_NO.resize(0,(int)(50*dy));
     IMG_RAQUETE .resize(0,(int)(40*dy));
 
     imageMode(CENTER);
     tint(255, 128);
     textFont(createFont("LiberationSans-Bold.ttf", 18));
 
-    try {
-        if (CONF_SERIAL.equals("")) {
-            String[] list = Serial.list();
-            //println(list);
-            //println(list[list.length-1]);
-            RADAR = new Serial(this, list[list.length-1], 9600);
-        } else {
-            RADAR = new Serial(this, CONF_SERIAL, 9600);
+    if (!CONF_SERIAL.equals("desligado")) {
+        try {
+            if (CONF_SERIAL.equals("")) {
+                String[] list = Serial.list();
+                //println(list);
+                //println(list[list.length-1]);
+                RADAR = new Serial(this, list[list.length-1], 9600);
+            } else {
+                RADAR = new Serial(this, CONF_SERIAL, 9600);
+            }
+            RADAR_OUT = createWriter("radar.txt");
+        } catch (RuntimeException e) {
+            println("Erro na comunicação com o radar:");
+            println(e);
+            //exit();
         }
-        RADAR_OUT = createWriter("radar.txt");
-    } catch (RuntimeException e) {
-        println("Erro na comunicação com o radar:");
-        println(e);
-        //exit();
     }
 
     CONF_PARS = "v" + VERSAO + " / " +
