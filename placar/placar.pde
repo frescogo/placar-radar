@@ -33,6 +33,8 @@ int         RADAR_AUTO_TIMEOUT = 3500; //99999; //3500;
 int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
+int         KEY_TIMER;
+
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
@@ -735,9 +737,26 @@ void trata_nome (int idx, String json) {
     }
 }
 
+void keyReleased (KeyEvent e) {
+    KEY_TIMER = 0;
+}
+
 void keyPressed (KeyEvent e) {
     if (key==ESC && !e.isControlDown()) {
         key = 0;
+    }
+
+    if (keyCode>=37 && keyCode<=40) {
+        // OK, nao precisa segurar 3s
+    } else {
+        if (KEY_TIMER == 0) {
+            KEY_TIMER = millis();
+            return;                             // comeca a contar 3s
+        } else if (KEY_TIMER+3000 > millis()) {
+            return;                             // ainda nao chegou
+        } else {
+            KEY_TIMER = 0;                      // OK, deixa continuar
+        }
     }
 
     if (e.isControlDown()) {
@@ -814,7 +833,7 @@ void keyPressed (KeyEvent e) {
                 ESTADO_DIGITANDO = 1;
                 CONF_NOMES[1] = "";
 
-            } else if (keyCode==38 || keyCode=='U') {         // CTRL-UP
+            } else if (keyCode == 38) {         // CTRL-UP
                 go_saque();
             }
         }
@@ -832,7 +851,7 @@ void keyPressed (KeyEvent e) {
         }
     } else if (ESTADO.equals("jogando")) {
 //println(keyCode);
-        if (e.isControlDown() && (keyCode==40 || keyCode=='J')) { // CTRL-DOWN
+        if (e.isControlDown() && (keyCode == 40)) { // CTRL-DOWN
             go_queda();
         } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
             if (ESTADO_JOGANDO.equals("sacando")) {
