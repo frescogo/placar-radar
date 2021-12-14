@@ -679,7 +679,7 @@ void setup () {
 
     IMG1        .resize(0,height/8);
     IMG2        .resize(0,height/8);
-    IMG_SPEED   .resize(0,(int)(45*dy));
+    IMG_SPEED   .resize(0,(int)(55*dy));
     IMG_GOLPES  .resize(0,(int)(50*dy));
     IMG_BAND    .resize(0,(int)(40*dy));
     IMG_APITO   .resize(0,(int)(30*dy));
@@ -1184,8 +1184,8 @@ void draw_jogo () {
             image(IMG_SPEED, off, 4*H+5*dy);
             textAlign(CENTER, CENTER);
             fill(100,100,100);
-            textSize(10*dy);
-            text("km/h", off, 4*H+25*dy);
+            textSize(15*dy);
+            text("km/h", off, 4*H+30*dy);
             draw_lado_medias(true,  1.5*W, ZER);
             draw_lado_medias(false, width-1.5*W, ONE);
         }
@@ -1402,8 +1402,8 @@ void draw_lado_medias (boolean isesq, float x, int jog) {
 
     fill(150,150,150);
     //text("válidos", x1, h*H+55*dy);
-    text("máx", x3, h*H-H/3+30*dy);
-    text("min", x3, h*H+H/3+30*dy);
-    text(atas+"+", x2, h*H-H/3+30*dy);
-    text(atas+"-", x2, h*H+H/3+30*dy);
+    text("máx", x3, h*H-H/3+35*dy);
+    text("min", x3, h*H+H/3+35*dy);
+    text(atas+"+", x2, h*H-H/3+35*dy);
+    text(atas+"-", x2, h*H+H/3+35*dy);
 }
