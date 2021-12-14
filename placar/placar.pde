@@ -776,7 +776,7 @@ void keyPressed (KeyEvent e) {
         key = 0;
     }
 
-    if (keyCode>=37 && keyCode<=40) {
+    if (!e.isControlDown() || keyCode>=37 && keyCode<=40) {
         // OK, nao precisa segurar 3s
     } else {
         if (KEY_TIMER == 0) {
