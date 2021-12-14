@@ -1178,7 +1178,7 @@ void draw_jogo () {
         //rect(0,   3*H, 4*W, 2*H-1);
         //rect(7*W, 3*H, 4*W, 2*H-1);
         for (int i=0; i<2; i++) {
-            float off = (i==0) ? W/2 : width-W/2;
+            float off = (i==0) ? 0.75*W : width-0.75*W;
             noStroke();
             noFill();
             image(IMG_SPEED, off, 4*H+5*dy);
@@ -1381,27 +1381,27 @@ void draw_lado_medias (boolean isesq, float x, int jog) {
     fill(0);
     float h = 4;
     int mul = (isesq ? 1 : -1);
-    float x1 = x;
-    float x2 = x + 1*W*mul;
-    float x3 = x + 2*W*mul;
+    //float x1 = x;
+    float x2 = x + 0.25*W*mul;
+    float x3 = x + 1.50*W*mul;
 
     // media
-    textSize(65*dy);
-    text(JOG[2]/100, x1, h*H);
+    //textSize(65*dy);
+    //text(JOG[2]/100, x1, h*H);
 
     // 75+/75-
-    textSize(30*dy);
+    textSize(40*dy);
     text(JOG[6]/100, x2, h*H-H/3);
     text(JOG[5]/100, x2, h*H+H/3);
 
     // min / max
-    textSize(30*dy);
+    textSize(40*dy);
     text(JOG[4], x3, h*H-H/3);
     text(JOG[3], x3, h*H+H/3);
     textSize(15*dy);
 
     fill(150,150,150);
-    text("válidos", x1, h*H+65*dy);
+    //text("válidos", x1, h*H+55*dy);
     text("máx", x3, h*H-H/3+30*dy);
     text("min", x3, h*H+H/3+30*dy);
     text(atas+"+", x2, h*H-H/3+30*dy);
