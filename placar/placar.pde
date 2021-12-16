@@ -521,6 +521,7 @@ int radar_be () {
         return -1;              // espera o primeiro byte do pacote
     }
 
+    int now = millis();
     byte[] s = RADAR.readBytes(22);
 
     int dir = (s[7] >> 1) & 0x01;   // 0=out, 1=in
@@ -530,7 +531,7 @@ int radar_be () {
     }
 
     String sdir = (dir == 0) ? "->" : ((dir == 1) ? "<-" : "--");
-    String msg = "[" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3);
+    String msg = "[" + nf(now/100,4) + "] " + sdir + " " + nf(vel,3);
 
     if (vel != 0) {
         RADAR_OUT.println(msg);
@@ -559,7 +560,6 @@ int radar_be () {
     }
 
     // duvida se mesma dir em menos de 700ms
-    int now = millis();
     if (dir!=LAST[_DIR] && now<LAST[_NOW]+RADAR_IGUAL) {
         return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
     }
@@ -568,7 +568,7 @@ int radar_be () {
     }
 
     if (vel!=0 || LAST[_VEL]!=0) {
-        String msg2 = ">>> [" + nf(millis()/100,4) + "] " + sdir + " " + nf(vel,3) + " <<<";
+        String msg2 = ">>> [" + nf(now/100,4) + "] " + sdir + " " + nf(vel,3) + " <<<";
         RADAR_OUT.println(msg2);
         RADAR_OUT.flush();
         println(msg2);
@@ -772,6 +772,8 @@ void keyReleased (KeyEvent e) {
 }
 
 void keyPressed (KeyEvent e) {
+    int now = millis();
+
     if (key==ESC && !e.isControlDown()) {
         key = 0;
     }
@@ -780,9 +782,9 @@ void keyPressed (KeyEvent e) {
         // OK, nao precisa segurar 3s
     } else {
         if (KEY_TIMER == 0) {
-            KEY_TIMER = millis();
+            KEY_TIMER = now;
             return;                             // comeca a contar 3s
-        } else if (KEY_TIMER+3000 > millis()) {
+        } else if (KEY_TIMER+3000 > now) {
             return;                             // ainda nao chegou
         } else {
             KEY_TIMER = 0;                      // OK, deixa continuar
@@ -796,7 +798,7 @@ void keyPressed (KeyEvent e) {
             MODO = 1 - MODO;
         } else if (keyCode == 'A') {            // CTRL-A
             RADAR_AUTO = !RADAR_AUTO;
-            RADAR_AUTO_INICIO = millis();
+            RADAR_AUTO_INICIO = now;
         } else if (keyCode == 'E') {            // CTRL-E
             ESQUENTA = true;
             go_esquenta();
