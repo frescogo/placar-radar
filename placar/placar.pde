@@ -361,7 +361,7 @@ void _jogo_lado (int jog) {
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
                         if (prev[0]+1000<golpe[0] || prev[1]==jog || kmh2*1.2<=kmh) {
-                            if (prev[3] == 0) {
+                            if (golpe[3] == 0) {
                                 nrms.append(kmh);
                             } else {
                                 baks.append(kmh);
