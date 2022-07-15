@@ -38,7 +38,7 @@ int         KEY_TIMER;
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
-SoundFile[] SNDS = new SoundFile[6];
+SoundFile[] SNDS = new SoundFile[8];
 SoundFile[] HITS = new SoundFile[6];
 
 int         CONF_TEMPO;
@@ -47,6 +47,7 @@ int         CONF_ATAQUES;
 int         CONF_EQUILIBRIO;
 int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
+int         CONF_MAXIMAS;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_TREGUA;
@@ -86,6 +87,7 @@ String      ESTADO_JOGANDO;            // sacando, jogando
 boolean     INV = false;
 int         ZER = 0;
 int         ONE = 1;
+int         BACK = 0;
 
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
@@ -99,6 +101,10 @@ float       W;
 float       H;
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
+    // /---------- seqs ---------\
+    //    /------- seq -------\
+    //      /---- golpe ----\
+    // { { { now,jog,kmh,bak } } }
 
 String ns (String str, int n) {
     int len = str.length();
@@ -605,9 +611,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -628,6 +634,7 @@ void setup () {
     CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
+    CONF_MAXIMAS    = CONF.getInt("maximas");    // 6 ataques de cada lado por minuto
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
@@ -656,6 +663,8 @@ void setup () {
     SNDS[3] = new SoundFile(this,"snds/queda2.wav");
     SNDS[4] = new SoundFile(this,"snds/undo.wav");
     SNDS[5] = new SoundFile(this,"snds/start.wav");
+    SNDS[6] = new SoundFile(this,"snds/zip.aiff");
+    SNDS[7] = new SoundFile(this,"snds/clap.wav");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
     HITS[0] = new SoundFile(this,"snds/peteleco.mp3");      // 50--60
@@ -890,20 +899,39 @@ void keyPressed (KeyEvent e) {
                 ESTADO_JOGANDO = "jogando";
                 JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
             }
+
             int jog = (keyCode == 37) ? ZER : ONE;
-            int[] golpe = { NOW, jog, 0 };
+            int[] golpe = { NOW, jog, 0, 0 };
             if (conf_radar()) {
                 golpe[2] = 30;
             } else {
                 // golpe[2]=0  -->  radar desligado
             }
+
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-            seq.add(golpe);
+            seq.add(golpe);     // add before jogo_kmh
+            int n = seq.size();
+
+            boolean bak = false;
             int kmh = 0;
-            if (seq.size() >= 2) {
-                kmh = jogo_kmh(seq, seq.size()-2);
+            if (n >= 2) {
+                kmh = jogo_kmh(seq, n-2);
+                if (n >= 3) {
+                    bak = (BACK>0 && BACK+500>=NOW && jogo_kmh(seq,n-3)*1.2<=kmh);
+                    golpe[3] = bak ? 1 : 0;
+                }
             }
-            sound(kmh);
+            BACK = 0;
+
+            if (bak) {
+println("BAKKK");
+                SNDS[7].play();
+            } else {
+                sound(kmh);
+            }
+        } else if (CONF_MAXIMAS!=0 && keyCode=='Z') {
+            SNDS[6].play();
+            BACK = NOW;
         }
     }
     jogo_calc();
@@ -938,10 +966,20 @@ void draw () {
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
                 if (ESTADO_JOGANDO.equals("jogando")) {
-                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_ };
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+                    int n = seq.size();
+
+                    boolean bak = (BACK>0 && BACK+500>=NOW && n>0 && seq.get(n-1)[2]*1.2<=kmh_);
+                    BACK = 0;
+
+                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_, bak?1:0 };
                     seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
-                    sound(kmh);
+                    if (bak) {
+println("BAK");
+                        SNDS[7].play();
+                    } else {
+                        sound(kmh);
+                    }
                 }
             }
             if (RADAR_AUTO && kmh!=0) {
