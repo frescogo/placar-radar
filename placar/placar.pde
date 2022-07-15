@@ -93,7 +93,7 @@ int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
 int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
-int[][]     JOGO_JOGS = new int[2][7];  // pts, golpes, min, max, med_min, med_max
+int[][]     JOGO_JOGS = new int[2][10];  // pts, golpes, min, max, med_min, med_max, baks, esq, dir
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -388,6 +388,9 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
     JOGO_JOGS[jog][5] = sumMin * 100 / max(1,atas/2);
     JOGO_JOGS[jog][6] = sumMax * 100 / max(1,atas/2);
+    JOGO_JOGS[jog][7] = 0;
+    JOGO_JOGS[jog][8] = 0;
+    JOGO_JOGS[jog][9] = 0;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -1349,15 +1352,32 @@ void draw_lado (boolean isesq, float x, int jog) {
     textAlign(CENTER, CENTER);
     textSize(65*dy);
     int atas = conf_ataques(jog);
-    if (atas>0 && JOG[1]>=atas) {         // golpes vs limite
+    if (atas>0 && JOG[1]>=atas) {       // golpes vs limite
         fill(255,0,0);
     }
-    text(JOG[1], x+W, 5.875*H);               // golpes
+    text(JOG[1], x+W, 5.875*H);         // golpes
     fill(150,150,150);
     textSize(20*dy);
-    float w1 = textWidth(str(JOG[1]));    // golpes
+    float w1 = textWidth(str(JOG[1]));  // golpes
     textAlign(TOP, LEFT);
-    text("/"+conf_ataques(jog), x+W+w1+10*dx, 5.875*H+30*dy);  // limite
+    text("/"+atas, x+W+w1+10*dx, 5.875*H+30*dy);  // limite
+
+    if (CONF_MAXIMAS > 0) {
+        fill(0);
+        textAlign(CENTER, CENTER);
+        textSize(40*dy);
+        int baks = conf_tempo() * CONF_MAXIMAS / 60 / 2;
+        if (JOG[7]>=baks) {             // backs vs limite
+            fill(255,0,0);
+        }
+        float X = isesq ? W : -W;
+        text(JOG[7], x+W+X, 5.875*H);         // golpes
+        fill(150,150,150);
+        textSize(12*dy);
+        float w2 = textWidth(str(JOG[7]));  // golpes
+        textAlign(TOP, LEFT);
+        text("/"+baks, x+W+X+w2+10*dx, 5.875*H+30*dy);  // limite
+    }
 
     fill(0);
     textAlign(CENTER, CENTER);
