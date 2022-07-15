@@ -93,7 +93,7 @@ int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
 int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
-int[][]     JOGO_JOGS = new int[2][10];  // pts, golpes, min, max, med_min, med_max, baks, esq, dir
+int[][]     JOGO_JOGS = new int[2][11];  // pts, golpes, min, max, med_min, med_max, n_nrms,n_baks,k_nrms,k_baks
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -129,6 +129,18 @@ int conf_ataques (int jog) {
         }
     } else {
         return max(1, conf_tempo() * CONF_ATAQUES / 60 / 2);
+    }
+}
+
+int conf_maximas (int jog) {
+    if (CONF_TRINCA) {
+        if (jog == LADO_PIVO) {
+            return 0;
+        } else {
+            return max(1, conf_tempo() * CONF_MAXIMAS / 60);
+        }
+    } else {
+        return max(1, conf_tempo() * CONF_MAXIMAS / 60 / 2);
     }
 }
 
@@ -332,6 +344,8 @@ void _jogo_tempo () {
 
 void _jogo_lado (int jog) {
     IntList kmhs = new IntList();
+    IntList nrms = new IntList();
+    IntList baks = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
         for (int j=0; j<seq.size()-1; j++) {    // -1: ignora ultimo golpe
@@ -340,11 +354,27 @@ void _jogo_lado (int jog) {
                 int kmh = jogo_kmh(seq,j);
                 if (kmh >= CONF_VEL_MIN) {
                     kmhs.append(kmh);
+
+                    // ataque nrm/bak valido?
+                    if (j > 0) { // precisa de golpe anterior
+                        int[] prev = seq.get(j-1);
+                        int kmh2 = jogo_kmh(seq,j-1);
+                        // se passou 1s || repetiu jog || 20% mais forte
+                        if (prev[0]+1000<golpe[0] || prev[1]==jog || kmh2*1.2<=kmh) {
+                            if (prev[3] == 0) {
+                                nrms.append(kmh);
+                            } else {
+                                baks.append(kmh);
+                            }
+                        }
+                    }
                 }
             }
         }
     }
     kmhs.sortReverse();
+    nrms.sortReverse();
+    baks.sortReverse();
 
     int atas = conf_ataques(jog);
     int size = kmhs.size();
@@ -372,6 +402,21 @@ void _jogo_lado (int jog) {
         sumMin += cur;
     }
 
+    // BAKS+NRMS
+    int maxs = conf_maximas(jog);
+    int nrm1 = 0;
+    for (int i=0; i<min(maxs,nrms.size()); i++) {
+        int nrm = min(100,nrms.get(i)); // >100 probably error
+        nrm1 += nrm;
+        sum2 += nrm*nrm/50;
+    }
+    int bak1 = 0;
+    for (int i=0; i<min(maxs,baks.size()); i++) {
+        int bak = min(100,baks.get(i)); // >100 probably error
+        bak1 += bak;
+        sum2 += bak*bak/50;
+    }
+
 /*
     println("-=-=-=-=-=-");
     println(atas);
@@ -388,9 +433,10 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
     JOGO_JOGS[jog][5] = sumMin * 100 / max(1,atas/2);
     JOGO_JOGS[jog][6] = sumMax * 100 / max(1,atas/2);
-    JOGO_JOGS[jog][7] = 0;
-    JOGO_JOGS[jog][8] = 0;
-    JOGO_JOGS[jog][9] = 0;
+    JOGO_JOGS[jog][7] = nrms.size();
+    JOGO_JOGS[jog][8] = baks.size();
+    JOGO_JOGS[jog][9] = nrm1 * 100 / maxs;
+    JOGO_JOGS[jog][10] = bak1 * 100 / maxs;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -1201,16 +1247,8 @@ void draw_jogo () {
         //rect(0,   3*H, 4*W, 2*H-1);
         //rect(7*W, 3*H, 4*W, 2*H-1);
         for (int i=0; i<2; i++) {
-            float off = (i==0) ? 0.75*W : width-0.75*W;
-            noStroke();
-            noFill();
-            image(IMG_SPEED, off, 4*H+5*dy);
-            textAlign(CENTER, CENTER);
-            fill(100,100,100);
-            textSize(15*dy);
-            text("km/h", off, 4*H+30*dy);
-            draw_lado_medias(true,  1.5*W, ZER);
-            draw_lado_medias(false, width-1.5*W, ONE);
+            draw_lado_medias(0.625*W, ZER);
+            draw_lado_medias(7.625*W, ONE);
         }
     }
 
@@ -1232,16 +1270,8 @@ void draw_jogo () {
         }
     }
 
-    draw_lado(true,  1.25*W, ZER);
-    draw_lado(false, 7.75*W, ONE);
-
-    textSize(15*dy);
-    fill(150,150,150);
-    for (int i=0; i<2; i++) {
-        float off = (i==0) ? 1*W : 10*W;
-        image(IMG_GOLPES, off, 5.875*H+ 5*dy);
-        image(IMG_BAND,   off, 7.125*H+10*dy);
-    }
+    draw_lado(0.625*W, ZER);
+    draw_lado(7.625*W, ONE);
 
     {
         fill(0);
@@ -1342,11 +1372,14 @@ void draw_ultima (float x, int kmh) {
     text("km/h", x, 4*H+35*dy);
 }
 
-void draw_lado (boolean isesq, float x, int jog) {
+void draw_lado (float x, int jog) {
     int[] JOG = JOGO_JOGS[jog];
-    noStroke();
-    fill(color(255,255,255));
-    //rect(x, 5*H, 2*W, 3*H);
+    float X = 1.25*W;
+
+    image(IMG_GOLPES, x, 5.875*H+ 5*dy);
+    image(IMG_BAND,   x, 7.125*H+10*dy);
+
+    // GOLPES
 
     fill(0);
     textAlign(CENTER, CENTER);
@@ -1355,36 +1388,43 @@ void draw_lado (boolean isesq, float x, int jog) {
     if (atas>0 && JOG[1]>=atas) {       // golpes vs limite
         fill(255,0,0);
     }
-    text(JOG[1], x+W, 5.875*H);         // golpes
+    text(JOG[1], x+X, 5.875*H);         // golpes
     fill(150,150,150);
     textSize(20*dy);
     float w1 = textWidth(str(JOG[1]));  // golpes
     textAlign(TOP, LEFT);
-    text("/"+atas, x+W+w1+10*dx, 5.875*H+30*dy);  // limite
+    text("/"+atas, x+X+w1+10*dx, 5.875*H+30*dy);  // limite
+
+    // MAXIMAS
 
     if (CONF_MAXIMAS > 0) {
-        fill(0);
-        textAlign(CENTER, CENTER);
-        textSize(40*dy);
-        int baks = conf_tempo() * CONF_MAXIMAS / 60 / 2;
-        if (JOG[7]>=baks) {             // backs vs limite
-            fill(255,0,0);
+        int maxs = conf_maximas(jog);
+        for (int i=7; i<=8; i++) {
+            fill(0);
+            textAlign(CENTER, CENTER);
+            textSize(40*dy);
+            float y = (i==7) ? 5.625 : 6.125;
+            if (JOG[i]>=maxs) {             // backs vs limite
+                fill(255,0,0);
+            }
+            int N = min(maxs,JOG[i]);
+            text(N, x+X+X, y*H);            // golpes
+            fill(150,150,150);
+            textSize(15*dy);
+            float w2 = textWidth(str(N));   // golpes
+            textAlign(TOP, LEFT);
+            text("/"+maxs, x+X+X+w2+10*dx, y*H+20*dy);  // limite
         }
-        float X = isesq ? W : -W;
-        text(JOG[7], x+W+X, 5.875*H);         // golpes
-        fill(150,150,150);
-        textSize(12*dy);
-        float w2 = textWidth(str(JOG[7]));  // golpes
-        textAlign(TOP, LEFT);
-        text("/"+baks, x+W+X+w2+10*dx, 5.875*H+30*dy);  // limite
     }
+
+    // PONTOS
 
     fill(0);
     textAlign(CENTER, CENTER);
-
-    // pontos
-    fill(0);
     textSize(65*dy);
+
+    // EQUILIBRIO
+
     if (CONF_EQUILIBRIO != 0) {
         int jog1 = JOGO_JOGS[1-jog][0];
         boolean ok = true;
@@ -1400,50 +1440,61 @@ void draw_lado (boolean isesq, float x, int jog) {
         if (!ok) {
             int pct = (JOG[0]==0) ? 100 : min(100, jog1*100/JOG[0] - 100);
             textSize(30*dy);
-            if (isesq) {
-                text("↓"+pct+"%", width/2-2*W, 7.125*H);
-            } else {
-                text("↓"+pct+"%", width/2+2*W, 7.125*H);
-            }
+            text("↓"+pct+"%", x+X+X, 7.125*H);
             textSize(65*dy);
         }
         fill(clr);
-        text(JOG[0], x+W, 7.125*H);
     }
-    text(JOG[0], x+W, 7.125*H);
+    text(JOG[0], x+X, 7.125*H);
 }
 
-void draw_lado_medias (boolean isesq, float x, int jog) {
+void draw_lado_medias (float x, int jog) {
     int[] JOG = JOGO_JOGS[jog];
-    int atas = conf_ataques(jog) / 2;
+    float X = 0.875*W;
+    float x1 = x + X;
+    float x2 = x + X+X;
+    float x3 = x + X+X+X;
+
+    image(IMG_SPEED, x, 4*H+5*dy);
+    noStroke();
+    noFill();
+    textAlign(CENTER, CENTER);
+    fill(100,100,100);
+    textSize(15*dy);
+    text("km/h", x, 4*H+30*dy);
 
     textAlign(CENTER, CENTER);
     fill(0);
     float h = 4;
-    int mul = (isesq ? 1 : -1);
-    //float x1 = x;
-    float x2 = x + 0.25*W*mul;
-    float x3 = x + 1.50*W*mul;
+    //float 1 = x;
 
     // media
     //textSize(65*dy);
     //text(JOG[2]/100, x1, h*H);
+
+    // min / max
+    textSize(40*dy);
+    text(JOG[4], x1, h*H-H/3);
+    text(JOG[3], x1, h*H+H/3);
 
     // 75+/75-
     textSize(40*dy);
     text(JOG[6]/100, x2, h*H-H/3);
     text(JOG[5]/100, x2, h*H+H/3);
 
-    // min / max
+    // nrm/inv
     textSize(40*dy);
-    text(JOG[4], x3, h*H-H/3);
-    text(JOG[3], x3, h*H+H/3);
-    textSize(15*dy);
+    text(JOG[9]/100,  x3, h*H-H/3);
+    text(JOG[10]/100, x3, h*H+H/3);
 
+    textSize(15*dy);
     fill(150,150,150);
     //text("válidos", x1, h*H+55*dy);
-    text("máx", x3, h*H-H/3+35*dy);
-    text("min", x3, h*H+H/3+35*dy);
+    int atas = conf_ataques(jog) / 2;
+    text("máx", x1, h*H-H/3+35*dy);
+    text("min", x1, h*H+H/3+35*dy);
     text(atas+"+", x2, h*H-H/3+35*dy);
     text(atas+"-", x2, h*H+H/3+35*dy);
+    text("nrm", x3, h*H-H/3+35*dy);
+    text("inv", x3, h*H+H/3+35*dy);
 }
