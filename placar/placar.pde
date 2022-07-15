@@ -15,8 +15,8 @@ import processing.serial.*;
 import processing.sound.*;
 import java.io.*;
 
-int         MAJOR    = 4;
-int         MINOR    = 3;
+int         MAJOR    = 5;
+int         MINOR    = 0;
 int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
@@ -256,25 +256,25 @@ void go_termino () {
 
         String out = ns("Data:",          15) + ts + "\n"
                    + ns("Versão:",        15) + CONF_PARS + "\n"
-                   + "\n"
-                   + ns("Descanso:",      15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
-                   + ns("Quedas:",        15) + jogo_quedas() + manual + "\n"
-                   + "\n"
-                   + jogs[0] + jogs[1]
-                   + "\n"
-                   + ns("Parcial:",       15) + nf(JOGO_JOGS[0][0]+JOGO_JOGS[1][0],5) + " pontos\n"
-                   + ns("Desequilibrio:", 15) + nf((JOGO_JOGS[0][0]+JOGO_JOGS[1][0]) - (ps[0]+ps[1]), 5) + " (-)\n"
-                   + ns("Quedas:",        15) + nf(ps[0]+ps[1] - JOGO_TOTAL, 5) + " (-)\n"
-                   + "\n"
-                   + ns("FINAL:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
+                   //+ "\n"
+                   //+ ns("Descanso:",      15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
+                   //+ ns("Quedas:",        15) + jogo_quedas() + manual + "\n"
+                   //+ "\n"
+                   //+ jogs[0] + jogs[1]
+                   //+ "\n"
+                   //+ ns("Parcial:",       15) + nf(JOGO_JOGS[0][0]+JOGO_JOGS[1][0],5) + " pontos\n"
+                   //+ ns("Desequilibrio:", 15) + nf((JOGO_JOGS[0][0]+JOGO_JOGS[1][0]) - (ps[0]+ps[1]), 5) + " (-)\n"
+                   //+ ns("Quedas:",        15) + nf(ps[0]+ps[1] - JOGO_TOTAL, 5) + " (-)\n"
+                   //+ "\n"
+                   //+ ns("FINAL:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
-            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH\n-----   ---   ---\n";
+            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH I\n-----   ---   --- -\n";
             for (int j=0; j<seq.size(); j++) {
                 int[] golpe = seq.get(j);
                 int ms = golpe[0] - JOGO_TEMPO_INICIO;
-                out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + "\n";
+                out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + (golpe[3]==0 ? "" : " *") + "\n";
             }
             out += "\n\n";
         }
