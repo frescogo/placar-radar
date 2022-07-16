@@ -42,7 +42,7 @@ No modo de aferição com o radar e detecção autônoma de quedas, o árbitro s
 
 ## Instruções de Operação
 
-Segurar as teclas por 3 segundos (exceto setinhas):
+Segurar as teclas por 3 segundos (exceto ←/→/Z/M):
 
 ```
 CTRL-R           reinicia a apresentação
