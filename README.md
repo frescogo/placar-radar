@@ -14,6 +14,8 @@
     - `80--89`: explosão 1
     - `90--99`: explosão 2
     - `100--+`: ambulância
+- Golpes não preferenciais (tipicamente backhands à esquerda) são aferidos pelo
+  árbitro e acompanhados de um som de palmas.
 <!--
 - Quando a apresentação está desequilibrada, os ataques do atleta que mais
   pontuou acompanham um som grave.
@@ -48,6 +50,7 @@ CTRL-E           reinicia no modo "esquenta" com tempo corrido e sem quedas
 CTRL-↑           inicia uma sequência
 CTRL-↓           marca uma queda de bola
 ← | →            marca um golpe do atleta à esquerda ou à direita (modo teclado)
+Z | M            marca ataque à esquerda (revés/backhand/não preferencial)
 
 CTRL_- | CTRL_+  remove ou adiciona uma queda manualmente
 CTRL-BACKSPACE   volta atrás e descarta inteiramente a última sequência
@@ -76,6 +79,7 @@ ser ajustadas, conforme descrito a seguir:
     "equilibrio": 130,            ; limite da maior pontuação relativa à menor (0=desligado, 130=130%)
     "minima":     50,             ; velocidade mínima de um golpe pontuável (50km/h)
     "maxima":     85,             ; velocidade máxima no modo manual (85km/h)
+    "maximas":    12,             ; ataques de cada lado por minuto (12 ataques por minuto)
     "trinca":     false,          ; modo de trinca ou dupla (dupla)
     "tregua":     1,              ; trégua de quedas por minuto (1 queda por minuto)
     "quedas":     1500,           ; desconto de queda para cada minuto (15%)
@@ -108,28 +112,17 @@ Versão:        v4.0.0 / dupla / 750cm / 300s
                                   \-- radar ou distância entre os atletas em cm
                                          \-- tempo máximo de apresentação
 
-Descanso:      14                                       <-- tempo total de descanso em segundos
-Quedas:        9                                        <-- total de quedas
-
-Maria:         09058 pontos / 130 golpes / 58.43 km/h   <-- atleta à esquerda
-Joao:          11196 pontos / 172 golpes / 60.65 km/h   <-- atleta à direita
-
-Parcial:       20254 pontos                             <-- soma simples da pontuação dos atletas
-Desequilibrio: 00327 (-)                                <-- desconto de desequilíbrio
-Quedas:        02392 (-)                                <-- desconto de quedas
-
-FINAL:         17535 pontos                             <-- PONTUAÇÃO FINAL
-
 SEQUÊNCIA 01                                            <-- sequências 01, 02, ...
 ============
 
-TEMPO   DIR   KMH
------   ---   ---
+TEMPO   DIR   KMH *
+-----   ---   --- -
 008308   ->   078           <-- golpes aferidos
 009338   <-   034           -- TEMPO = momento do golpe desde o início da
-011389   ->   069           --         apresentação em milésimos de segundo
+011389   ->   069 *         --         apresentação em milésimos de segundo
 012415   ->   077           -- DIR   = direção do golpe
 012926   <-   043           -- KMH   = velocidade do golpe
+013320   <-   055 *         --  *    = golpe não preferencial (backhand)
 ...
 
 

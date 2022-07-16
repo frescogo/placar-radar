@@ -270,7 +270,7 @@ void go_termino () {
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
-            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH I\n-----   ---   --- -\n";
+            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH *\n-----   ---   --- -\n";
             for (int j=0; j<seq.size(); j++) {
                 int[] golpe = seq.get(j);
                 int ms = golpe[0] - JOGO_TEMPO_INICIO;
@@ -356,7 +356,7 @@ void _jogo_lado (int jog) {
                     kmhs.append(kmh);
 
                     // ataque nrm/bak valido?
-                    if (j > 0) { // precisa de golpe anterior
+                    if (CONF_MAXIMAS!=0 && j> 0) { // precisa de golpe anterior
                         int[] prev = seq.get(j-1);
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
@@ -775,6 +775,7 @@ void setup () {
     CONF_PARS = "v" + VERSAO + " / " +
                 (CONF_TRINCA ? "trinca" : "dupla") + " / " +
                 (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
+                (CONF_MAXIMAS==0 ? "-atas" : "+atas") + " / " +
                 CONF_TEMPO   + "s";
 
     go_reinicio();
@@ -1495,9 +1496,11 @@ void draw_lado_medias (float x, int jog) {
     text(JOG[5]/100, x2, h*H+H/3);
 
     // nrm/inv
-    textSize(40*dy);
-    text(JOG[9]/100,  x3, h*H-H/3);
-    text(JOG[10]/100, x3, h*H+H/3);
+    if (CONF_MAXIMAS != 0) {
+        textSize(40*dy);
+        text(JOG[9]/100,  x3, h*H-H/3);
+        text(JOG[10]/100, x3, h*H+H/3);
+    }
 
     textSize(15*dy);
     fill(150,150,150);
@@ -1507,6 +1510,9 @@ void draw_lado_medias (float x, int jog) {
     text("min", x1, h*H+H/3+35*dy);
     text(atas+"+", x2, h*H-H/3+35*dy);
     text(atas+"-", x2, h*H+H/3+35*dy);
-    text("nrm", x3, h*H-H/3+35*dy);
-    text("inv", x3, h*H+H/3+35*dy);
+
+    if (CONF_MAXIMAS != 0) {
+        text("dir", x3, h*H-H/3+35*dy);
+        text("esq", x3, h*H+H/3+35*dy);
+    }
 }
