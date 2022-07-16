@@ -970,7 +970,7 @@ void keyPressed (KeyEvent e) {
             }
 
             sound(kmh);
-        } else if (CONF_MAXIMAS!=0 && keyCode=='Z') {
+        } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = NOW;
         }
