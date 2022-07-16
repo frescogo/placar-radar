@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Name=FrescoGO
-Exec=/home/chico/placar-radar/launcher/frescogo.sh
+Exec=/home/antonio/frescogo/placar-radar/launcher/frescogo.sh
 Terminal=false
 Type=Application
-Icon=/home/chico/placar-radar/launcher/frescogo.png
+Icon=/home/antonio/frescogo/placar-radar/launcher/frescogo.png

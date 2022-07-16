@@ -1,0 +1,4 @@
+- Editar caminhos em `frescogo.desktop` e `frescogo.sh`.
+- Copiar `frescogo.desktop` para o diretório `home/Desktop`.
+- Right-click no ícone e selecionar "Allow Launching".
+- Criar link para `relatorios/`.
