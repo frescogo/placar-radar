@@ -573,7 +573,7 @@ int radar_be () {
     delay(0);                   // sem isso, o programa trava
     if (RADAR.available()<23 || RADAR.read()!=0x88) {
         RADAR_ERR = min(100, RADAR_ERR+1);
-        return -1;              // espera o primeiro byte do pacote
+        return 0;               // espera o primeiro byte do pacote
     }
 
     int now = millis();
@@ -756,7 +756,7 @@ void setup () {
             if (CONF_SERIAL.equals("")) {
                 String[] list = Serial.list();
                 //println(list);
-                //println(list[list.length-1]);
+                println(list[list.length-1]);
                 RADAR = new Serial(this, list[list.length-1], 9600);
             } else {
                 RADAR = new Serial(this, CONF_SERIAL, 9600);
@@ -944,6 +944,7 @@ void keyPressed (KeyEvent e) {
         if (e.isControlDown() && (keyCode == 40)) { // CTRL-DOWN
             go_queda();
         } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
+	    RADAR_AUTO_INICIO = NOW;
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
                 JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
@@ -1008,7 +1009,7 @@ void draw () {
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
-                    sound(kmh);
+                    sound(kmh_);
                 }
             }
             if (RADAR_AUTO && kmh!=0) {
@@ -1041,7 +1042,7 @@ int kmhs_i = 0;
 
 void draw_debug (int kmh) {
 
-    int prv = (kmhs_i == 0) ? 0 : kmhs[kmhs_i-1%kmhs_n];
+    int prv = (kmhs_i == 0) ? 0 : kmhs[(kmhs_i-1)%kmhs_n];
     boolean no = (kmh == -1) || (kmh==0 && prv==0);
 
     int cur;    // 0, -xx, +xx
