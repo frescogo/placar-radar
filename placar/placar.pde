@@ -385,7 +385,8 @@ void _jogo_lado (int jog) {
     for (int i=0; i<N; i++) {
         int cur = min(100,kmhs.get(i)); // >100 probably error
         sum1 += cur;
-        sum2 += cur*cur/50;
+        //sum2 += cur*cur/50;
+        sum2 += cur*(0.5+cur/100);
     }
 
     int Nmax = min(atas/2, size);
@@ -408,13 +409,15 @@ void _jogo_lado (int jog) {
     for (int i=0; i<min(maxs,nrms.size()); i++) {
         int nrm = min(100,nrms.get(i)); // >100 probably error
         nrm1 += nrm;
-        sum2 += nrm*nrm/50;
+        //sum2 += nrm*nrm/50;
+        sum2 += nrm*(0.5+nrm/100);
     }
     int bak1 = 0;
     for (int i=0; i<min(maxs,baks.size()); i++) {
         int bak = min(100,baks.get(i)); // >100 probably error
         bak1 += bak;
-        sum2 += bak*bak/50;
+        //sum2 += bak*bak/50;
+        sum2 += bak*(0.5+bak/100);
     }
 
 /*
@@ -968,7 +971,7 @@ void keyPressed (KeyEvent e) {
             }
 
             sound(kmh);
-        } else if (CONF_MAXIMAS!=0 && keyCode=='Z') {
+        } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = NOW;
         }
