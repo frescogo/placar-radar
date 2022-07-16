@@ -790,21 +790,29 @@ void _sound_ (int kmh) {
 
 void sound (int kmh) {
     int kmh_ = abs(kmh);
+//println(kmh_);
     if (kmh_ < CONF_VEL_MIN) {
+//println("min");
         if (!conf_radar()) {
             HITS[0].play();
         }
     } else if (kmh_ < 60) {
+//println("<60");
         HITS[0].play();
     } else if (kmh_ < 70) {
+//println("<70");
         HITS[1].play();
     } else if (kmh_ < 80) {
+//println("<80");
         HITS[2].play();
     } else if (kmh_ < 90) {
+//println("<90");
         HITS[3].play();
     } else if (kmh_ < 100) {
+//println("<100");
         HITS[4].play();
     } else {
+//println("<xxx");
         HITS[5].play();
     }
 }
@@ -1012,7 +1020,7 @@ void draw () {
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
-                    sound(kmh_);
+                    sound(kmh);
                 }
             }
             if (RADAR_AUTO && kmh!=0) {
