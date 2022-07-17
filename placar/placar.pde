@@ -43,11 +43,11 @@ SoundFile[] HITS = new SoundFile[6];
 
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
-int         CONF_ATAQUES;
+int         CONF_GOLPES;
 int         CONF_EQUILIBRIO;
 int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
-int         CONF_MAXIMAS;
+int         CONF_ATAQUES;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_TREGUA;
@@ -120,6 +120,18 @@ int conf_tempo () {
     return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO);
 }
 
+int conf_golpes (int jog) {
+    if (CONF_TRINCA) {
+        if (jog == LADO_PIVO) {
+            return 0;
+        } else {
+            return max(1, conf_tempo() * CONF_GOLPES / 60);
+        }
+    } else {
+        return max(1, conf_tempo() * CONF_GOLPES / 60 / 2);
+    }
+}
+
 int conf_ataques (int jog) {
     if (CONF_TRINCA) {
         if (jog == LADO_PIVO) {
@@ -129,18 +141,6 @@ int conf_ataques (int jog) {
         }
     } else {
         return max(1, conf_tempo() * CONF_ATAQUES / 60 / 2);
-    }
-}
-
-int conf_maximas (int jog) {
-    if (CONF_TRINCA) {
-        if (jog == LADO_PIVO) {
-            return 0;
-        } else {
-            return max(1, conf_tempo() * CONF_MAXIMAS / 60);
-        }
-    } else {
-        return max(1, conf_tempo() * CONF_MAXIMAS / 60 / 2);
     }
 }
 
@@ -356,7 +356,7 @@ void _jogo_lado (int jog) {
                     kmhs.append(kmh);
 
                     // ataque nrm/bak valido?
-                    if (CONF_MAXIMAS!=0 && j> 0) { // precisa de golpe anterior
+                    if (CONF_ATAQUES!=0 && j> 0) { // precisa de golpe anterior
                         int[] prev = seq.get(j-1);
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
@@ -376,10 +376,10 @@ void _jogo_lado (int jog) {
     nrms.sortReverse();
     baks.sortReverse();
 
-    int atas = conf_ataques(jog);
+    int glps = conf_golpes(jog);
     int size = kmhs.size();
 
-    int N = min(atas,size);
+    int N = min(glps,size);
     int sum1 = 0;   // simples
     int sum2 = 0;   // quadrado
     for (int i=0; i<N; i++) {
@@ -389,8 +389,8 @@ void _jogo_lado (int jog) {
         sum2 += cur*(50+cur)/100;
     }
 
-    int Nmax = min(atas/2, size);
-    int Nmin = min(atas/2, size-Nmax);
+    int Nmax = min(glps/2, size);
+    int Nmin = min(glps/2, size-Nmax);
 
     int sumMin = 0;
     int sumMax = 0;
@@ -404,16 +404,16 @@ void _jogo_lado (int jog) {
     }
 
     // BAKS+NRMS
-    int maxs = conf_maximas(jog);
+    int atas = conf_ataques(jog);
     int nrm1 = 0;
-    for (int i=0; i<min(maxs,nrms.size()); i++) {
+    for (int i=0; i<min(atas,nrms.size()); i++) {
         int nrm = min(100,nrms.get(i)); // >100 probably error
         nrm1 += nrm;
         //sum2 += nrm*nrm/50;
         sum2 += nrm*(50+nrm)/100;
     }
     int bak1 = 0;
-    for (int i=0; i<min(maxs,baks.size()); i++) {
+    for (int i=0; i<min(atas,baks.size()); i++) {
         int bak = min(100,baks.get(i)); // >100 probably error
         bak1 += bak;
         //sum2 += bak*bak/50;
@@ -422,7 +422,7 @@ void _jogo_lado (int jog) {
 
 /*
     println("-=-=-=-=-=-");
-    println(atas);
+    println(glps);
     println(NN);
     println(size);
     println(Nmax);
@@ -434,12 +434,12 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
     JOGO_JOGS[jog][3] = (N == 0) ? 0 : kmhs.get(N-1);
     JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
-    JOGO_JOGS[jog][5] = sumMin * 100 / max(1,atas/2);
-    JOGO_JOGS[jog][6] = sumMax * 100 / max(1,atas/2);
+    JOGO_JOGS[jog][5] = sumMin * 100 / max(1,glps/2);
+    JOGO_JOGS[jog][6] = sumMax * 100 / max(1,glps/2);
     JOGO_JOGS[jog][7] = nrms.size();
     JOGO_JOGS[jog][8] = baks.size();
-    JOGO_JOGS[jog][9] = nrm1 * 100 / maxs;
-    JOGO_JOGS[jog][10] = bak1 * 100 / maxs;
+    JOGO_JOGS[jog][9] = nrm1 * 100 / atas;
+    JOGO_JOGS[jog][10] = bak1 * 100 / atas;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -663,9 +663,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -675,18 +675,18 @@ void setup () {
 
     // 300s
     // 20 quedas interrompe o jogo
-    // 150 ataques máximo por atleta
+    // 150 golpes máximo por atleta
     // 5 quedas de trégua
     // 3% de penalidade por queda
 
     CONF            = loadJSONObject("data/conf.json");
     CONF_TEMPO      = CONF.getInt("tempo");      // 300s  = 5mins
     CONF_DISTANCIA  = CONF.getInt("distancia");  // 750cm = 7.5m
-    CONF_ATAQUES    = CONF.getInt("ataques");    // 60 ataques por minuto para a dupla
+    CONF_GOLPES     = CONF.getInt("golpes");     // 60 golpes por minuto para a dupla
     CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
-    CONF_MAXIMAS    = CONF.getInt("maximas");    // 6 ataques de cada lado por minuto
+    CONF_ATAQUES    = CONF.getInt("ataques");    // 6 ataques de cada lado por minuto
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
@@ -775,7 +775,7 @@ void setup () {
     CONF_PARS = "v" + VERSAO + " / " +
                 (CONF_TRINCA ? "trinca" : "dupla") + " / " +
                 (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-                (CONF_MAXIMAS==0 ? "-atas" : "+atas") + " / " +
+                (CONF_ATAQUES==0 ? "-atas" : "+atas") + " / " +
                 CONF_TEMPO   + "s";
 
     go_reinicio();
@@ -980,7 +980,7 @@ void keyPressed (KeyEvent e) {
             }
 
             sound(kmh);
-        } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
+        } else if (CONF_ATAQUES!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = NOW;
         }
@@ -1397,8 +1397,8 @@ void draw_lado (float x, int jog) {
     fill(0);
     textAlign(CENTER, CENTER);
     textSize(65*dy);
-    int atas = conf_ataques(jog);
-    if (atas>0 && JOG[1]>=atas) {       // golpes vs limite
+    int glps = conf_golpes(jog);
+    if (glps>0 && JOG[1]>=glps) {       // golpes vs limite
         fill(255,0,0);
     }
     text(JOG[1], x+X, 5.875*H);         // golpes
@@ -1406,27 +1406,27 @@ void draw_lado (float x, int jog) {
     textSize(20*dy);
     float w1 = textWidth(str(JOG[1]));  // golpes
     textAlign(TOP, LEFT);
-    text("/"+atas, x+X+w1+10*dx, 5.875*H+30*dy);  // limite
+    text("/"+glps, x+X+w1+10*dx, 5.875*H+30*dy);  // limite
 
-    // MAXIMAS
+    // ATAQUES
 
-    if (CONF_MAXIMAS > 0) {
-        int maxs = conf_maximas(jog);
+    if (CONF_ATAQUES > 0) {
+        int atas = conf_ataques(jog);
         for (int i=7; i<=8; i++) {
             fill(0);
             textAlign(CENTER, CENTER);
             textSize(40*dy);
             float y = (i==7) ? 5.625 : 6.125;
-            if (JOG[i]>=maxs) {             // backs vs limite
+            if (JOG[i]>=atas) {             // backs vs limite
                 fill(255,0,0);
             }
-            int N = min(maxs,JOG[i]);
+            int N = min(atas,JOG[i]);
             text(N, x+X+X, y*H);            // golpes
             fill(150,150,150);
             textSize(15*dy);
             float w2 = textWidth(str(N));   // golpes
             textAlign(TOP, LEFT);
-            text("/"+maxs, x+X+X+w2+10*dx, y*H+20*dy);  // limite
+            text("/"+atas, x+X+X+w2+10*dx, y*H+20*dy);  // limite
         }
     }
 
@@ -1496,7 +1496,7 @@ void draw_lado_medias (float x, int jog) {
     text(JOG[5]/100, x2, h*H+H/3);
 
     // nrm/inv
-    if (CONF_MAXIMAS != 0) {
+    if (CONF_ATAQUES != 0) {
         textSize(40*dy);
         text(JOG[9]/100,  x3, h*H-H/3);
         text(JOG[10]/100, x3, h*H+H/3);
@@ -1505,13 +1505,13 @@ void draw_lado_medias (float x, int jog) {
     textSize(15*dy);
     fill(150,150,150);
     //text("válidos", x1, h*H+55*dy);
-    int atas = conf_ataques(jog) / 2;
+    int glps = conf_golpes(jog) / 2;
     text("máx", x1, h*H-H/3+35*dy);
     text("min", x1, h*H+H/3+35*dy);
-    text(atas+"+", x2, h*H-H/3+35*dy);
-    text(atas+"-", x2, h*H+H/3+35*dy);
+    text(glps+"+", x2, h*H-H/3+35*dy);
+    text(glps+"-", x2, h*H+H/3+35*dy);
 
-    if (CONF_MAXIMAS != 0) {
+    if (CONF_ATAQUES != 0) {
         text("dir", x3, h*H-H/3+35*dy);
         text("esq", x3, h*H+H/3+35*dy);
     }

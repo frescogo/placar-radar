@@ -75,11 +75,11 @@ ser ajustadas, conforme descrito a seguir:
 {
     "tempo":      300,            ; tempo total de jogo (300s)
     "distancia":  750,            ; distância considerada no modo manual (750cm)
-    "ataques":    60,             ; quantidade de ataques por minuto (60 ataques)
+    "golpes":     60,             ; quantidade de golpes por minuto (60 golpes da dupla)
+    "ataques":    10,             ; ataques de cada lado por minuto (10 ataques da dupla)
     "equilibrio": 130,            ; limite da maior pontuação relativa à menor (0=desligado, 130=130%)
     "minima":     50,             ; velocidade mínima de um golpe pontuável (50km/h)
     "maxima":     85,             ; velocidade máxima no modo manual (85km/h)
-    "maximas":    12,             ; ataques de cada lado por minuto (12 ataques por minuto)
     "trinca":     false,          ; modo de trinca ou dupla (dupla)
     "tregua":     1,              ; trégua de quedas por minuto (1 queda por minuto)
     "quedas":     1500,           ; desconto de queda para cada minuto (15%)
