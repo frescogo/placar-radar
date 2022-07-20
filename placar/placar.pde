@@ -663,9 +663,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(1000, 600);
+    //size(1000, 600);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
