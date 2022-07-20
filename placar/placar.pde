@@ -1017,7 +1017,8 @@ void draw () {
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
                 if (ESTADO_JOGANDO.equals("jogando")) {
-                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_, (BACK>0 && BACK+500>=NOW)?1:0 };
+                    boolean back = (RADAR_MOCK && (int(random(5))==0)) || (BACK>0 && BACK+500>=NOW);
+                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_, back?1:0 };
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
@@ -1268,7 +1269,9 @@ void draw_jogo () {
     if (conf_radar()) {
         PImage img = (RADAR_ERR<=10 ? IMG_RADAR_OK : IMG_RADAR_NO);
         float  x   = (LADO_RADAR==0 ? 20*dx        : width-20*dx);
-        image(img, x, 4*H);
+        if (!ESTADO.equals("terminado")) {
+            image(img, x, 4*H);
+        }
     }
 
     if (CONF_TRINCA) {
@@ -1399,7 +1402,7 @@ void draw_lado (float x, int jog) {
     textSize(65*dy);
     int glps = conf_golpes(jog);
     if (glps>0 && JOG[1]>=glps) {       // golpes vs limite
-        fill(255,0,0);
+        fill(0,200,0);
     }
     text(JOG[1], x+X, 5.875*H);         // golpes
     fill(150,150,150);
@@ -1418,7 +1421,7 @@ void draw_lado (float x, int jog) {
             textSize(40*dy);
             float y = (i==7) ? 5.625 : 6.125;
             if (JOG[i]>=atas) {             // backs vs limite
-                fill(255,0,0);
+                fill(0,200,0);
             }
             int N = min(atas,JOG[i]);
             text(N, x+X+X, y*H);            // golpes
