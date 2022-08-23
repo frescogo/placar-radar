@@ -970,7 +970,7 @@ void keyPressed (KeyEvent e) {
                 JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
             }
 
-            int jog = (keyCode == 37) ? ZER : ONE;
+            int jog = (keyCode == 37) ? 0 : 1;
             int[] golpe = { NOW, jog, 0, (BACK!=0 && abs(BACK)+500>=NOW)?1:0 };
             BACK = 0;
             if (conf_radar()) {
