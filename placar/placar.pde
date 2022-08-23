@@ -35,6 +35,7 @@ int         RADAR_AUTO_INICIO;
 PrintWriter RADAR_OUT;
 
 int         KEY_TIMER;
+int         KEY_TIMER_EXPIRE = 2000;
 
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
@@ -267,7 +268,7 @@ void go_termino () {
                    //+ ns("Desequilibrio:", 15) + nf((JOGO_JOGS[0][0]+JOGO_JOGS[1][0]) - (ps[0]+ps[1]), 5) + " (-)\n"
                    //+ ns("Quedas:",        15) + nf(ps[0]+ps[1] - JOGO_TOTAL, 5) + " (-)\n"
                    //+ "\n"
-                   //+ ns("FINAL:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
+                   + ns("Total:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
@@ -378,9 +379,8 @@ void _jogo_lado (int jog) {
     baks.sortReverse();
 
     int glps = conf_golpes(jog);
-    int size = kmhs.size();
 
-    int N = min(glps,size);
+    int N = min(glps,kmhs.size());
     int sum1 = 0;   // simples
     int sum2 = 0;   // quadrado
     for (int i=0; i<N; i++) {
@@ -393,8 +393,8 @@ void _jogo_lado (int jog) {
         }
     }
 
-    int Nmax = min(glps/2, size);
-    int Nmin = min(glps/2, size-Nmax);
+    int Nmax = min(glps/2, N);
+    int Nmin = min(glps/2, N-Nmax);
 
     int sumMin = 0;
     int sumMax = 0;
@@ -403,7 +403,7 @@ void _jogo_lado (int jog) {
         sumMax += cur;
     }
     for (int i=0; i<Nmin; i++) {
-        int cur = min(100,kmhs.get(size-1-i)); // >100 probably error
+        int cur = min(100,kmhs.get(Nmax+i)); // >100 probably error
         sumMin += cur;
     }
 
@@ -440,7 +440,7 @@ void _jogo_lado (int jog) {
 */
 
     JOGO_JOGS[jog][0] = sum2;
-    JOGO_JOGS[jog][1] = size;
+    JOGO_JOGS[jog][1] = kmhs.size();
     JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
     JOGO_JOGS[jog][3] = (N == 0) ? 0 : kmhs.get(N-1);
     JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
@@ -858,8 +858,8 @@ void keyPressed (KeyEvent e) {
     } else {
         if (KEY_TIMER == 0) {
             KEY_TIMER = now;
-            return;                             // comeca a contar 3s
-        } else if (KEY_TIMER+3000 > now) {
+            return;                             // comeca a contar 2s
+        } else if (KEY_TIMER+KEY_TIMER_EXPIRE > now) {
             return;                             // ainda nao chegou
         } else {
             KEY_TIMER = 0;                      // OK, deixa continuar
@@ -1313,7 +1313,9 @@ void draw_jogo () {
     if (conf_radar()) {
         PImage img = (RADAR_ERR<=10 ? IMG_RADAR_OK : IMG_RADAR_NO);
         float  x   = (LADO_RADAR==0 ? 20*dx        : width-20*dx);
-        image(img, x, 4*H);
+        if (!ESTADO.equals("terminado")) {
+            image(img, x, 4*H);
+        }
     }
 
     if (CONF_TRINCA) {
@@ -1448,7 +1450,7 @@ void draw_lado (float x, int jog) {
     textSize(65*dy);
     int glps = conf_golpes(jog);
     if (glps>0 && JOG[1]>=glps) {       // golpes vs limite
-        fill(255,0,0);
+        fill(0,200,0);
     }
     text(JOG[1], x+X, 5.875*H);         // golpes
     fill(150,150,150);
@@ -1467,7 +1469,7 @@ void draw_lado (float x, int jog) {
             textSize(40*dy);
             float y = (i==7) ? 5.625 : 6.125;
             if (JOG[i]>=atas) {             // backs vs limite
-                fill(255,0,0);
+                fill(0,200,0);
             }
             int N = min(atas,JOG[i]);
             text(N, x+X+X, y*H);            // golpes
