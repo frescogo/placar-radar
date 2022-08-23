@@ -1356,7 +1356,11 @@ void draw_jogo () {
         image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H-10*dy);
 
         // TOTAL
-        fill(255);
+        if (OLD4) {
+            fill(255,100,100);
+        } else {
+            fill(255);
+        }
         textSize(140*dy);
         textAlign(CENTER, CENTER);
         text(JOGO_TOTAL, width/2, 7*H-15*dy);
