@@ -801,7 +801,7 @@ void sound (int kmh, int prv) {
         }
     } else if (prv > kmh) {
         HITS[6].play();
-println("defesa");
+//println("defesa");
     } else if (kmh < 60) {
 //println("<60");
         HITS[0].play();
@@ -1049,11 +1049,10 @@ void draw () {
                 }
                 if (ESTADO_JOGANDO.equals("jogando")) {
                     int jog = (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR));
-                    int back = 0;
-                    if (BACK!=0 && abs(BACK)+500>=NOW && (jog==0 && BACK<0 || jog==1 && BACK>0) ) {
-                        back = 1;
-                    }
-                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, back };
+                    boolean back = (RADAR_MOCK && (int(random(5))==0)) ||
+                                   (BACK!=0 && abs(BACK)+500>=NOW &&
+                                    (jog==0 && BACK<0 || jog==1 && BACK>0));
+                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, back?1:0 };
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     int n = seq.size();
