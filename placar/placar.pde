@@ -673,9 +673,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    size(1000, 600);
+    //size(1000, 600);
     //size(1300, 900);
-    //fullScreen();
+    fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -704,8 +704,8 @@ void setup () {
     CONF_ABORTA     = CONF.getInt("aborta");
     CONF_ESQUENTA   = CONF.getInt("esquenta");
     CONF_DESCANSO   = CONF.getInt("descanso");
-    LADO_RADAR      = CONF.getInt("lado_radar") - 1;
-    LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;
+    LADO_RADAR      = CONF.getInt("lado_radar") - 1;    // 0=esq, 1=dir
+    LADO_PIVO       = CONF.getInt("lado_pivo")  - 1;    // 0=esq, 1=dir
     RADAR_REPS      = CONF.getInt("radar_reps");
     RADAR_IGUAL     = CONF.getInt("radar_igual");
     RADAR_OPOSI     = CONF.getInt("radar_oposi");
@@ -971,7 +971,7 @@ void keyPressed (KeyEvent e) {
             }
 
             int jog = (keyCode == 37) ? ZER : ONE;
-            int[] golpe = { NOW, jog, 0, (BACK>0 && BACK+500>=NOW)?1:0 };
+            int[] golpe = { NOW, jog, 0, (BACK!=0 && abs(BACK)+500>=NOW)?1:0 };
             BACK = 0;
             if (conf_radar()) {
                 golpe[2] = 30;
@@ -1001,7 +1001,19 @@ void keyPressed (KeyEvent e) {
             sound(kmh, prv);
         } else if (CONF_ATAQUES!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
-            BACK = NOW;
+            BACK = (keyCode=='Z' ? -NOW : NOW);
+            if (conf_radar()) {
+                ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+                int n = seq.size();
+                if (n > 0) {
+                    int[] xxx = seq.get(n-1);
+                    if (xxx[1]==0 && BACK<0 || xxx[1]==1 && BACK>0) {
+                        if (abs(BACK)-500 < xxx[0]) {
+                            xxx[3] = 1;
+                        }
+                    }
+                }
+            }
         }
     }
     jogo_calc();
@@ -1036,7 +1048,12 @@ void draw () {
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
                 if (ESTADO_JOGANDO.equals("jogando")) {
-                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, (BACK>0 && BACK+500>=NOW)?1:0 };
+                    int jog = (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR));
+                    int back = 0;
+                    if (BACK!=0 && abs(BACK)+500>=NOW && (jog==0 && BACK<0 || jog==1 && BACK>0) ) {
+                        back = 1;
+                    }
+                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, back };
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     int n = seq.size();

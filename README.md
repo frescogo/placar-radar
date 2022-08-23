@@ -50,7 +50,8 @@ CTRL-E           reinicia no modo "esquenta" com tempo corrido e sem quedas
 CTRL-↑           inicia uma sequência
 CTRL-↓           marca uma queda de bola
 ← | →            marca um golpe do atleta à esquerda ou à direita (modo teclado)
-Z | M            marca ataque à esquerda (revés/backhand/não preferencial)
+Z                marca revés do atleta à esquerda
+M                marca revés do atleta à direita
 
 CTRL_- | CTRL_+  remove ou adiciona uma queda manualmente
 CTRL-BACKSPACE   volta atrás e descarta inteiramente a última sequência
@@ -87,8 +88,8 @@ ser ajustadas, conforme descrito a seguir:
     "saque":      45,             ; velocidade mínima para considerar um saque (45km/h)
     "esquenta":   60,             ; tempo total de "esquenta" (60s)
     "descanso":   90,             ; tempo máximo de descanso (90s)
-    "lado_radar": 1,              ; lado em que o radar está posicionado (esquerdo)
-    "lado_pivo":  1,              ; lado em que o pivô da trinca está posicionado (esquerdo)
+    "lado_radar": 1,              ; lado em que o radar está posicionado (1=esq, 2=dir)
+    "lado_pivo":  1,              ; lado em que o pivô da trinca está posicionado (1=esq, 2=dir)
     "radar_reps": 3,              ; mínimo de medidas na mesma direção para golpe válido (3 medidas)
     "radar_igual":  700,          ; tempo mínimo para aceitar golpes na mesma direção (700ms)
     "radar_oposi":  300,          ; tempo mínimo para aceitar golpes em direções opostas (300ms)
