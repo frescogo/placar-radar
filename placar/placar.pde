@@ -40,7 +40,7 @@ boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
 SoundFile[] SNDS = new SoundFile[7];
-SoundFile[] HITS = new SoundFile[6];
+SoundFile[] HITS = new SoundFile[7];
 
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
@@ -735,6 +735,7 @@ void setup () {
     HITS[3] = new SoundFile(this,"snds/hit.wav");           // 80--90
     HITS[4] = new SoundFile(this,"snds/explosion_06.wav");  // 90--100
     HITS[5] = new SoundFile(this,"snds/ambulancia.wav");    // 100--
+    HITS[6] = new SoundFile(this,"snds/double.wav");        // defesa
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -791,35 +792,29 @@ void setup () {
     go_reinicio();
 }
 
-void _sound_ (int kmh) {
-    if (kmh > 0) {
-        HITS[1].play();
-    } else {
-        HITS[0].play();
-    }
-}
-
-void sound (int kmh) {
-    int kmh_ = abs(kmh);
-//println(kmh_);
-    if (kmh_ < CONF_VEL_MIN) {
+void sound (int kmh, int prv) {
+//println(kmh);
+    if (kmh < CONF_VEL_MIN) {
 //println("min");
         if (!conf_radar()) {
             HITS[0].play();
         }
-    } else if (kmh_ < 60) {
+    } else if (prv > kmh) {
+        HITS[6].play();
+println("defesa");
+    } else if (kmh < 60) {
 //println("<60");
         HITS[0].play();
-    } else if (kmh_ < 70) {
+    } else if (kmh < 70) {
 //println("<70");
         HITS[1].play();
-    } else if (kmh_ < 80) {
+    } else if (kmh < 80) {
 //println("<80");
         HITS[2].play();
-    } else if (kmh_ < 90) {
+    } else if (kmh < 90) {
 //println("<90");
         HITS[3].play();
-    } else if (kmh_ < 100) {
+    } else if (kmh < 100) {
 //println("<100");
         HITS[4].play();
     } else {
@@ -969,7 +964,7 @@ void keyPressed (KeyEvent e) {
         if (e.isControlDown() && (keyCode == 40)) { // CTRL-DOWN
             go_queda();
         } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
-	    RADAR_AUTO_INICIO = NOW;
+            RADAR_AUTO_INICIO = NOW;
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
                 JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
@@ -988,11 +983,22 @@ void keyPressed (KeyEvent e) {
             seq.add(golpe);     // add before jogo_kmh
 
             int kmh = 0;
-            if (seq.size() >= 2) {
-                kmh = jogo_kmh(seq, seq.size()-2);
+            int prv = 0;
+            int n = seq.size();
+            if (n > 1) {
+                kmh = jogo_kmh(seq, n-2);
+                if (n > 2) {
+                    prv = jogo_kmh(seq, n-3);
+                    int[] xxx = seq.get(n-2);
+                    if (kmh>=CONF_VEL_MIN && kmh<prv &&
+                        golpe[1]!=xxx[1] && NOW-750<xxx[0]) {
+                    } else {
+                        prv = 0;
+                    }
+                }
             }
 
-            sound(kmh);
+            sound(kmh, prv);
         } else if (CONF_ATAQUES!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = NOW;
@@ -1010,35 +1016,44 @@ void draw () {
     //println(RADAR);
 
     // preciso chamar o radar pra ver se ele esta funcionando (sem travar)
-    int kmh  = -1;
-    int kmh_ =  1;
+    int kmh_ = -1;
+    int kmh  =  1;
     if (conf_radar()) {
-        kmh = radar();
-        kmh_ = abs(kmh);
+        kmh_ = radar();
+        kmh  = abs(kmh_);
     }
 
     if (MODO == 1) {
-        draw_debug(kmh);
+        draw_debug(kmh_);
         return;
     }
 
     if (ESTADO.equals("jogando")) {
         if (conf_radar()) {
-            if (kmh_ > 1) {
-                if (ESTADO_JOGANDO.equals("sacando") && kmh_>=CONF_SAQUE) {
+            if (kmh > 1) {
+                if (ESTADO_JOGANDO.equals("sacando") && kmh>=CONF_SAQUE) {
                     ESTADO_JOGANDO = "jogando";
                     JOGO_DESCANSO_TOTAL += max(0, NOW-JOGO_DESCANSO_INICIO-5000);
                 }
                 if (ESTADO_JOGANDO.equals("jogando")) {
-                    int[] golpe = { NOW, (kmh>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh_, (BACK>0 && BACK+500>=NOW)?1:0 };
+                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, (BACK>0 && BACK+500>=NOW)?1:0 };
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+                    int n = seq.size();
+                    int prv = 0;
+                    if (n > 0) {
+                        int[] xxx = seq.get(n-1);
+                        if (kmh>=CONF_VEL_MIN && kmh<xxx[2] &&
+                            golpe[1]!=xxx[1] && NOW-750<xxx[0]) {
+                            prv = xxx[2];
+                        }
+                    }
+                    sound(kmh, prv);
                     seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
-                    sound(kmh);
                 }
             }
-            if (RADAR_AUTO && kmh!=0) {
-//println("!!!ZEROU!!! === " + kmh);
+            if (RADAR_AUTO && kmh_!=0) {
+//println("!!!ZEROU!!! === " + kmh_);
                 // zera o timeout com qq bola que não seja 0
                 RADAR_AUTO_INICIO = NOW;
             }
@@ -1065,17 +1080,17 @@ int kmhs_n = 40;
 int[] kmhs = new int[kmhs_n];
 int kmhs_i = 0;
 
-void draw_debug (int kmh) {
+void draw_debug (int kmh_) {
 
     int prv = (kmhs_i == 0) ? 0 : kmhs[(kmhs_i-1)%kmhs_n];
-    boolean no = (kmh == -1) || (kmh==0 && prv==0);
+    boolean no = (kmh_ == -1) || (kmh_==0 && prv==0);
 
     int cur;    // 0, -xx, +xx
     if (no) {
         cur = prv;
     } else {
-        kmhs[kmhs_i++%kmhs_n] = kmh;
-        cur = kmh;
+        kmhs[kmhs_i++%kmhs_n] = kmh_;
+        cur = kmh_;
     }
 
     background(255,255,255);
