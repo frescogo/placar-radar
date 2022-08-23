@@ -22,7 +22,8 @@ String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
 JSONObject  CONF;
 int         NOW;
-int         MODO = 0;   // 0=jogo, 1=debug
+int         MODO = 0;      // 0=jogo, 1=debug
+boolean     OLD4 = false;  // true = regra 4 antiga
 
 Serial      RADAR;
 int         RADAR_ERR  = 0;
@@ -356,7 +357,7 @@ void _jogo_lado (int jog) {
                     kmhs.append(kmh);
 
                     // ataque nrm/bak valido?
-                    if (CONF_ATAQUES!=0 && j> 0) { // precisa de golpe anterior
+                    if (CONF_ATAQUES!=0 && j>0) { // precisa de golpe anterior
                         int[] prev = seq.get(j-1);
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
@@ -385,8 +386,11 @@ void _jogo_lado (int jog) {
     for (int i=0; i<N; i++) {
         int cur = min(100,kmhs.get(i)); // >100 probably error
         sum1 += cur;
-        //sum2 += cur*cur/50;
-        sum2 += cur*(50+cur)/100;
+        if (OLD4) {
+            sum2 += cur*cur/50;
+        } else {
+            sum2 += cur*(50+cur)/100;
+        }
     }
 
     int Nmax = min(glps/2, size);
@@ -409,15 +413,21 @@ void _jogo_lado (int jog) {
     for (int i=0; i<min(atas,nrms.size()); i++) {
         int nrm = min(100,nrms.get(i)); // >100 probably error
         nrm1 += nrm;
-        //sum2 += nrm*nrm/50;
-        sum2 += nrm*(50+nrm)/100;
+        if (OLD4) {
+            // no atas
+        } else {
+            sum2 += nrm*(50+nrm)/100;
+        }
     }
     int bak1 = 0;
     for (int i=0; i<min(atas,baks.size()); i++) {
         int bak = min(100,baks.get(i)); // >100 probably error
         bak1 += bak;
-        //sum2 += bak*bak/50;
-        sum2 += bak*(50+bak)/100;
+        if (OLD4) {
+            // no atas
+        } else {
+            sum2 += bak*(50+bak)/100;
+        }
     }
 
 /*
@@ -889,6 +899,9 @@ void keyPressed (KeyEvent e) {
             INV = !INV;
             ZER = 1 - ZER;
             ONE = 1 - ONE;
+        } else if (keyCode == 'V') {            // CTRL-V
+            SNDS[4].play();
+            OLD4 = !OLD4;
         }
     }
 
