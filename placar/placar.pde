@@ -16,7 +16,7 @@ import processing.sound.*;
 import java.io.*;
 
 int         MAJOR    = 5;
-int         MINOR    = 0;
+int         MINOR    = 1;
 int         REVISION = 0;
 String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 
