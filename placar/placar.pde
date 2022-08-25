@@ -1147,6 +1147,10 @@ void draw_debug (int kmh_) {
     }
 }
 
+int blink_timer_next;
+boolean blink_timer_state;
+boolean blink_timer_going = false;
+
 void draw_jogo () {
     background(255,255,255);
 
@@ -1158,7 +1162,7 @@ void draw_jogo () {
 
     // TEMPO
     {
-        int show = max(0, JOGO_TEMPO_RESTANTE_SHOW);
+        int show = max(5, JOGO_TEMPO_RESTANTE_SHOW);
         String mins = nf(show / 60, 2);
         String segs = nf(show % 60, 2);
 
@@ -1172,7 +1176,23 @@ void draw_jogo () {
         fill(255);
         textSize(140*dy);
         textAlign(CENTER, CENTER);
-        text(mins+":"+segs, width/2, 1.25*H-10*dy);
+        if (show>5 || ESTADO.equals("terminado") || blink_timer_state) {
+            if (ESTADO.equals("terminado")) {
+                blink_timer_going = false;
+                text("00:00", width/2, 1.25*H-10*dy);
+            } else {
+                text(mins+":"+segs, width/2, 1.25*H-10*dy);
+            }
+        }
+        if (show==5 && !blink_timer_going) {
+            blink_timer_going = true;
+            blink_timer_next  = NOW+500;
+            blink_timer_state = true;
+        }
+        if (NOW >= blink_timer_next) {
+            blink_timer_next += 500;
+            blink_timer_state = !blink_timer_state;
+        }
 
         if (ESQUENTA) {
             fill(255,0,0);
