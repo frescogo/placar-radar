@@ -50,6 +50,7 @@ int         CONF_EQUILIBRIO;
 int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
 int         CONF_MAXIMAS;
+int         CONF_INTENSIDADE;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_TREGUA;
@@ -85,6 +86,8 @@ String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
 String      ESTADO_JOGANDO;            // sacando, jogando
 
+int         INS_DIFF = 1500;    // maximo intervalo entre golpes continuos
+
 boolean     INV = false;
 int         ZER = 0;
 int         ONE = 1;
@@ -94,7 +97,22 @@ int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
 int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
-int[][]     JOGO_JOGS = new int[2][11];  // pts, golpes, min, max, med_min, med_max, n_nrms,n_baks,k_nrms,k_baks
+
+int[][]     JOGO_JOGS = new int[2][12];
+  // pts, golpes, med, min, max, med_min, med_max, n_nrms,n_baks,k_nrms,k_baks, ins
+
+int IDX_PTS   = 0;
+int IDX_GLP   = 1;
+int IDX_MED   = 2;
+int IDX_MIN   = 3;
+int IDX_MAX   = 4;
+int IDX_MMIN  = 5;
+int IDX_MMAX  = 6;
+int IDX_NRMS  = 7;
+int IDX_BAKS  = 8;
+int IDX_MNRMS = 9;
+int IDX_MBAKS = 10;
+int IDX_INSS  = 11;
 
 float       dy; // 0.001 height
 float       dx; // 0.001 width
@@ -102,10 +120,17 @@ float       W;
 float       H;
 
 ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
-    // /---------- seqs ---------\
-    //    /------- seq -------\
-    //      /---- golpe ----\
-    // { { { now,jog,kmh,bak } } }
+    // /------------ seqs -----------\
+    //    /--------- seq ---------\
+    //      /------ golpe ------\
+    // { { { now,jog,kmh,bak,ins } } }
+    //        0   1   2   3   4
+
+int IDX_NOW = 0;
+int IDX_JOG = 1;
+int IDX_KMH = 2;
+int IDX_BAK = 3;
+int IDX_INS = 4;
 
 String ns (String str, int n) {
     int len = str.length();
@@ -122,7 +147,7 @@ String conf_pars () {
            (OLD4 ? "regra 4" : "regra 5") + " / " +
            (CONF_TRINCA ? "trinca" : "dupla") + " / " +
            (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-           (CONF_MAXIMAS==0 ? "-atas" : "+atas") + " / " +
+           (OLD4 ? "" : (CONF_MAXIMAS==0 ? "-maxs" : "+maxs") + " / ") +
            CONF_TEMPO   + "s";
 }
 
@@ -257,9 +282,9 @@ void go_termino () {
 
         String[] jogs = new String[2];
         for (int i=0; i<2; i++) {
-            jogs[i] = ns(CONF_NOMES[i]+":",15) + nf(JOGO_JOGS[i][0],5) + " pontos / " +
-                      nf(JOGO_JOGS[i][1],3) + " golpes / " +
-                      nf(JOGO_JOGS[i][2]/100,2) + "." + nf(JOGO_JOGS[i][2]%100,2) + " km/h" + "\n";
+            jogs[i] = ns(CONF_NOMES[i]+":",15) + nf(JOGO_JOGS[i][IDX_PTS],5) + " pontos / " +
+                      nf(JOGO_JOGS[i][IDX_GLP],3) + " golpes / " +
+                      nf(JOGO_JOGS[i][IDX_MED]/100,2) + "." + nf(JOGO_JOGS[i][IDX_MED]%100,2) + " km/h" + "\n";
         }
 
         int[] ps = jogo_equ();
@@ -283,8 +308,8 @@ void go_termino () {
             out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH *\n-----   ---   --- -\n";
             for (int j=0; j<seq.size(); j++) {
                 int[] golpe = seq.get(j);
-                int ms = golpe[0] - JOGO_TEMPO_INICIO;
-                out += nf(ms,6) + "   " + (golpe[1]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + (golpe[3]==0 ? "" : " *") + "\n";
+                int ms = golpe[IDX_NOW] - JOGO_TEMPO_INICIO;
+                out += nf(ms,6) + "   " + (golpe[IDX_JOG]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + (golpe[IDX_BAK]==0 ? "" : " *") + "\n";
             }
             out += "\n\n";
         }
@@ -305,8 +330,8 @@ void go_termino () {
         PrintWriter    pw = new PrintWriter(bw);
         pw.write (
             ts + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
-            CONF_NOMES[0] + " ; " + JOGO_JOGS[0][0] + " ; " + JOGO_JOGS[0][1] + " ; " + (float(JOGO_JOGS[0][2])/100) + " ; " +
-            CONF_NOMES[1] + " ; " + JOGO_JOGS[1][0] + " ; " + JOGO_JOGS[1][1] + " ; " + (float(JOGO_JOGS[1][2])/100) + " ; " +
+            CONF_NOMES[0] + " ; " + JOGO_JOGS[0][IDX_PTS] + " ; " + JOGO_JOGS[0][IDX_GLP] + " ; " + (float(JOGO_JOGS[0][IDX_MED])/100) + " ; " +
+            CONF_NOMES[1] + " ; " + JOGO_JOGS[1][IDX_PTS] + " ; " + JOGO_JOGS[1][IDX_GLP] + " ; " + (float(JOGO_JOGS[1][IDX_MED])/100) + " ; " +
             "\n"
         );
         pw.close();
@@ -331,9 +356,9 @@ void _jogo_tempo () {
             ArrayList<int[]> seq = JOGO.get(i);
             int S = seq.size();
             if (S > 0) {
-                last = seq.get(S-1)[0];
+                last = seq.get(S-1)[IDX_NOW];
                 if (S >= 2) {
-                    ret += (seq.get(S-1)[0] - seq.get(0)[0]);
+                    ret += (last - seq.get(0)[IDX_NOW]);
                 }
             }
         }
@@ -358,20 +383,29 @@ void _jogo_lado (int jog) {
     IntList baks = new IntList();
     for (int i=0; i<JOGO.size(); i++) {
         ArrayList<int[]> seq = JOGO.get(i);
+        IntList inss = new IntList();
+        int inss_now = -1;
         for (int j=0; j<seq.size()-1; j++) {    // -1: ignora ultimo golpe
             int[] golpe = seq.get(j);
-            if (golpe[1] == jog) {
+            golpe[IDX_INS] = 0;   // zera ins
+            if (golpe[IDX_JOG] == jog) {
                 int kmh = jogo_kmh(seq,j);
                 if (kmh >= CONF_VEL_MIN) {
                     kmhs.append(kmh);
+
+                    if (CONF_INTENSIDADE != 0) {
+                        int n = inss.size();
+                        if (n==0 || inss_now<=golpe[IDX_NOW]) {
+                        }
+                    }
 
                     // ataque nrm/bak valido?
                     if (CONF_MAXIMAS!=0 && j>0) { // precisa de golpe anterior
                         int[] prev = seq.get(j-1);
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
-                        if (prev[0]+1000<golpe[0] || prev[1]==jog || kmh2*1.2<=kmh) {
-                            if (golpe[3] == 0) {
+                        if (prev[IDX_NOW]+1000<golpe[IDX_NOW] || prev[IDX_JOG]==jog || kmh2*1.2<=kmh) {
+                            if (golpe[IDX_BAK] == 0) {
                                 nrms.append(kmh);
                             } else {
                                 baks.append(kmh);
@@ -432,6 +466,9 @@ void _jogo_lado (int jog) {
         }
     }
 
+    // INTENSIDADE
+    int inss = 0;
+
 /*
     println("-=-=-=-=-=-");
     println(glps);
@@ -441,22 +478,23 @@ void _jogo_lado (int jog) {
     println(Nmin);
 */
 
-    JOGO_JOGS[jog][0] = sum2;
-    JOGO_JOGS[jog][1] = kmhs.size();
-    JOGO_JOGS[jog][2] = sum1 * 100 / max(1,N);
-    JOGO_JOGS[jog][3] = (N == 0) ? 0 : kmhs.get(N-1);
-    JOGO_JOGS[jog][4] = (N == 0) ? 0 : kmhs.get(0);
-    JOGO_JOGS[jog][5] = sumMin * 100 / max(1,glps/2);
-    JOGO_JOGS[jog][6] = sumMax * 100 / max(1,glps/2);
-    JOGO_JOGS[jog][7] = nrms.size();
-    JOGO_JOGS[jog][8] = baks.size();
-    JOGO_JOGS[jog][9] = nrm1 * 100 / maxs;
-    JOGO_JOGS[jog][10] = bak1 * 100 / maxs;
+    JOGO_JOGS[jog][IDX_PTS]   = sum2;
+    JOGO_JOGS[jog][IDX_GLP]   = kmhs.size();
+    JOGO_JOGS[jog][IDX_MED]   = sum1 * 100 / max(1,N);
+    JOGO_JOGS[jog][IDX_MIN]   = (N == 0) ? 0 : kmhs.get(N-1);
+    JOGO_JOGS[jog][IDX_MAX]   = (N == 0) ? 0 : kmhs.get(0);
+    JOGO_JOGS[jog][IDX_MMIN]  = sumMin * 100 / max(1,glps/2);
+    JOGO_JOGS[jog][IDX_MMAX]  = sumMax * 100 / max(1,glps/2);
+    JOGO_JOGS[jog][IDX_NRMS]  = nrms.size();
+    JOGO_JOGS[jog][IDX_BAKS]  = baks.size();
+    JOGO_JOGS[jog][IDX_MNRMS] = nrm1 * 100 / maxs;
+    JOGO_JOGS[jog][IDX_MBAKS] = bak1 * 100 / maxs;
+    JOGO_JOGS[jog][IDX_INSS]  = inss;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
     int[] cur = seq.get(i);
-    int kmh = cur[2];
+    int kmh = cur[IDX_KMH];
     if (kmh != 0) {     // radar ligado
         return kmh;
     } else {            // radar desligado
@@ -464,7 +502,7 @@ int jogo_kmh (ArrayList<int[]> seq, int i) {
             return 0;
         } else {
             int[] nxt = seq.get(i+1);
-            return min(CONF_VEL_MAX, 36 * CONF_DISTANCIA / (nxt[0] - cur[0]));
+            return min(CONF_VEL_MAX, 36 * CONF_DISTANCIA / (nxt[IDX_NOW] - cur[IDX_NOW]));
         }
     }
 }
@@ -478,11 +516,11 @@ int jogo_quedas_pct () {
 }
 
 int[] jogo_equ () {
-    int p0 = JOGO_JOGS[0][0];
-    int p1 = JOGO_JOGS[1][0];
+    int p0 = JOGO_JOGS[0][IDX_PTS];
+    int p1 = JOGO_JOGS[1][IDX_PTS];
 
-    int n0 = JOGO_JOGS[0][1];
-    int n1 = JOGO_JOGS[1][1];
+    int n0 = JOGO_JOGS[0][IDX_GLP];
+    int n1 = JOGO_JOGS[1][IDX_GLP];
 
     if (CONF_EQUILIBRIO != 0) {
         int pct = max(0, 100-JOGO_TEMPO_PASSADO);
@@ -699,6 +737,7 @@ void setup () {
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
     CONF_MAXIMAS    = CONF.getInt("maximas");    // 5 ataques de cada lado por minuto
+    CONF_INTENSIDADE = CONF.getInt("intensidade"); // 7 golpes continuos
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
@@ -959,7 +998,7 @@ void keyPressed (KeyEvent e) {
 //println(keyCode);
         if (e.isControlDown() && (keyCode == 40)) { // CTRL-DOWN
             go_queda();
-        } else if (keyCode==37 || keyCode==39) { // LEFT/RIGHT
+        } else if (keyCode==37 || keyCode==39) {    // LEFT/RIGHT
             RADAR_AUTO_INICIO = NOW;
             if (ESTADO_JOGANDO.equals("sacando")) {
                 ESTADO_JOGANDO = "jogando";
@@ -967,10 +1006,10 @@ void keyPressed (KeyEvent e) {
             }
 
             int jog = (keyCode == 37) ? 0 : 1;
-            int[] golpe = { NOW, jog, 0, (BACK!=0 && abs(BACK)+500>=NOW)?1:0 };
+            int[] golpe = { NOW, jog, 0, (BACK!=0 && abs(BACK)+500>=NOW)?1:0, 0 };
             BACK = 0;
             if (conf_radar()) {
-                golpe[2] = 30;
+                golpe[IDX_KMH] = 30;
             } else {
                 // golpe[2]=0  -->  radar desligado
             }
@@ -987,7 +1026,7 @@ void keyPressed (KeyEvent e) {
                     prv = jogo_kmh(seq, n-3);
                     int[] xxx = seq.get(n-2);
                     if (kmh>=CONF_VEL_MIN && kmh<prv &&
-                        golpe[1]!=xxx[1] && NOW-750<xxx[0]) {
+                        golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
                     } else {
                         prv = 0;
                     }
@@ -1003,9 +1042,9 @@ void keyPressed (KeyEvent e) {
                 int n = seq.size();
                 if (n > 0) {
                     int[] xxx = seq.get(n-1);
-                    if (xxx[1]==0 && BACK<0 || xxx[1]==1 && BACK>0) {
-                        if (abs(BACK)-500 < xxx[0]) {
-                            xxx[3] = 1;
+                    if (xxx[IDX_JOG]==0 && BACK<0 || xxx[IDX_JOG]==1 && BACK>0) {
+                        if (abs(BACK)-500 < xxx[IDX_NOW]) {
+                            xxx[IDX_BAK] = 1;
                         }
                     }
                 }
@@ -1048,20 +1087,20 @@ void draw () {
                     boolean back = (RADAR_MOCK && (int(random(5))==0)) ||
                                    (BACK!=0 && abs(BACK)+500>=NOW &&
                                     (jog==0 && BACK<0 || jog==1 && BACK>0));
-                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, back?1:0 };
+                    int[] golpe = { NOW, (kmh_>0 ? LADO_RADAR : (1-LADO_RADAR)), kmh, back?1:0, 0 };
                     BACK = 0;
                     ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
                     int n = seq.size();
                     int prv = 0;
                     if (n > 0) {
                         int[] xxx = seq.get(n-1);
-                        if (kmh>=CONF_VEL_MIN && kmh<xxx[2] &&
-                            golpe[1]!=xxx[1] && NOW-750<xxx[0]) {
-                            prv = xxx[2];
+                        if (kmh>=CONF_VEL_MIN && kmh<xxx[IDX_KMH] &&
+                            golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
+                            prv = xxx[IDX_KMH];
                         }
                     }
                     sound(kmh, prv);
-                    seq.add(golpe);     // golpe[2]!=0  -->  radar ligado
+                    seq.add(golpe);     // golpe[IDX_KMH]!=0  -->  radar ligado
                 }
             }
             if (RADAR_AUTO && kmh_!=0) {
@@ -1273,12 +1312,12 @@ void draw_jogo () {
             }
 
             int[] golpe = seq.get(seq.size()-i); // millis/jog/kmh
-            if (golpe[1] == jog) {
+            if (golpe[IDX_JOG] == jog) {
                 // mesmo jogador deu os ultimos dois golpes
             } else {
-                jog = golpe[1];
-                if (NOW <= golpe[0]+GOLPE_DELAY) {
-                    int kmh = golpe[2];
+                jog = golpe[IDX_JOG];
+                if (NOW <= golpe[IDX_NOW]+GOLPE_DELAY) {
+                    int kmh = golpe[IDX_KMH];
                     if (kmh == 0) {
                         int xxx = seq.size() - i - 1;
                         if (xxx >= 0) {
@@ -1297,7 +1336,7 @@ void draw_jogo () {
                         }
                     }
                 }
-                if (NOW <= golpe[0]+500) {
+                if (NOW <= golpe[IDX_NOW]+500) {
                     stroke(color(0,0,255));
                     strokeWeight(10*dy);
                     if (jog == ZER) {
@@ -1345,8 +1384,8 @@ void draw_jogo () {
         }
     }
 
-    draw_lado(0.625*W, ZER);
-    draw_lado(7.625*W, ONE);
+    draw_lado(0*W, ZER);
+    draw_lado(7*W, ONE);
 
     {
         fill(0);
@@ -1451,8 +1490,8 @@ void draw_lado (float x, int jog) {
     int[] JOG = JOGO_JOGS[jog];
     float X = 1.25*W;
 
-    image(IMG_GOLPES, x, 5.875*H+ 5*dy);
-    image(IMG_BAND,   x, 7.125*H+10*dy);
+    image(IMG_GOLPES, x+W/2, 5.875*H+ 5*dy);
+    image(IMG_BAND,   x+W/2, 7.125*H+10*dy);
 
     // GOLPES
 
@@ -1460,15 +1499,22 @@ void draw_lado (float x, int jog) {
     textAlign(CENTER, CENTER);
     textSize(65*dy);
     int glps = conf_golpes(jog);
-    if (glps>0 && JOG[1]>=glps) {       // golpes vs limite
+    if (glps>0 && JOG[IDX_GLP]>=glps) {       // golpes vs limite
         fill(0,200,0);
     }
-    text(JOG[1], x+X, 5.875*H);         // golpes
+    text(JOG[IDX_GLP], x+2*W, 5.875*H);       // golpes
     fill(150,150,150);
     textSize(20*dy);
-    float w1 = textWidth(str(JOG[1]));  // golpes
+    float w1 = textWidth(str(JOG[IDX_GLP]));  // golpes
     textAlign(TOP, LEFT);
-    text("/"+glps, x+X+w1+10*dx, 5.875*H+30*dy);  // limite
+    text("/"+glps, x+2*W+w1+10*dx, 5.875*H+30*dy);  // limite
+
+    if (CONF_INTENSIDADE != 0) {
+        textSize(20*dy);
+        textAlign(TOP, LEFT);
+        text("+"+JOG[IDX_INSS], x+2*W+w1+15*dx, 5.875*H); // intensidade
+    }
+
 
     // MAXIMAS
 
@@ -1479,16 +1525,16 @@ void draw_lado (float x, int jog) {
             textAlign(CENTER, CENTER);
             textSize(40*dy);
             float y = (i==7) ? 5.625 : 6.125;
-            if (JOG[i]>=atas) {             // backs vs limite
+            if (JOG[i]>=atas) {         // backs vs limite
                 fill(0,200,0);
             }
             int N = min(atas,JOG[i]);
-            text(N, x+X+X, y*H);            // golpes
+            text(N, x+3.5*W, y*H);      // golpes
             fill(150,150,150);
             textSize(15*dy);
-            float w2 = textWidth(str(N));   // golpes
+            float w2 = textWidth(str(N)); // golpes
             textAlign(TOP, LEFT);
-            text("/"+atas, x+X+X+w2+10*dx, y*H+20*dy);  // limite
+            text("/"+atas, x+3.5*W+w2+10*dx, y*H+20*dy); // limite
         }
     }
 
@@ -1501,26 +1547,26 @@ void draw_lado (float x, int jog) {
     // EQUILIBRIO
 
     if (CONF_EQUILIBRIO != 0) {
-        int jog1 = JOGO_JOGS[1-jog][0];
+        int jog1 = JOGO_JOGS[1-jog][IDX_PTS];
         boolean ok = true;
         int clr = color(0);
-        if (jog1>JOG[0]*CONF_EQUILIBRIO/100) {
+        if (jog1>JOG[IDX_PTS]*CONF_EQUILIBRIO/100) {
             clr = color(255,0,0);
             fill(255,0,0);
             ok = false;
-        } else if (jog1>JOG[0]*(100+(CONF_EQUILIBRIO-100)/2)/100) {
+        } else if (jog1>JOG[IDX_PTS]*(100+(CONF_EQUILIBRIO-100)/2)/100) {
             fill(255,150,0);
             ok = false;
         }
         if (!ok) {
-            int pct = (JOG[0]==0) ? 100 : min(100, jog1*100/JOG[0] - 100);
+            int pct = (JOG[IDX_PTS]==0) ? 100 : min(100, jog1*100/JOG[IDX_PTS] - 100);
             textSize(30*dy);
-            text("↓"+pct+"%", x+X+X, 7.125*H);
+            text("↓"+pct+"%", x+3.5*W, 7.125*H);
             textSize(65*dy);
         }
         fill(clr);
     }
-    text(JOG[0], x+X, 7.125*H);
+    text(JOG[IDX_PTS], x+2*W, 7.125*H);
 }
 
 void draw_lado_medias (float x, int jog) {
@@ -1549,19 +1595,19 @@ void draw_lado_medias (float x, int jog) {
 
     // min / max
     textSize(40*dy);
-    text(JOG[4], x1, h*H-H/3);
-    text(JOG[3], x1, h*H+H/3);
+    text(JOG[IDX_MAX], x1, h*H-H/3);
+    text(JOG[IDX_MIN], x1, h*H+H/3);
 
     // 75+/75-
     textSize(40*dy);
-    text(JOG[6]/100, x2, h*H-H/3);
-    text(JOG[5]/100, x2, h*H+H/3);
+    text(JOG[IDX_MMAX]/100, x2, h*H-H/3);
+    text(JOG[IDX_MMIN]/100, x2, h*H+H/3);
 
     // nrm/inv
     if (CONF_MAXIMAS != 0) {
         textSize(40*dy);
-        text(JOG[9]/100,  x3, h*H-H/3);
-        text(JOG[10]/100, x3, h*H+H/3);
+        text(JOG[IDX_MNRMS]/100,  x3, h*H-H/3);
+        text(JOG[IDX_MBAKS]/100, x3, h*H+H/3);
     }
 
     textSize(15*dy);
