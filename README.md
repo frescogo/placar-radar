@@ -61,6 +61,7 @@ CTRL-1           edita o nome do atleta à esquerda
 CTRL-2           edita o nome do atleta à direita
 CTRL-I           inverte a posição dos atletas
 
+CTRL-V           alterna entre a regra 5 e 4
 CTRL-S           grava (salva) novamente o placar e relatório
 CTRL-A           liga ou desliga o modo autônomo de detecção de quedas
 CTRL-M           alterna entre modo de jogo e depuração
@@ -76,8 +77,8 @@ ser ajustadas, conforme descrito a seguir:
 {
     "tempo":      300,            ; tempo total de jogo (300s)
     "distancia":  750,            ; distância considerada no modo manual (750cm)
-    "golpes":     60,             ; quantidade de golpes por minuto (60 golpes da dupla)
-    "ataques":    10,             ; ataques de cada lado por minuto (10 ataques da dupla)
+    "golpes":     60,             ; máximos de golpes por minuto (30 por atleta)
+    "maximas":    10,             ; máximos ataques de cada lado por minuto (5 por atleta)
     "equilibrio": 130,            ; limite da maior pontuação relativa à menor (0=desligado, 130=130%)
     "minima":     50,             ; velocidade mínima de um golpe pontuável (50km/h)
     "maxima":     85,             ; velocidade máxima no modo manual (85km/h)

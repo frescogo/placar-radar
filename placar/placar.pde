@@ -1,4 +1,4 @@
-///opt/processing-3.5.3/processing-java --sketch=/data/frescogo/placar/placar --run
+// /opt/processing-3.5.4/processing-java --sketch=/x/frescogo/placar-radar/placar --run
 // - EXE: mock/auto/timeout=false/false/5000, fullscreen
 // - pkill -9 -f processing
 
@@ -49,7 +49,7 @@ int         CONF_GOLPES;
 int         CONF_EQUILIBRIO;
 int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
-int         CONF_ATAQUES;
+int         CONF_MAXIMAS;
 int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_TREGUA;
@@ -67,7 +67,6 @@ int         RADAR_OPOSI;
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
 String      CONF_SERIAL;
-String      CONF_PARS;
 
 PImage      IMG1, IMG2;
 PImage      IMG_SPEED;
@@ -118,6 +117,15 @@ String ns (String str, int n) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+String conf_pars () {
+    return "v" + VERSAO + " / " +
+           (OLD4 ? "regra 4" : "regra 5") + " / " +
+           (CONF_TRINCA ? "trinca" : "dupla") + " / " +
+           (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
+           (CONF_MAXIMAS==0 ? "-atas" : "+atas") + " / " +
+           CONF_TEMPO   + "s";
+}
+
 int conf_tempo () {
     return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO);
 }
@@ -134,15 +142,15 @@ int conf_golpes (int jog) {
     }
 }
 
-int conf_ataques (int jog) {
+int conf_maximas (int jog) {
     if (CONF_TRINCA) {
         if (jog == LADO_PIVO) {
             return 0;
         } else {
-            return max(1, conf_tempo() * CONF_ATAQUES / 60);
+            return max(1, conf_tempo() * CONF_MAXIMAS / 60);
         }
     } else {
-        return max(1, conf_tempo() * CONF_ATAQUES / 60 / 2);
+        return max(1, conf_tempo() * CONF_MAXIMAS / 60 / 2);
     }
 }
 
@@ -257,7 +265,7 @@ void go_termino () {
         int[] ps = jogo_equ();
 
         String out = ns("Data:",          15) + ts + "\n"
-                   + ns("Versão:",        15) + CONF_PARS + "\n"
+                   + ns("Versão:",        15) + conf_pars() + "\n"
                    //+ "\n"
                    //+ ns("Descanso:",      15) + (JOGO_DESCANSO_TOTAL/1000) + "\n"
                    //+ ns("Quedas:",        15) + jogo_quedas() + manual + "\n"
@@ -358,7 +366,7 @@ void _jogo_lado (int jog) {
                     kmhs.append(kmh);
 
                     // ataque nrm/bak valido?
-                    if (CONF_ATAQUES!=0 && j>0) { // precisa de golpe anterior
+                    if (CONF_MAXIMAS!=0 && j>0) { // precisa de golpe anterior
                         int[] prev = seq.get(j-1);
                         int kmh2 = jogo_kmh(seq,j-1);
                         // se passou 1s || repetiu jog || 20% mais forte
@@ -408,24 +416,18 @@ void _jogo_lado (int jog) {
     }
 
     // BAKS+NRMS
-    int atas = conf_ataques(jog);
     int nrm1 = 0;
-    for (int i=0; i<min(atas,nrms.size()); i++) {
-        int nrm = min(100,nrms.get(i)); // >100 probably error
-        nrm1 += nrm;
-        if (OLD4) {
-            // no atas
-        } else {
+    int bak1 = 0;
+    int maxs = conf_maximas(jog);
+    if (!OLD4 && CONF_MAXIMAS!=0) {
+        for (int i=0; i<min(maxs,nrms.size()); i++) {
+            int nrm = min(100,nrms.get(i)); // >100 probably error
+            nrm1 += nrm;
             sum2 += nrm*(50+nrm)/100;
         }
-    }
-    int bak1 = 0;
-    for (int i=0; i<min(atas,baks.size()); i++) {
-        int bak = min(100,baks.get(i)); // >100 probably error
-        bak1 += bak;
-        if (OLD4) {
-            // no atas
-        } else {
+        for (int i=0; i<min(maxs,baks.size()); i++) {
+            int bak = min(100,baks.get(i)); // >100 probably error
+            bak1 += bak;
             sum2 += bak*(50+bak)/100;
         }
     }
@@ -448,8 +450,8 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][6] = sumMax * 100 / max(1,glps/2);
     JOGO_JOGS[jog][7] = nrms.size();
     JOGO_JOGS[jog][8] = baks.size();
-    JOGO_JOGS[jog][9] = nrm1 * 100 / atas;
-    JOGO_JOGS[jog][10] = bak1 * 100 / atas;
+    JOGO_JOGS[jog][9] = nrm1 * 100 / maxs;
+    JOGO_JOGS[jog][10] = bak1 * 100 / maxs;
 }
 
 int jogo_kmh (ArrayList<int[]> seq, int i) {
@@ -673,9 +675,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -696,7 +698,7 @@ void setup () {
     CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
-    CONF_ATAQUES    = CONF.getInt("ataques");    // 6 ataques de cada lado por minuto
+    CONF_MAXIMAS    = CONF.getInt("maximas");    // 5 ataques de cada lado por minuto
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
@@ -782,12 +784,6 @@ void setup () {
             //exit();
         }
     }
-
-    CONF_PARS = "v" + VERSAO + " / " +
-                (CONF_TRINCA ? "trinca" : "dupla") + " / " +
-                (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-                (CONF_ATAQUES==0 ? "-atas" : "+atas") + " / " +
-                CONF_TEMPO   + "s";
 
     go_reinicio();
 }
@@ -999,7 +995,7 @@ void keyPressed (KeyEvent e) {
             }
 
             sound(kmh, prv);
-        } else if (CONF_ATAQUES!=0 && (keyCode=='Z' || keyCode=='M')) {
+        } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = (keyCode=='Z' ? -NOW : NOW);
             if (conf_radar()) {
@@ -1237,7 +1233,7 @@ void draw_jogo () {
     }
     textSize(18*dy);
     textAlign(CENTER, TOP);
-    text("("+CONF_PARS+")", width/2, 0);
+    text("("+conf_pars()+")", width/2, 0);
     if (INV) {
         text("inv", width/2, 30*dy);
     }
@@ -1394,11 +1390,7 @@ void draw_jogo () {
         image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H-10*dy);
 
         // TOTAL
-        if (OLD4) {
-            fill(255,100,100);
-        } else {
-            fill(255);
-        }
+        fill(255);
         textSize(140*dy);
         textAlign(CENTER, CENTER);
         text(JOGO_TOTAL, width/2, 7*H-15*dy);
@@ -1478,10 +1470,10 @@ void draw_lado (float x, int jog) {
     textAlign(TOP, LEFT);
     text("/"+glps, x+X+w1+10*dx, 5.875*H+30*dy);  // limite
 
-    // ATAQUES
+    // MAXIMAS
 
-    if (CONF_ATAQUES > 0) {
-        int atas = conf_ataques(jog);
+    if (!OLD4 && CONF_MAXIMAS!=0) {
+        int atas = conf_maximas(jog);
         for (int i=7; i<=8; i++) {
             fill(0);
             textAlign(CENTER, CENTER);
@@ -1566,7 +1558,7 @@ void draw_lado_medias (float x, int jog) {
     text(JOG[5]/100, x2, h*H+H/3);
 
     // nrm/inv
-    if (CONF_ATAQUES != 0) {
+    if (CONF_MAXIMAS != 0) {
         textSize(40*dy);
         text(JOG[9]/100,  x3, h*H-H/3);
         text(JOG[10]/100, x3, h*H+H/3);
@@ -1581,7 +1573,7 @@ void draw_lado_medias (float x, int jog) {
     text(glps+"+", x2, h*H-H/3+35*dy);
     text(glps+"-", x2, h*H+H/3+35*dy);
 
-    if (CONF_ATAQUES != 0) {
+    if (CONF_MAXIMAS != 0) {
         text("dir", x3, h*H-H/3+35*dy);
         text("esq", x3, h*H+H/3+35*dy);
     }
