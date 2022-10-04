@@ -387,7 +387,7 @@ void _jogo_lado_ins (ArrayList<int[]> seq, IntList inss) {
     for (int i=0; i<inss.size(); i++) {
         int I = inss.get(i);
         int kmh = jogo_kmh(seq, I);
-        if (kmh == kmhs.get(CONF_INTENSIDADE-1)) {
+        if (kmh == kmhs.get(CONF_INTENSIDADE/2)) {
             seq.get(I)[IDX_INS] = 1;
             break;
         }
@@ -447,11 +447,22 @@ void _jogo_lado (int jog) {
                 boolean ok1 = (j<=0 || prev1[IDX_JOG]==jog);
                 boolean ok2 = (j<=1 || prev2[IDX_JOG]==jog);
                 if ((n==0 || (ok0 && (ok1 || ok2))) && kmh>=CONF_VEL_MIN) {
+                    if (inss.size() == 2*CONF_INTENSIDADE-1) {
+                        IntList tmp = new IntList();
+                        int z = inss.size();
+                        for (int k=CONF_INTENSIDADE; k<z; k++) {
+                            tmp.append(inss.get(CONF_INTENSIDADE));
+                            inss.remove(CONF_INTENSIDADE);
+                        }
+                        ninss++;
+                        _jogo_lado_ins(seq, inss);
+                        inss = tmp;
+                    }
                     inss.append(j);
                     inss_now = golpe[IDX_NOW];
                 } else {
                     if (inss.size() >= CONF_INTENSIDADE) {
-                        ninss += inss.size() / CONF_INTENSIDADE;
+                        ninss++;
                         _jogo_lado_ins(seq, inss);
                     }
                     inss.clear();
