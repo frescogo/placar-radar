@@ -522,7 +522,7 @@ void _jogo_lado (int jog) {
     }
 
     // INTENSIDADE
-    if (!ODL4 && CONF_INTENSIDADE!=0) {
+    if (!OLD4 && CONF_INTENSIDADE!=0) {
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
             for (int j=0; j<seq.size(); j++) {
@@ -841,6 +841,10 @@ void setup () {
 
     if (CONF_TRINCA) {
         CONF_EQUILIBRIO = 0;
+    }
+
+    if (RADAR_MOCK && CONF_INTENSIDADE!=0) {
+        CONF_INTENSIDADE = 4;
     }
 
     SNDS[0] = new SoundFile(this,"snds/fall.wav");
