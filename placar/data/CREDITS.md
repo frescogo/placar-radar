@@ -36,3 +36,5 @@
     - <https://freesound.org/people/MATRIXXX_/sounds/453060/>
 - `guitar`
     - <https://freesound.org/people/mikey_eff/sounds/97224/>
+- `bonus.wav`
+    - <https://freesound.org/people/jivatma07/sounds/173858/>

@@ -40,7 +40,7 @@ int         KEY_TIMER_EXPIRE = 2000;
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
-SoundFile[] SNDS = new SoundFile[7];
+SoundFile[] SNDS = new SoundFile[8];
 SoundFile[] HITS = new SoundFile[7];
 
 int         CONF_TEMPO;
@@ -86,7 +86,9 @@ String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
 String      ESTADO_JOGANDO;            // sacando, jogando
 
-int         INS_DIFF = 1500;    // maximo intervalo entre golpes continuos
+int         INSS_DIFF = 1500;    // maximo intervalo entre golpes continuos
+int         INSS_SOUND_NEW = 0;
+int         INSS_SOUND_OLD = 0;
 
 boolean     INV = false;
 int         ZER = 0;
@@ -218,6 +220,7 @@ void go_reinicio () {
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
     JOGO_TEMPO_INICIO       = millis();
+    INSS_SOUND_NEW = INSS_SOUND_OLD = 0;
     SNDS[1].play();
 }
 
@@ -443,7 +446,7 @@ void _jogo_lado (int jog) {
             if (CONF_INTENSIDADE != 0) {
                 golpe[IDX_INS] = 0;   // zera ins
                 int n = inss.size();
-                boolean ok0 = (golpe[IDX_NOW] <= inss_now+INS_DIFF);
+                boolean ok0 = (golpe[IDX_NOW] <= inss_now+INSS_DIFF);
                 boolean ok1 = (j<=0 || prev1[IDX_JOG]==jog);
                 boolean ok2 = (j<=1 || prev2[IDX_JOG]==jog);
                 if ((n==0 || (ok0 && (ok1 || ok2))) && kmh>=CONF_VEL_MIN) {
@@ -460,6 +463,12 @@ void _jogo_lado (int jog) {
                     }
                     inss.append(j);
                     inss_now = golpe[IDX_NOW];
+                    if (inss.size() == CONF_INTENSIDADE) {
+                        int s = i*100 + j;
+                        if (s > INSS_SOUND_NEW) {
+                            INSS_SOUND_NEW = s;
+                        }
+                    }
                 } else {
                     if (inss.size() >= CONF_INTENSIDADE) {
                         ninss++;
@@ -473,7 +482,7 @@ void _jogo_lado (int jog) {
             }
         }
         if (inss.size() >= CONF_INTENSIDADE) {
-            ninss += inss.size() / CONF_INTENSIDADE;
+            ninss++;
             _jogo_lado_ins(seq, inss);
         }
     }
@@ -811,7 +820,7 @@ void setup () {
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
     CONF_MAXIMAS    = CONF.getInt("maximas");    // 5 ataques de cada lado por minuto
-    CONF_INTENSIDADE = CONF.getInt("intensidade"); // 7 golpes continuos
+    CONF_INTENSIDADE = CONF.getInt("intensidade"); // 10 golpes continuos
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
@@ -841,6 +850,7 @@ void setup () {
     SNDS[4] = new SoundFile(this,"snds/undo.wav");
     SNDS[5] = new SoundFile(this,"snds/start.wav");
     SNDS[6] = new SoundFile(this,"snds/clap.wav");
+    SNDS[7] = new SoundFile(this,"snds/bonus.wav");
     //SNDS[6] = new SoundFile(this,"snds/zip.aiff");
     //SNDS[6] = new SoundFile(this,"behind.wav");
 
@@ -1198,6 +1208,11 @@ void draw () {
     }
 
     jogo_calc();
+    if (INSS_SOUND_NEW > INSS_SOUND_OLD) {
+        INSS_SOUND_OLD = INSS_SOUND_NEW;
+//println("ok");
+        SNDS[7].play();
+    }
     draw_jogo();
 }
 
