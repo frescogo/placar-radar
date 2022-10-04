@@ -481,7 +481,7 @@ void _jogo_lado (int jog) {
                 }
             }
         }
-        if (inss.size() >= CONF_INTENSIDADE) {
+        if (CONF_INTENSIDADE!=0 && inss.size()>=CONF_INTENSIDADE) {
             ninss++;
             _jogo_lado_ins(seq, inss);
         }
@@ -522,7 +522,7 @@ void _jogo_lado (int jog) {
     }
 
     // INTENSIDADE
-    if (CONF_INTENSIDADE != 0) {
+    if (!ODL4 && CONF_INTENSIDADE!=0) {
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
             for (int j=0; j<seq.size(); j++) {
@@ -1208,7 +1208,7 @@ void draw () {
     }
 
     jogo_calc();
-    if (INSS_SOUND_NEW > INSS_SOUND_OLD) {
+    if (!OLD4 && INSS_SOUND_NEW>INSS_SOUND_OLD) {
         INSS_SOUND_OLD = INSS_SOUND_NEW;
 //println("ok");
         SNDS[7].play();
@@ -1598,7 +1598,7 @@ void draw_lado (float x, int jog) {
     textAlign(TOP, LEFT);
     text("/"+glps, x+2*W+w1+10*dx, 5.875*H+30*dy);  // limite
 
-    if (CONF_INTENSIDADE != 0) {
+    if (!OLD4 && CONF_INTENSIDADE!=0) {
         textSize(20*dy);
         textAlign(TOP, LEFT);
         text("+"+JOG[IDX_INSS], x+2*W+w1+15*dx, 5.875*H); // intensidade
