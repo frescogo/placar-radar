@@ -23,5 +23,6 @@
     "imagem1":      "data/fresco-radar.png",
     "imagem2":      "data/fresco-radar.png",
     "arbitro":      "Árbitro",
+    "regra":        4,
     "serial":       ""
 }

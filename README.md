@@ -99,6 +99,7 @@ ser ajustadas, conforme descrito a seguir:
     "imagem1":    "data/esq.png", ; imagem à esquerda da tela
     "imagem2":    "data/dir.png", ; imagem à direita da tela
     "arbitro":    "Árbitro",      ; nome do árbitro
+    "regra":      4,              ; regra de aferição (4 ou 5)
     "serial":     ""              ; porta serial do radar ("" = maior detectada)
 }
 ```

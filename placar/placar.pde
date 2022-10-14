@@ -23,7 +23,6 @@ String      VERSAO   = MAJOR + "." + MINOR + "." + REVISION;
 JSONObject  CONF;
 int         NOW;
 int         MODO = 0;      // 0=jogo, 1=debug
-boolean     OLD4 = false;  // true = regra 4 antiga
 
 Serial      RADAR;
 int         RADAR_ERR  = 0;
@@ -67,6 +66,7 @@ int         RADAR_OPOSI;
 
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[3];
+int         CONF_REGRA;
 String      CONF_SERIAL;
 
 PImage      IMG1, IMG2;
@@ -146,10 +146,10 @@ String ns (String str, int n) {
 
 String conf_pars () {
     return "v" + VERSAO + " / " +
-           (OLD4 ? "regra 4" : "regra 5") + " / " +
+           "regra " + CONF_REGRA + " / " +
            (CONF_TRINCA ? "trinca" : "dupla") + " / " +
            (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-           (OLD4 ? "" : (CONF_MAXIMAS==0 ? "-maxs" : "+maxs") + " / ") +
+           (CONF_REGRA==4 ? "" : (CONF_MAXIMAS==0 ? "-maxs" : "+maxs") + " / ") +
            CONF_TEMPO   + "s";
 }
 
@@ -499,7 +499,7 @@ void _jogo_lado (int jog) {
     for (int i=0; i<N; i++) {
         int cur = kmhs.get(i);
         sum1 += cur;
-        if (OLD4) {
+        if (CONF_REGRA == 4) {
             sum2 += cur*cur/50;
         } else {
             sum2 += cur*(50+cur)/100;
@@ -522,7 +522,7 @@ void _jogo_lado (int jog) {
     }
 
     // INTENSIDADE
-    if (!OLD4 && CONF_INTENSIDADE!=0) {
+    if (CONF_REGRA==5 && CONF_INTENSIDADE!=0) {
         for (int i=0; i<JOGO.size(); i++) {
             ArrayList<int[]> seq = JOGO.get(i);
             for (int j=0; j<seq.size(); j++) {
@@ -539,7 +539,7 @@ void _jogo_lado (int jog) {
     int nrm1 = 0;
     int bak1 = 0;
     int maxs = conf_maximas(jog);
-    if (!OLD4 && CONF_MAXIMAS!=0) {
+    if (CONF_REGRA==5 && CONF_MAXIMAS!=0) {
         for (int i=0; i<min(maxs,nrms.size()); i++) {
             int nrm = min(100,nrms.get(i)); // >100 probably error
             nrm1 += nrm;
@@ -837,6 +837,7 @@ void setup () {
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";
     CONF_NOMES[2]   = CONF.getString("arbitro");
+    CONF_REGRA      = CONF.getInt("regra");         // 4, 5
     CONF_SERIAL     = CONF.getString("serial");     // ""=auto, "desligado", "/dev/ttyUSB0"
 
     if (CONF_TRINCA) {
@@ -1019,7 +1020,11 @@ void keyPressed (KeyEvent e) {
             ONE = 1 - ONE;
         } else if (keyCode == 'V') {            // CTRL-V
             SNDS[4].play();
-            OLD4 = !OLD4;
+            if (CONF_REGRA == 4) {
+                CONF_REGRA = 5;
+            } else {
+                CONF_REGRA = 4;
+            }
         }
     }
 
@@ -1212,7 +1217,7 @@ void draw () {
     }
 
     jogo_calc();
-    if (!OLD4 && INSS_SOUND_NEW>INSS_SOUND_OLD) {
+    if (CONF_REGRA==5 && INSS_SOUND_NEW>INSS_SOUND_OLD) {
         INSS_SOUND_OLD = INSS_SOUND_NEW;
 //println("ok");
         SNDS[7].play();
@@ -1602,7 +1607,7 @@ void draw_lado (float x, int jog) {
     textAlign(TOP, LEFT);
     text("/"+glps, x+2*W+w1+10*dx, 5.875*H+30*dy);  // limite
 
-    if (!OLD4 && CONF_INTENSIDADE!=0) {
+    if (CONF_REGRA==5 && CONF_INTENSIDADE!=0) {
         textSize(20*dy);
         textAlign(TOP, LEFT);
         text("+"+JOG[IDX_INSS], x+2*W+w1+15*dx, 5.875*H); // intensidade
@@ -1611,7 +1616,7 @@ void draw_lado (float x, int jog) {
 
     // MAXIMAS
 
-    if (!OLD4 && CONF_MAXIMAS!=0) {
+    if (CONF_REGRA==5 && CONF_MAXIMAS!=0) {
         int atas = conf_maximas(jog);
         for (int i=7; i<=8; i++) {
             fill(0);
