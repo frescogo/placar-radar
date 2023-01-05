@@ -82,7 +82,7 @@ PImage      IMG_RAQUETE;
 
 int         GOLPE_DELAY = 1500; //99999; //1500;
 
-String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminado
+String      ESTADO = "ocioso";         // ocioso, digitando, jogando, terminando, terminado
 int         ESTADO_DIGITANDO = 255;    // 0=esq, 1=dir, 2=arbitro
 String      ESTADO_JOGANDO;            // sacando, jogando
 
@@ -245,8 +245,7 @@ void go_queda () {
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
     if (jogo_quedas() >= conf_aborta()) {
-        delay(1000);
-        go_termino();
+        go_terminando();
     } else {
         SNDS[0].play();
         if (RADAR_AUTO) {
@@ -256,7 +255,11 @@ void go_queda () {
     }
 }
 
-void go_termino () {
+void go_terminando () {
+    ESTADO = "terminando";
+}
+
+ void go_termino () {
     ESTADO = "terminado";
     SNDS[3].play();
     if (JOGO_TOTAL > CONF_RECORDE) {
@@ -1013,7 +1016,7 @@ void keyPressed (KeyEvent e) {
             ESQUENTA = false;
             go_reinicio();
         } else if (keyCode == 'S') {            // CTRL-S
-            go_termino();
+            go_terminando();
         } else if (keyCode == 'I') {            // CTRL-I
             INV = !INV;
             ZER = 1 - ZER;
@@ -1212,8 +1215,10 @@ void draw () {
         }
         JOGO_TEMPO_RESTANTE_OLD = JOGO_TEMPO_RESTANTE;
         if (JOGO_TEMPO_RESTANTE <= 0) {
-            go_termino();
+            go_terminando();
         }
+    } else if (ESTADO.equals("terminando")) {
+        go_termino();
     }
 
     jogo_calc();
