@@ -2,7 +2,7 @@
     "tempo":        300,
     "distancia":    750,
     "golpes":       60,
-    "maximas":      10,
+    "maximas":      0,
     "intensidade":  10,
     "equilibrio":   130,
     "minima":       50,
