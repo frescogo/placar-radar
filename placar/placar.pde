@@ -149,7 +149,11 @@ String conf_pars () {
            "regra " + CONF_REGRA + " / " +
            (CONF_TRINCA ? "trinca" : "dupla") + " / " +
            (conf_radar() ? "radar" : CONF_DISTANCIA + "cm") + " / " +
-           (CONF_REGRA==4 ? "" : (CONF_MAXIMAS==0 ? "-maxs" : "+maxs") + " / ") +
+           (CONF_REGRA==4 ?
+                "" :
+                (CONF_MAXIMAS    ==0 ? "-maxs" : "+maxs") + "/" +
+                (CONF_INTENSIDADE==0 ? "-ints" : "+ints") + " / "
+           ) +
            CONF_TEMPO   + "s";
 }
 
