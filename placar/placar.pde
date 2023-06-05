@@ -168,10 +168,10 @@ int conf_golpes (int jog) {
         if (jog == LADO_PIVO) {
             return 0;
         } else {
-            return max(1, conf_tempo() * CONF_GOLPES / 60);
+            return max(1, CONF_TEMPO * CONF_GOLPES / 60);
         }
     } else {
-        return max(1, conf_tempo() * CONF_GOLPES / 60 / 2);
+        return max(1, CONF_TEMPO * CONF_GOLPES / 60 / 2);
     }
 }
 
@@ -180,10 +180,10 @@ int conf_maximas (int jog) {
         if (jog == LADO_PIVO) {
             return 0;
         } else {
-            return max(1, conf_tempo() * CONF_MAXIMAS / 60);
+            return max(1, CONF_TEMPO * CONF_MAXIMAS / 60);
         }
     } else {
-        return max(1, conf_tempo() * CONF_MAXIMAS / 60 / 2);
+        return max(1, CONF_TEMPO * CONF_MAXIMAS / 60 / 2);
     }
 }
 
@@ -325,7 +325,7 @@ void go_terminando () {
         BufferedWriter bw = new BufferedWriter(fw);
         PrintWriter    pw = new PrintWriter(bw);
         pw.write (
-            ts + " ; " + JOGO_JOGS[3] + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
+            ts + " ; " + CONF_NOMES[3] + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
             CONF_NOMES[0] + " ; " + JOGO_JOGS[0][IDX_PTS] + " ; " + JOGO_JOGS[0][IDX_GLP] + " ; " + (float(JOGO_JOGS[0][IDX_MED])/100) + " ; " +
             CONF_NOMES[1] + " ; " + JOGO_JOGS[1][IDX_PTS] + " ; " + JOGO_JOGS[1][IDX_GLP] + " ; " + (float(JOGO_JOGS[1][IDX_MED])/100) + " ; " +
             "\n"
@@ -804,7 +804,7 @@ void setup () {
     CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
     CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
-    CONF_MAXIMAS    = CONF.getInt("maximas");    // 5 ataques de cada lado por minuto
+    CONF_MAXIMAS    = CONF.getInt("maximas");    // 10=5 ataques de cada lado por minuto
     CONF_INTENSIDADE = CONF.getInt("intensidade"); // 10 golpes continuos
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
