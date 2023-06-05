@@ -64,8 +64,8 @@ int         RADAR_IGUAL;
 int         RADAR_OPOSI;
 
 int         CONF_RECORDE;
-String[]    CONF_NOMES = new String[3];
 int         CONF_REGRA;
+String[]    CONF_NOMES = new String[4]; // 0=esq, 1=dir, 2=arb, 3=pre
 String      CONF_SERIAL;
 
 PImage      IMG1, IMG2;
@@ -830,6 +830,7 @@ void setup () {
     CONF_NOMES[0]   = "Atleta 1";
     CONF_NOMES[1]   = "Atleta 2";
     CONF_NOMES[2]   = CONF.getString("arbitro");
+    CONF_NOMES[3]   = CONF.getString("prefixo");
     CONF_REGRA      = CONF.getInt("regra");         // 4, 5
     CONF_SERIAL     = CONF.getString("serial");     // ""=auto, "desligado", "/dev/ttyUSB0"
 
@@ -1052,6 +1053,10 @@ void keyPressed (KeyEvent e) {
                 ESTADO = "digitando";
                 ESTADO_DIGITANDO = 2;
                 CONF_NOMES[2] = "";
+            } else if (keyCode == '9') {        // CTRL-9
+                ESTADO = "digitando";
+                ESTADO_DIGITANDO = 3;
+                CONF_NOMES[3] = "";
             } else if (keyCode == '1') {        // CTRL-1
                 ESTADO = "digitando";
                 ESTADO_DIGITANDO = 0;
@@ -1075,6 +1080,9 @@ void keyPressed (KeyEvent e) {
                 break;
             case 2: // DIGITANDO ARBITRO
                 trata_nome(2, "arbitro");
+                break;
+            case 3: // DIGITANDO PREFIXO
+                trata_nome(3, "prefixo");
                 break;
         }
     } else if (ESTADO.equals("jogando")) {
@@ -1491,9 +1499,21 @@ void draw_jogo () {
         }
         textSize(20*dy);
         textAlign(CENTER, TOP);
-        text(nome, width/2, 5*H+12*dy);
+        text(nome, width/2-0.75*W, 5*H+12*dy);
         float w1 = textWidth(nome);
-        image(IMG_APITO, width/2-w1/2-15*dx, 5*H+20*dy);
+        image(IMG_APITO, width/2-0.75*W-w1/2-15*dx, 5*H+20*dy);
+
+        // prefixo
+        String pre = CONF_NOMES[3];
+        if (ESTADO_DIGITANDO != 3) {
+            fill(150,150,150);
+        } else {
+            fill(255,0,0);
+            pre = pre + "_";
+        }
+        textSize(20*dy);
+        textAlign(CENTER, TOP);
+        text(pre, width/2+0.75*W, 5*H+12*dy);
 
         // auto
         if (ESQUENTA) {
@@ -1514,15 +1534,15 @@ void draw_jogo () {
         }
         textSize(35*dy);
         textAlign(CENTER, CENTER);
-        text(CONF_RECORDE, width/2, 6*H-15*dy);
+        text(CONF_RECORDE, width/2, 7.75*H-15*dy);
         float w2 = textWidth(str(CONF_RECORDE));
-        image(IMG_TROFEU, width/2-w2/2-25*dx, 6*H-10*dy);
+        image(IMG_TROFEU, width/2-w2/2-25*dx, 7.75*H-10*dy);
 
         // TOTAL
         fill(255);
         textSize(140*dy);
         textAlign(CENTER, CENTER);
-        text(JOGO_TOTAL, width/2, 7*H-15*dy);
+        text(JOGO_TOTAL, width/2, 6.25*H);
     }
 }
 

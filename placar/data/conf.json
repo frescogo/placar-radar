@@ -22,6 +22,7 @@
     "imagem1":      "data/fresco-radar.png",
     "imagem2":      "data/fresco-radar.png",
     "arbitro":      "Árbitro",
+    "prefixo":      "MIX_AA",
     "regra":        4,
     "serial":       ""
 }
