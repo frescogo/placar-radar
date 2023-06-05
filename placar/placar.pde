@@ -54,7 +54,6 @@ int         CONF_SAQUE;
 boolean     CONF_TRINCA;
 int         CONF_TREGUA;
 int         CONF_QUEDAS;
-int         CONF_ABORTA;
 int         CONF_ESQUENTA;
 int         CONF_DESCANSO;
 
@@ -157,8 +156,16 @@ String conf_pars () {
            CONF_TEMPO   + "s";
 }
 
+int conf_tregua () {
+    return CONF_TREGUA * CONF_TEMPO / 60;    // 1 / 60s
+}
+
+int conf_quedas () {
+    return CONF_QUEDAS * CONF_TEMPO / 60 / 1000;
+}
+
 int conf_tempo () {
-    return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO);
+    return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO+conf_tregua()*conf_quedas());
 }
 
 int conf_golpes (int jog) {
@@ -183,18 +190,6 @@ int conf_maximas (int jog) {
     } else {
         return max(1, conf_tempo() * CONF_MAXIMAS / 60 / 2);
     }
-}
-
-int conf_quedas_base () {
-    return CONF_TREGUA * conf_tempo() / 60;    // 1 / 60s
-}
-
-int conf_quedas_pena () {
-    return CONF_QUEDAS * 60 / conf_tempo();    // 12% / 60s
-}
-
-int conf_aborta () {
-    return conf_tempo() / CONF_ABORTA;         // 1 queda / 15s
 }
 
 boolean conf_radar () {
@@ -248,14 +243,10 @@ void go_queda () {
     }
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
-    if (jogo_quedas() >= conf_aborta()) {
-        go_terminando();
-    } else {
-        SNDS[0].play();
-        if (RADAR_AUTO) {
-            delay(1000);
-            go_saque();
-        }
+    SNDS[0].play();
+    if (RADAR_AUTO) {
+        delay(1000);
+        go_saque();
     }
 }
 
@@ -379,7 +370,7 @@ void _jogo_tempo () {
     }
 
     JOGO_TEMPO_PASSADO = ret / 1000;
-    JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO);
+    JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO - jogo_quedas()*conf_quedas());
     JOGO_TEMPO_RESTANTE_SHOW = JOGO_TEMPO_RESTANTE;
 
     if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
@@ -601,10 +592,6 @@ int jogo_quedas () {
     return JOGO_QUEDAS + JOGO_QUEDAS_MANUAL;
 }
 
-int jogo_quedas_pct () {
-    return max(0, jogo_quedas()-conf_quedas_base()) * conf_quedas_pena();
-}
-
 int[] jogo_equ () {
     int p0 = JOGO_JOGS[0][IDX_PTS];
     int p1 = JOGO_JOGS[1][IDX_PTS];
@@ -627,7 +614,7 @@ void jogo_calc () {
     _jogo_lado(1);
 
     int[] ps = jogo_equ();
-    JOGO_TOTAL = (ps[0]+ps[1]) * (10000-jogo_quedas_pct()) / 10000;
+    JOGO_TOTAL = ps[0] + ps[1];
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -831,8 +818,7 @@ void setup () {
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
     CONF_TREGUA     = CONF.getInt("tregua");
-    CONF_QUEDAS     = CONF.getInt("quedas");
-    CONF_ABORTA     = CONF.getInt("aborta");
+    CONF_QUEDAS     = CONF.getInt("quedas");        // 2400 = 2.4s por queda para cada 60s - 12s/5min
     CONF_ESQUENTA   = CONF.getInt("esquenta");
     CONF_DESCANSO   = CONF.getInt("descanso");
     LADO_RADAR      = CONF.getInt("lado_radar") - 1;    // 0=esq, 1=dir
@@ -1039,9 +1025,6 @@ void keyPressed (KeyEvent e) {
         if (ESTADO.equals("terminado")) {
             ESTADO = "ocioso";
             if (JOGO.size() > 0) {
-                if (jogo_quedas() >= conf_aborta()) {
-                    JOGO_QUEDAS--;
-                }
                 JOGO.remove(JOGO.size()-1);
                 SNDS[4].play();
             }
@@ -1540,14 +1523,6 @@ void draw_jogo () {
         textSize(140*dy);
         textAlign(CENTER, CENTER);
         text(JOGO_TOTAL, width/2, 7*H-15*dy);
-
-        // conta
-        int[] ps = jogo_equ();
-        fill(150,150,150);
-        textSize(15*dy);
-        float pct = float(jogo_quedas_pct()) / 100;
-        String conta = "(" + (ps[0]+ps[1]) + " - " + pct + "%)";
-        text(conta, width/2, 7.5*H+20*dy);
     }
 }
 
