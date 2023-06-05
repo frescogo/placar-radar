@@ -330,7 +330,7 @@ void go_terminando () {
         BufferedWriter bw = new BufferedWriter(fw);
         PrintWriter    pw = new PrintWriter(bw);
         pw.write (
-            ts + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
+            ts + " ; " + JOGO_JOGS[3] + " ; " + JOGO_TOTAL + " ; " + jogo_quedas() + " ; " + (JOGO_DESCANSO_TOTAL/1000) + " ; " +
             CONF_NOMES[0] + " ; " + JOGO_JOGS[0][IDX_PTS] + " ; " + JOGO_JOGS[0][IDX_GLP] + " ; " + (float(JOGO_JOGS[0][IDX_MED])/100) + " ; " +
             CONF_NOMES[1] + " ; " + JOGO_JOGS[1][IDX_PTS] + " ; " + JOGO_JOGS[1][IDX_GLP] + " ; " + (float(JOGO_JOGS[1][IDX_MED])/100) + " ; " +
             "\n"
