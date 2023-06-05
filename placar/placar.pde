@@ -402,7 +402,8 @@ void _jogo_lado (int jog) {
         ArrayList<int[]> seq = JOGO.get(i);
         IntList inss = new IntList();
         int inss_now = -1;
-        for (int j=0; j<seq.size()-1; j++) {    // -1: ignora ultimo golpe
+        int J = seq.size() - (conf_radar() ? 1 : 2);
+        for (int j=0; j<J; j++) {    // -1/2: ignora ultimo golpe
             int[] golpe = seq.get(j);
             if (golpe[IDX_JOG] != jog) {
                 continue;
@@ -1080,8 +1081,8 @@ void keyPressed (KeyEvent e) {
             }
 
             int jog = (keyCode == 37) ? 0 : 1;
-            int[] golpe = { NOW, jog, 0, (BACK!=0 && abs(BACK)+500>=NOW)?1:0, 0 };
-            BACK = 0;
+            int[] golpe = { NOW, jog, 0, 0, 0 };
+
             if (conf_radar()) {
                 golpe[IDX_KMH] = 30;
             } else {
@@ -1111,15 +1112,13 @@ void keyPressed (KeyEvent e) {
         } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
             SNDS[6].play();
             BACK = (keyCode=='Z' ? -NOW : NOW);
-            if (conf_radar()) {
-                ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-                int n = seq.size();
-                if (n > 0) {
-                    int[] xxx = seq.get(n-1);
-                    if (xxx[IDX_JOG]==0 && BACK<0 || xxx[IDX_JOG]==1 && BACK>0) {
-                        if (abs(BACK)-500 < xxx[IDX_NOW]) {
-                            xxx[IDX_BAK] = 1;
-                        }
+            ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
+            int n = seq.size();
+            if (n > 0) {
+                int[] xxx = seq.get(n-1);
+                if (!conf_radar() || xxx[IDX_JOG]==0 && BACK<0 || xxx[IDX_JOG]==1 && BACK>0) {
+                    if (abs(BACK)-500 < xxx[IDX_NOW]) {
+                        xxx[IDX_BAK] = 1;
                     }
                 }
             }
