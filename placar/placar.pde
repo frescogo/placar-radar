@@ -68,12 +68,13 @@ SoundFile[] HITS = new SoundFile[7];
 
 SoundFile SND_FALL;
 SoundFile SND_RESTART;
-SoundFile SND_30s;
+SoundFile SND_30S;
 SoundFile SND_TERM;
 SoundFile SND_UNDO;
 SoundFile SND_START;
 SoundFile SND_BACK;
 SoundFile SND_INSS;
+SoundFile SND_HALF;
 
 PImage      IMG1, IMG2;
 PImage      IMG_SPEED;
@@ -790,9 +791,9 @@ void exit () {
 
 void setup () {
     surface.setTitle("FrescoGO! " + VERSAO);
-    //size(1000, 600);
+    size(1000, 600);
     //size(1300, 900);
-    fullScreen();
+    //fullScreen();
 
     dy = 0.001 * height;
     dx = 0.001 * width;
@@ -851,12 +852,13 @@ void setup () {
 
     SND_FALL    = new SoundFile(this,"snds/fall.wav");
     SND_RESTART = new SoundFile(this,"snds/restart.wav");
-    SND_30s     = new SoundFile(this,"snds/30s.wav");
+    SND_30S     = new SoundFile(this,"snds/30s.wav");
     SND_TERM    = new SoundFile(this,"snds/queda2.wav");
     SND_UNDO    = new SoundFile(this,"snds/undo.wav");
     SND_START   = new SoundFile(this,"snds/start.wav");
     SND_BACK    = new SoundFile(this,"snds/clap.wav");
     SND_INSS    = new SoundFile(this,"snds/bonus.wav");
+    SND_HALF    = new SoundFile(this,"snds/mayday.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -1193,9 +1195,15 @@ void draw () {
             RADAR_AUTO && NOW>=RADAR_AUTO_INICIO+RADAR_AUTO_TIMEOUT) {
             go_queda();
         }
-        if (JOGO_TEMPO_RESTANTE_OLD>30 && JOGO_TEMPO_RESTANTE<=30) {
-            SND_30s.play();
+
+        int half = conf_tempo()/2;
+        if (JOGO_TEMPO_RESTANTE>=half && JOGO_TEMPO_RESTANTE_OLD<half) {
+            SND_HALF.play();
         }
+        if (JOGO_TEMPO_RESTANTE_OLD>30 && JOGO_TEMPO_RESTANTE<=30) {
+            SND_30S.play();
+        }
+
         JOGO_TEMPO_RESTANTE_OLD = JOGO_TEMPO_RESTANTE;
         if (JOGO_TEMPO_RESTANTE <= 0) {
             go_terminando();
@@ -1332,7 +1340,7 @@ void draw_jogo () {
                 fill(255,0,0);
                 if (!JOGO_DESCANSO_PLAY) {
                     JOGO_DESCANSO_PLAY = true;
-                    SND_30s.play();
+                    SND_30S.play();
                 }
             } else if (ESTADO.equals("terminado")) {
                 fill(255);
