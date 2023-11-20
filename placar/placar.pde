@@ -131,7 +131,6 @@ int IDX_NOW = 0;
 int IDX_JOG = 1;
 int IDX_KMH = 2;
 int IDX_BAK = 3;
-int IDX_INS = 4;
 
 String ns (String str, int n) {
     int len = str.length();
@@ -304,7 +303,7 @@ void go_terminando () {
             for (int j=0; j<seq.size(); j++) {
                 int[] golpe = seq.get(j);
                 int ms = golpe[IDX_NOW] - JOGO_TEMPO_INICIO;
-                out += nf(ms,6) + "   " + (golpe[IDX_JOG]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + " " + (golpe[IDX_INS]==0 ? " " : "+") + " " + (golpe[IDX_BAK]==0 ? " " : "*") + "\n";
+                out += nf(ms,6) + "   " + (golpe[IDX_JOG]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + " " + " " + (golpe[IDX_BAK]==0 ? " " : "*") + "\n";
             }
             out += "\n\n";
         }
