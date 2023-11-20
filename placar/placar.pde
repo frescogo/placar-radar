@@ -39,9 +39,6 @@ int         KEY_TIMER_EXPIRE = 2000;
 boolean     ESQUENTA = false;
 int         ESQUENTA_INICIO;
 
-SoundFile[] SNDS = new SoundFile[8];
-SoundFile[] HITS = new SoundFile[7];
-
 int         CONF_TEMPO;
 int         CONF_DISTANCIA;
 int         CONF_GOLPES;
@@ -66,6 +63,17 @@ int         RADAR_OPOSI;
 int         CONF_RECORDE;
 String[]    CONF_NOMES = new String[4]; // 0=esq, 1=dir, 2=arb, 3=pre
 String      CONF_SERIAL;
+
+SoundFile[] HITS = new SoundFile[7];
+
+SoundFile SND_FALL;
+SoundFile SND_RESTART;
+SoundFile SND_30s;
+SoundFile SND_TERM;
+SoundFile SND_UNDO;
+SoundFile SND_START;
+SoundFile SND_BACK;
+SoundFile SND_INSS;
 
 PImage      IMG1, IMG2;
 PImage      IMG_SPEED;
@@ -202,7 +210,7 @@ void go_esquenta () {
     JOGO_QUEDAS             = 0;
     JOGO_QUEDAS_MANUAL      = 0;
     JOGO_TEMPO_INICIO       = millis();
-    SNDS[1].play();
+    SND_RESTART.play();
 }
 
 void go_reinicio () {
@@ -215,7 +223,7 @@ void go_reinicio () {
     JOGO_QUEDAS_MANUAL      = 0;
     JOGO_TEMPO_INICIO       = millis();
     INSS_SOUND_NEW = INSS_SOUND_OLD = 0;
-    SNDS[1].play();
+    SND_RESTART.play();
 }
 
 void go_saque () {
@@ -223,7 +231,7 @@ void go_saque () {
     ESTADO_JOGANDO = "sacando";
     JOGO_DESCANSO_INICIO = millis();
     JOGO.add(new ArrayList<int[]>());
-    SNDS[5].play();
+    SND_START.play();
     if (RADAR != null) {
         RADAR.clear();
     }
@@ -238,7 +246,7 @@ void go_queda () {
     }
     ESTADO = "ocioso";
     JOGO_QUEDAS++;
-    SNDS[0].play();
+    SND_RESTART.play();
     if (RADAR_AUTO) {
         delay(1000);
         go_saque();
@@ -251,7 +259,7 @@ void go_terminando () {
 
  void go_termino () {
     ESTADO = "terminado";
-    SNDS[3].play();
+    SND_TERM.play();
     if (JOGO_TOTAL > CONF_RECORDE) {
         CONF_RECORDE = JOGO_TOTAL;
     }
@@ -833,17 +841,6 @@ void setup () {
         CONF_INTENSIDADE = 4;
     }
 
-    SNDS[0] = new SoundFile(this,"snds/fall.wav");
-    SNDS[1] = new SoundFile(this,"snds/restart.wav");
-    SNDS[2] = new SoundFile(this,"snds/30s.wav");
-    SNDS[3] = new SoundFile(this,"snds/queda2.wav");
-    SNDS[4] = new SoundFile(this,"snds/undo.wav");
-    SNDS[5] = new SoundFile(this,"snds/start.wav");
-    SNDS[6] = new SoundFile(this,"snds/clap.wav");
-    SNDS[7] = new SoundFile(this,"snds/bonus.wav");
-    //SNDS[6] = new SoundFile(this,"snds/zip.aiff");
-    //SNDS[6] = new SoundFile(this,"behind.wav");
-
     HITS[0] = new SoundFile(this,"snds/peteleco.mp3");      // 50--60
     HITS[1] = new SoundFile(this,"snds/agudo.wav");         // 60--70
     HITS[2] = new SoundFile(this,"snds/laser.wav");         // 70--80
@@ -851,6 +848,15 @@ void setup () {
     HITS[4] = new SoundFile(this,"snds/explosion_06.wav");  // 90--100
     HITS[5] = new SoundFile(this,"snds/ambulancia.wav");    // 100--
     HITS[6] = new SoundFile(this,"snds/double.wav");        // defesa
+
+    SND_FALL    = new SoundFile(this,"snds/fall.wav");
+    SND_RESTART = new SoundFile(this,"snds/restart.wav");
+    SND_30s     = new SoundFile(this,"snds/30s.wav");
+    SND_TERM    = new SoundFile(this,"snds/queda2.wav");
+    SND_UNDO    = new SoundFile(this,"snds/undo.wav");
+    SND_START   = new SoundFile(this,"snds/start.wav");
+    SND_BACK    = new SoundFile(this,"snds/clap.wav");
+    SND_INSS    = new SoundFile(this,"snds/bonus.wav");
 
     IMG1         = loadImage(CONF.getString("imagem1"));
     IMG2         = loadImage(CONF.getString("imagem2"));
@@ -988,11 +994,11 @@ void keyPressed (KeyEvent e) {
             go_esquenta();
         } else if (keyCode == '-') {
             if (jogo_quedas() > 0) {
-                SNDS[4].play();
+                SND_UNDO.play();
                 JOGO_QUEDAS_MANUAL--;
             }
         } else if (keyCode == '=') {
-            SNDS[4].play();
+            SND_UNDO.play();
             JOGO_QUEDAS_MANUAL++;
         } else if (keyCode == 'R') {            // CTRL-R
             ESQUENTA = false;
@@ -1011,13 +1017,13 @@ void keyPressed (KeyEvent e) {
             ESTADO = "ocioso";
             if (JOGO.size() > 0) {
                 JOGO.remove(JOGO.size()-1);
-                SNDS[4].play();
+                SND_UNDO.play();
             }
         } else if (ESTADO.equals("ocioso")) {
             if (JOGO.size() > 0) {
                 JOGO_QUEDAS--;
                 JOGO.remove(JOGO.size()-1);
-                SNDS[4].play();
+                SND_UNDO.play();
             }
         } else if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("sacando")) {
             ESTADO = "ocioso";
@@ -1026,7 +1032,7 @@ void keyPressed (KeyEvent e) {
                 if (JOGO.size() > 0) {
                     JOGO_QUEDAS--;
                     JOGO.remove(JOGO.size()-1);
-                    SNDS[4].play();
+                    SND_UNDO.play();
                 }
             }
         }
@@ -1110,7 +1116,7 @@ void keyPressed (KeyEvent e) {
 
             sound(kmh, prv);
         } else if (CONF_MAXIMAS!=0 && (keyCode=='Z' || keyCode=='M')) {
-            SNDS[6].play();
+            SND_BACK.play();
             BACK = (keyCode=='Z' ? -NOW : NOW);
             ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
             int n = seq.size();
@@ -1188,7 +1194,7 @@ void draw () {
             go_queda();
         }
         if (JOGO_TEMPO_RESTANTE_OLD>30 && JOGO_TEMPO_RESTANTE<=30) {
-            SNDS[2].play();
+            SND_30s.play();
         }
         JOGO_TEMPO_RESTANTE_OLD = JOGO_TEMPO_RESTANTE;
         if (JOGO_TEMPO_RESTANTE <= 0) {
@@ -1202,7 +1208,7 @@ void draw () {
     if (INSS_SOUND_NEW > INSS_SOUND_OLD) {
         INSS_SOUND_OLD = INSS_SOUND_NEW;
 //println("ok");
-        SNDS[7].play();
+        SND_INSS.play();
     }
     draw_jogo();
 }
@@ -1326,7 +1332,7 @@ void draw_jogo () {
                 fill(255,0,0);
                 if (!JOGO_DESCANSO_PLAY) {
                     JOGO_DESCANSO_PLAY = true;
-                    SNDS[2].play();
+                    SND_30s.play();
                 }
             } else if (ESTADO.equals("terminado")) {
                 fill(255);
