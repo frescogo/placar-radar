@@ -43,7 +43,6 @@ int         CONF_TEMPO;
 int         CONF_DISTANCIA;
 int         CONF_GOLPES;
 int         CONF_EQUILIBRIO;
-int         CONF_VEL_MIN;
 int         CONF_VEL_MAX;
 int         CONF_MAXIMAS;
 int         CONF_INTENSIDADE;
@@ -429,19 +428,17 @@ void _jogo_lado (int jog) {
                 prev2 = seq.get(j-2);
             }
 
-            if (kmh >= CONF_VEL_MIN) {
-                kmhs.append(kmh);
+            kmhs.append(kmh);
 
-                // ataque nrm/bak valido?
-                if (CONF_MAXIMAS!=0 && j>0) { // precisa de golpe anterior
-                    int kmh2 = jogo_kmh(seq,j-1);
-                    // se passou 1s || repetiu jog || 20% mais forte
-                    if (prev1[IDX_NOW]+1000<golpe[IDX_NOW] || prev1[IDX_JOG]==jog || kmh2*1.2<=kmh) {
-                        if (golpe[IDX_BAK] == 0) {
-                            nrms.append(kmh);
-                        } else {
-                            baks.append(kmh);
-                        }
+            // ataque nrm/bak valido?
+            if (CONF_MAXIMAS!=0 && j>0) { // precisa de golpe anterior
+                int kmh2 = jogo_kmh(seq,j-1);
+                // se passou 1s || repetiu jog || 20% mais forte
+                if (prev1[IDX_NOW]+1000<golpe[IDX_NOW] || prev1[IDX_JOG]==jog || kmh2*1.2<=kmh) {
+                    if (golpe[IDX_BAK] == 0) {
+                        nrms.append(kmh);
+                    } else {
+                        baks.append(kmh);
                     }
                 }
             }
@@ -452,7 +449,7 @@ void _jogo_lado (int jog) {
                 boolean ok0 = (golpe[IDX_NOW] <= inss_now+INSS_DIFF);
                 boolean ok1 = (j<=0 || prev1[IDX_JOG]==jog);
                 boolean ok2 = (j<=1 || prev2[IDX_JOG]==jog);
-                if ((n==0 || (ok0 && (ok1 || ok2))) && kmh>=CONF_VEL_MIN) {
+                if ((n==0 || (ok0 && (ok1 || ok2)))) {
                     if (inss.size() == 2*CONF_INTENSIDADE-1) {
                         IntList tmp = new IntList();
                         int z = inss.size();
@@ -478,9 +475,7 @@ void _jogo_lado (int jog) {
                         _jogo_lado_ins(seq, inss);
                     }
                     inss.clear();
-                    if (kmh >= CONF_VEL_MIN) {
-                        inss.append(j);
-                    }
+                    inss.append(j);
                 }
             }
         }
@@ -812,7 +807,6 @@ void setup () {
     CONF_DISTANCIA  = CONF.getInt("distancia");  // 750cm = 7.5m
     CONF_GOLPES     = CONF.getInt("golpes");     // 60 golpes por minuto para a dupla
     CONF_EQUILIBRIO = CONF.getInt("equilibrio"); // 130=30% de diferenca maxima entre os atletas (0=desligado)
-    CONF_VEL_MIN    = CONF.getInt("minima");     // 50km/h menor velocidade contabilizada
     CONF_VEL_MAX    = CONF.getInt("maxima");     // 85km/h maior velocidade contabilizada no modo manual
     CONF_MAXIMAS    = CONF.getInt("potentes");    // 10=5 ataques de cada lado por minuto
     CONF_INTENSIDADE = CONF.getInt("continuos"); // 10 golpes continuos
@@ -910,32 +904,19 @@ void setup () {
 }
 
 void sound (int kmh, int prv) {
-//println(kmh);
-    if (kmh < CONF_VEL_MIN) {
-//println("min");
-        if (!conf_radar()) {
-            HITS[0].play();
-        }
-    } else if (prv > kmh) {
+    if (kmh<50 || prv>kmh) {
         HITS[6].play();
-//println("defesa");
     } else if (kmh < 60) {
-//println("<60");
         HITS[0].play();
     } else if (kmh < 70) {
-//println("<70");
         HITS[1].play();
     } else if (kmh < 80) {
-//println("<80");
         HITS[2].play();
     } else if (kmh < 90) {
-//println("<90");
         HITS[3].play();
     } else if (kmh < 100) {
-//println("<100");
         HITS[4].play();
     } else {
-//println("<xxx");
         HITS[5].play();
     }
 }
@@ -1108,8 +1089,7 @@ void keyPressed (KeyEvent e) {
                 if (n > 2) {
                     prv = jogo_kmh(seq, n-3);
                     int[] xxx = seq.get(n-2);
-                    if (kmh>=CONF_VEL_MIN && kmh<prv &&
-                        golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
+                    if (kmh<prv && golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
                     } else {
                         prv = 0;
                     }
@@ -1175,8 +1155,7 @@ void draw () {
                     int prv = 0;
                     if (n > 0) {
                         int[] xxx = seq.get(n-1);
-                        if (kmh>=CONF_VEL_MIN && kmh<xxx[IDX_KMH] &&
-                            golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
+                        if (kmh<xxx[IDX_KMH] && golpe[IDX_JOG]!=xxx[IDX_JOG] && NOW-750<xxx[IDX_NOW]) {
                             prv = xxx[IDX_KMH];
                         }
                     }
@@ -1571,11 +1550,7 @@ void draw_ultima (float x, int kmh) {
     if (kmh == 0) {
         return;
     }
-    if (kmh >= CONF_VEL_MIN) {
-        fill(0);
-    } else {
-        fill(200,200,200);
-    }
+    fill(0);
     textAlign(CENTER, BOTTOM);
     textSize(120*dy);
     text(kmh, x, 4*H+45*dy);
