@@ -98,7 +98,7 @@ int         BACK = 0;
 int         JOGO_DESCANSO_TOTAL, JOGO_DESCANSO_INICIO;
 boolean     JOGO_DESCANSO_PLAY;
 int         JOGO_TOTAL, JOGO_QUEDAS, JOGO_QUEDAS_MANUAL;
-int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_SHOW, JOGO_TEMPO_RESTANTE_OLD;
+int         JOGO_TEMPO_INICIO, JOGO_TEMPO_PASSADO, JOGO_TEMPO_RESTANTE, JOGO_TEMPO_RESTANTE_OLD;
 
 int[][]     JOGO_JOGS = new int[2][11];
   // pts, golpes, med, min, max, med_min, med_max, n_nrms,n_baks,k_nrms,k_baks
@@ -151,14 +151,14 @@ String conf_pars () {
 }
 
 int conf_tregua () {
-    return CONF_TREGUA * CONF_TEMPO / 60;    // 1 / 60s
+    return CONF_TREGUA * CONF_TEMPO / 60;           // 5 quedas de tregua no tempo
 }
 
 int conf_quedas () {
-    return CONF_QUEDAS * CONF_TEMPO / 60 / 1000;
+    return CONF_QUEDAS * CONF_TEMPO / 60 / 1000;   // 12s de desconto por queda
 }
 
-int conf_tempo () {
+int conf_tempo () {     // 300 + 5*12 = 360 = 6min
     return (ESQUENTA ? CONF_ESQUENTA : CONF_TEMPO+conf_tregua()*conf_quedas());
 }
 
@@ -338,37 +338,28 @@ void go_terminando () {
 ///////////////////////////////////////////////////////////////////////////////
 
 void _jogo_tempo () {
-    int ret = 0;
+    int t = 0;
     int last = NOW;
 
     if (ESQUENTA) {
         if (!ESTADO.equals("ocioso")) {
-            ret = NOW - ESQUENTA_INICIO;
+            t = NOW - ESQUENTA_INICIO;
         }
     } else {
-        for (int i=0; i<JOGO.size(); i++) {
-            ArrayList<int[]> seq = JOGO.get(i);
-            int S = seq.size();
-            if (S > 0) {
-                last = seq.get(S-1)[IDX_NOW];
-                if (S >= 2) {
-                    ret += (last - seq.get(0)[IDX_NOW]);
-                }
+        int[] prv = null;
+        for (int i=0; i<JOGO.size(); i++) {     // SUM(t[f]-t[0]) das seqs
+            int[] cur = JOGO.get(i);
+            if (cur == null) {
+                t += conf_quedas() * 1000;
+            } else if (prv != null) {
+                t += (cur[IDX_NOW] - prv[IDX_NOW]);
             }
+            prv = cur;
         }
-        //if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
-        //    ArrayList<int[]> seq = JOGO.get(JOGO.size()-1);
-        //    ret += millis() - seq.get(seq.size()-1)[0];
-        //}
     }
 
-    JOGO_TEMPO_PASSADO = ret / 1000;
-    JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO - jogo_quedas()*conf_quedas());
-    JOGO_TEMPO_RESTANTE_SHOW = JOGO_TEMPO_RESTANTE;
-
-    if (ESTADO.equals("jogando") && ESTADO_JOGANDO.equals("jogando")) {
-        JOGO_TEMPO_RESTANTE_SHOW -= ((NOW - last) / 1000);
-    }
+    JOGO_TEMPO_PASSADO = t / 1000;
+    JOGO_TEMPO_RESTANTE = max(0, conf_tempo()-JOGO_TEMPO_PASSADO);
 }
 
 void _jogo_lado (int jog) {
@@ -724,7 +715,7 @@ void setup () {
     CONF_MAXIMAS    = CONF.getInt("potentes");    // 10=5 ataques de cada lado por minuto
     CONF_SAQUE      = CONF.getInt("saque");      // 45km/h menor velocidade que considera saque no modo autonomo
     CONF_TRINCA     = CONF.getBoolean("trinca");
-    CONF_TREGUA     = CONF.getInt("tregua");
+    CONF_TREGUA     = CONF.getInt("tregua");        // 1/60s = tempo a mais no tempo base (12*5 = 60s)
     CONF_QUEDAS     = CONF.getInt("quedas");        // 2400 = 2.4s por queda para cada 60s - 12s/5min
     CONF_ESQUENTA   = CONF.getInt("esquenta");
     CONF_DESCANSO   = CONF.getInt("descanso");
@@ -1172,7 +1163,7 @@ void draw_jogo () {
 
     // TEMPO
     {
-        int show = max(5, JOGO_TEMPO_RESTANTE_SHOW);
+        int show = max(5, JOGO_TEMPO_RESTANTE);
         String mins = nf(show / 60, 2);
         String segs = nf(show % 60, 2);
 
