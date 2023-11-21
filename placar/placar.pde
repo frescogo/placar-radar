@@ -382,30 +382,26 @@ void _jogo_lado (int jog) {
             continue;
         }
 
-        int kmh = jogo_kmh(i);
+        int  kmh_cur = jogo_kmh(i);
+        int  kmh_prv = 0;
+        bool is_ata  = false;
 
-            int[] prev1 = new int[] {};
-            int[] prev2 = new int[] {};
-            if (j > 0) {
-                prev1 = seq.get(j-1);
-            }
-            if (j > 1) {
-                prev2 = seq.get(j-2);
-            }
+        if (prv != null) {
+            kmh_prv = jogo_kmh(i-1);
+            is_ata = (prv[IDX_NOW]+1000 < cur[IDX_NOW]) ||
+                     (prv[IDX_JOG] == jog)              ||
+                     (kmh_prv <= kmh_cur*0.8;
+        }
 
+        if (t<conf_tempo()/2 || is_ata) {
             kmhs.append(kmh);
+        }
 
-            // ataque nrm/bak valido?
-            if (CONF_MAXIMAS!=0 && j>0) { // precisa de golpe anterior
-                int kmh2 = jogo_kmh(seq,j-1);
-                // se passou 1s || repetiu jog || 20% mais forte
-                if (prev1[IDX_NOW]+1000<golpe[IDX_NOW] || prev1[IDX_JOG]==jog || kmh2*1.2<=kmh) {
-                    if (golpe[IDX_BAK] == 0) {
-                        nrms.append(kmh);
-                    } else {
-                        baks.append(kmh);
-                    }
-                }
+        if (CONF_MAXIMAS!=0 && is_ata) {
+            if (cur[IDX_BAK] == 0) {
+                nrms.append(kmh);
+            } else {
+                baks.append(kmh);
             }
         }
     }
