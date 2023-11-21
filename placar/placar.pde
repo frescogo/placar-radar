@@ -120,12 +120,11 @@ float       dx; // 0.001 width
 float       W;
 float       H;
 
-ArrayList<ArrayList> JOGO = new ArrayList<ArrayList>();
-    // /------------ seqs -----------\
-    //    /--------- seq ---------\
-    //      /------ golpe ------\
-    // { { { now,jog,kmh,bak,ins } } }
-    //        0   1   2   3   4
+ArrayList<int[]> JOGO; // = new ArrayList<int[]>()
+    //  /------- golpes --------\
+    //    /------ golpe ------\
+    // { { now,jog,kmh,bak } }
+    //      0   1   2   3
 
 int IDX_NOW = 0;
 int IDX_JOG = 1;
@@ -194,7 +193,7 @@ boolean conf_radar () {
 
 void go_esquenta () {
     ESTADO = "ocioso";
-    JOGO = new ArrayList<ArrayList>();
+    JOGO = new ArrayList<int[]>();
     JOGO_DESCANSO_TOTAL     = 0;
     JOGO_DESCANSO_PLAY      = false;
     JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
@@ -206,7 +205,7 @@ void go_esquenta () {
 
 void go_reinicio () {
     ESTADO = "ocioso";
-    JOGO = new ArrayList<ArrayList>();
+    JOGO = new ArrayList<int[]>();
     JOGO_DESCANSO_TOTAL     = 0;
     JOGO_DESCANSO_PLAY      = false;
     JOGO_TEMPO_RESTANTE_OLD = conf_tempo();
@@ -220,7 +219,6 @@ void go_saque () {
     ESTADO = "jogando";
     ESTADO_JOGANDO = "sacando";
     JOGO_DESCANSO_INICIO = millis();
-    JOGO.add(new ArrayList<int[]>());
     SND_START.play();
     if (RADAR != null) {
         RADAR.clear();
@@ -298,14 +296,15 @@ void go_terminando () {
                    + ns("Total:",         15) + nf(JOGO_TOTAL,5) + " pontos\n"
                    + "\n";
         for (int i=0; i<JOGO.size(); i++) {
-            ArrayList<int[]> seq = JOGO.get(i);
-            out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH + *\n-----   ---   --- - -\n";
-            for (int j=0; j<seq.size(); j++) {
-                int[] golpe = seq.get(j);
-                int ms = golpe[IDX_NOW] - JOGO_TEMPO_INICIO;
-                out += nf(ms,6) + "   " + (golpe[IDX_JOG]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(seq,j),3) + " " + " " + (golpe[IDX_BAK]==0 ? " " : "*") + "\n";
+            int[] golpe = JOGO.get(i);
+            if (i==0 || golpe==null) {
+                out += "SEQUÊNCIA " + nf(i+1,2) + "\n============\n\nTEMPO   DIR   KMH + *\n-----   ---   --- - -\n";
             }
-            out += "\n\n";
+            int ms = golpe[IDX_NOW] - JOGO_TEMPO_INICIO;
+            out += nf(ms,6) + "   " + (golpe[IDX_JOG]==0 ? "->" : "<-") + "   " + nf(jogo_kmh(i),3) + " " + " " + (golpe[IDX_BAK]==0 ? " " : "*") + "\n";
+            if (i==0 || golpe==null) {
+                out += "\n\n";
+            }
         }
         String[] outs = { out };
         String name = "relatorios/frescogo-"+ts+"-"+CONF_NOMES[0]+"-"+CONF_NOMES[1]+".txt";
@@ -367,16 +366,23 @@ void _jogo_lado (int jog) {
     IntList nrms = new IntList();
     IntList baks = new IntList();
 
-    for (int i=0; i<JOGO.size(); i++) {
-        ArrayList<int[]> seq = JOGO.get(i);
-        int J = seq.size() - (conf_radar() ? 1 : 2);
-        for (int j=0; j<J; j++) {    // -1/2: ignora ultimo golpe
-            int[] golpe = seq.get(j);
-            if (golpe[IDX_JOG] != jog) {
-                continue;
-            }
+    int t = 0;
 
-            int kmh = jogo_kmh(seq,j);
+    for (int i=1; i<JOGO.size()-1; i++) {
+        int[] prv = JOGO.get(i-1);
+        int[] cur = JOGO.get(i);
+        int[] nxt = JOGO.get(i+1);
+        if (cur == null) {
+            t += conf_quedas() * 1000;
+        } else if (prv != null) {
+            t += (cur[IDX_NOW] - prx[IDX_NOW]);
+        }
+
+        if (cur[IDX_JOG] != jog) {
+            continue;
+        }
+
+        int kmh = jogo_kmh(i);
 
             int[] prev1 = new int[] {};
             int[] prev2 = new int[] {};
@@ -473,17 +479,21 @@ void _jogo_lado (int jog) {
     JOGO_JOGS[jog][IDX_MBAKS] = bak1 * 100 / maxs;
 }
 
-int jogo_kmh (ArrayList<int[]> seq, int i) {
-    int[] cur = seq.get(i);
+int jogo_kmh (int i) {
+    int[] cur = JOGO.get(i);
     int kmh = cur[IDX_KMH];
     if (kmh != 0) {     // radar ligado
         return min(100, kmh); // >100 probably error
     } else {            // radar desligado
-        if (seq.size() < i+2) {
+        if (JOGO.size() < i+2) {
             return 0;
         } else {
-            int[] nxt = seq.get(i+1);
-            return min(CONF_VEL_MAX, 36 * CONF_DISTANCIA / (nxt[IDX_NOW] - cur[IDX_NOW]));
+            int[] nxt = JOGO.get(i+1);
+            if (nxt == null) {
+                return 0;
+            } else {
+                return min(CONF_VEL_MAX, 36 * CONF_DISTANCIA / (nxt[IDX_NOW] - cur[IDX_NOW]));
+            }
         }
     }
 }
